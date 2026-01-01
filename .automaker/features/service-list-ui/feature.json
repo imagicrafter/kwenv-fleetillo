@@ -1,0 +1,23 @@
+{
+  "id": "service-list-ui",
+  "category": "UI",
+  "title": "Build Service Catalog Page",
+  "description": "Create user interface for displaying all services with filtering and search capabilities. Note: Do not modify any code in the electron-launcher folder.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "simple",
+  "dependencies": [
+    "web-server-setup",
+    "api-routes-services"
+  ],
+  "createdAt": "2025-12-27T06:30:30.000Z",
+  "updatedAt": "2025-12-27T06:30:30.000Z",
+  "skipTests": false,
+  "model": "opus",
+  "thinkingLevel": "none",
+  "imagePaths": [],
+  "textFilePaths": [],
+  "branchName": "main",
+  "planningMode": "skip",
+  "requirePlanApproval": false
+}

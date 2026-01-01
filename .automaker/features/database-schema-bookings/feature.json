@@ -1,0 +1,25 @@
+{
+  "id": "database-schema-bookings",
+  "category": "Database",
+  "title": "Create Bookings Table Schema",
+  "description": "Bookings table schema defined and created in Supabase routeiq schema. Reference: supabase/migrations scripts for current schema state including booking details, client references, service references, dates, and booking types (one-time/recurring).",
+  "status": "completed",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "supabase-connection",
+    "database-schema-clients",
+    "database-schema-services"
+  ],
+  "createdAt": "2025-12-27T06:30:29.995Z",
+  "updatedAt": "2025-12-28T15:50:06.655Z",
+  "skipTests": false,
+  "model": "sonnet",
+  "thinkingLevel": "medium",
+  "imagePaths": [],
+  "textFilePaths": [],
+  "branchName": "main",
+  "planningMode": "skip",
+  "requirePlanApproval": false,
+  "startedAt": "2025-12-28T15:35:47.424Z"
+}

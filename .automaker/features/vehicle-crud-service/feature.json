@@ -1,0 +1,25 @@
+{
+  "id": "vehicle-crud-service",
+  "category": "Business Logic",
+  "title": "Implement Vehicle CRUD Service",
+  "description": "Service layer for vehicle management with support for service type tagging, availability tracking, and status updates. Fully implemented during electron UI development.",
+  "status": "completed",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "api-client-service",
+    "service-crud-service",
+    "error-handling-framework"
+  ],
+  "createdAt": "2025-12-27T06:30:29.997Z",
+  "updatedAt": "2025-12-28T19:40:55.499Z",
+  "skipTests": false,
+  "model": "sonnet",
+  "thinkingLevel": "medium",
+  "imagePaths": [],
+  "textFilePaths": [],
+  "branchName": "main",
+  "planningMode": "skip",
+  "requirePlanApproval": false,
+  "startedAt": "2025-12-28T19:34:51.834Z"
+}

@@ -1,0 +1,17 @@
+{
+  "id": "api-routes-clients",
+  "category": "API",
+  "title": "Create Client Management API Routes",
+  "description": "Implement HTTP API endpoints for client CRUD operations with proper request validation and error responses.",
+  "status": "verified",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "web-server-setup",
+    "client-crud-service"
+  ],
+  "createdAt": "2025-12-27T06:30:29.999Z",
+  "updatedAt": "2025-12-29T00:46:34.540Z",
+  "branchName": "main",
+  "startedAt": "2025-12-29T00:38:13.766Z"
+}

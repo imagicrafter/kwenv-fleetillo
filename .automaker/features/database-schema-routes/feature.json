@@ -1,0 +1,25 @@
+{
+  "id": "database-schema-routes",
+  "category": "Database",
+  "title": "Create Routes Table Schema",
+  "description": "Routes table schema defined and created in Supabase routeiq schema. Reference: supabase/migrations scripts for current schema state including generated route plans with vehicle, date, and optimization details.",
+  "status": "completed",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "supabase-connection",
+    "database-schema-vehicles",
+    "database-schema-bookings"
+  ],
+  "createdAt": "2025-12-27T06:30:29.995Z",
+  "updatedAt": "2025-12-28T16:19:07.655Z",
+  "skipTests": false,
+  "model": "sonnet",
+  "thinkingLevel": "medium",
+  "imagePaths": [],
+  "textFilePaths": [],
+  "branchName": "main",
+  "planningMode": "skip",
+  "requirePlanApproval": false,
+  "startedAt": "2025-12-28T16:06:39.131Z"
+}

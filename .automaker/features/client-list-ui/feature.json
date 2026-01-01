@@ -1,0 +1,23 @@
+{
+  "id": "client-list-ui",
+  "category": "UI",
+  "title": "Build Client List Page",
+  "description": "Create user interface for displaying all clients with filtering, search, and pagination capabilities. Note: Do not modify any code in the electron-launcher folder.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "web-server-setup",
+    "api-routes-clients"
+  ],
+  "createdAt": "2025-12-27T06:30:30.000Z",
+  "updatedAt": "2025-12-27T06:30:30.000Z",
+  "skipTests": false,
+  "model": "opus",
+  "thinkingLevel": "none",
+  "imagePaths": [],
+  "textFilePaths": [],
+  "branchName": "main",
+  "planningMode": "skip",
+  "requirePlanApproval": false
+}

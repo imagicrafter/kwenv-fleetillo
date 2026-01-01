@@ -1,0 +1,17 @@
+{
+  "id": "booking-calendar-ui",
+  "category": "UI",
+  "title": "Build Booking Calendar Interface",
+  "description": "Create interactive calendar-based user interface for viewing and managing bookings across dates and clients.",
+  "status": "verified",
+  "priority": 1,
+  "complexity": "complex",
+  "dependencies": [
+    "web-server-setup",
+    "api-routes-bookings"
+  ],
+  "createdAt": "2025-12-27T06:30:30.001Z",
+  "updatedAt": "2025-12-30T22:16:34.067Z",
+  "branchName": "main",
+  "startedAt": "2025-12-30T21:57:07.182Z"
+}

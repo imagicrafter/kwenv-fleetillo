@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteIQ Dashboard (V1)</title>
+    <!-- Use a modern Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon">IQ</div>
+                <h1>RouteIQ</h1>
+            </div>
+
+            <nav class="nav-menu">
+                <!-- Dashboard -->
+                <a href="#" class="nav-item active">
+                    <span class="icon">📊</span>
+                    Dashboard
+                </a>
+
+                <!-- Planning Group -->
+                <div class="nav-group">
+                    <div class="nav-item nav-header" onclick="toggleGroup(this)">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span class="icon">💼</span>
+                            Planning
+                        </div>
+                        <span class="nav-chevron">▶</span>
+                    </div>
+                    <div class="nav-children">
+                        <a href="customers.html" class="nav-child-item">Customers</a>
+                        <a href="services.html" class="nav-child-item">Services</a>
+                        <a href="bookings.html" class="nav-child-item">Bookings</a>
+                        <a href="calendar.html" class="nav-child-item">Calendar</a>
+                        <a href="locations.html" class="nav-child-item">Locations</a>
+                    </div>
+                </div>
+
+                <!-- Fleet Group -->
+                <div class="nav-group">
+                    <div class="nav-item nav-header" onclick="toggleGroup(this)">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span class="icon">🚛</span>
+                            Fleet
+                        </div>
+                        <span class="nav-chevron">▶</span>
+                    </div>
+                    <div class="nav-children">
+                        <a href="vehicles.html" class="nav-child-item">Vehicles</a>
+                        <a href="#" class="nav-child-item">Drivers</a>
+                    </div>
+                </div>
+
+                <!-- Routes -->
+                <a href="routes.html" class="nav-item">
+                    <span class="icon">🗺️</span>
+                    Routes
+                </a>
+
+                <!-- Settings -->
+                <a href="#" class="nav-item">
+                    <span class="icon">⚙️</span>
+                    Settings
+                </a>
+            </nav>
+
+            <script>
+                function toggleGroup(header) {
+                    const group = header.parentElement;
+                    group.classList.toggle('expanded');
+                }
+            </script>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="avatar">JM</div>
+                    <div class="details">
+                        <span class="name">Admin User</span>
+                        <span class="role">Administrator</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-bar">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="Search routes, drivers...">
+                </div>
+                <div class="actions">
+                    <button class="btn-icon">🔔</button>
+                    <!-- <button class="btn-primary">+ New Route</button> -->
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="page-header">
+                    <h2>Overview</h2>
+                    <span class="date">October 24, 2025</span>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="card stat-card">
+                        <div class="stat-icon warning">📦</div>
+                        <div class="stat-details">
+                            <span class="label">Total Deliveries</span>
+                            <span class="value">1,248</span>
+                            <span class="trend positive">↑ 12% vs last week</span>
+                        </div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-icon success">🚚</div>
+                        <div class="stat-details">
+                            <span class="label">Active Vehicles</span>
+                            <span class="value">24</span>
+                            <span class="trend neutral">sc 2 offline</span>
+                        </div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-icon danger">⛽</div>
+                        <div class="stat-details">
+                            <span class="label">Fuel Efficiency</span>
+                            <span class="value">8.4 <small>km/L</small></span>
+                            <span class="trend negative">↓ 2% vs last week</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Dashboard Section -->
+                <div class="dashboard-split">
+                    <div class="card chart-section">
+                        <div class="card-header">
+                            <h3>Live Fleet Map</h3>
+                            <button class="btn-text">View Full Map</button>
+                        </div>
+                        <div class="placeholder-map">
+                            <div class="map-overlay">
+                                <p>Interactive Map Module</p>
+                                <small>Connecting to RouteIQ Services...</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card recent-activity">
+                        <div class="card-header">
+                            <h3>Recent Activity</h3>
+                        </div>
+                        <ul class="activity-list">
+                            <li class="activity-item">
+                                <span class="dot success"></span>
+                                <div class="activity-text">
+                                    <p><strong>Route #492</strong> completed by <strong>John D.</strong></p>
+                                    <small>2 minutes ago</small>
+                                </div>
+                            </li>
+                            <li class="activity-item">
+                                <span class="dot warning"></span>
+                                <div class="activity-text">
+                                    <p><strong>Vehicle V-02</strong> reported implementation delay</p>
+                                    <small>15 minutes ago</small>
+                                </div>
+                            </li>
+                            <li class="activity-item">
+                                <span class="dot primary"></span>
+                                <div class="activity-text">
+                                    <p>New route query received from API</p>
+                                    <small>1 hour ago</small>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- System Info (From Electron) -->
+                <footer class="system-info">
+                    <p>Powered by RouteIQ Core • Electron <span id="electron-version"></span> • Node <span
+                            id="node-version"></span></p>
+                </footer>
+            </div>
+        </main>
+    </div>
+    <script src="../preload.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Services - RouteIQ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .nav-group.expanded .nav-children {
+            display: flex;
+        }
+    </style>
+</head>
+
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon">IQ</div>
+                <h1>RouteIQ</h1>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item">
+                    <span class="icon">📊</span>
+                    Dashboard
+                </a>
+
+                <!-- Planning Group (Expanded) -->
+                <div class="nav-group expanded">
+                    <div class="nav-item nav-header" onclick="toggleGroup(this)">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span class="icon">💼</span>
+                            Planning
+                        </div>
+                        <span class="nav-chevron" style="transform: rotate(90deg);">▶</span>
+                    </div>
+                    <div class="nav-children">
+                        <a href="customers.html" class="nav-child-item">Customers</a>
+                        <a href="services.html" class="nav-child-item"
+                            style="color: var(--text-primary); background-color: rgba(255,255,255,0.05);">Services</a>
+                        <a href="bookings.html" class="nav-child-item">Bookings</a>
+                        <a href="calendar.html" class="nav-child-item">Calendar</a>
+                        <a href="locations.html" class="nav-child-item">Locations</a>
+                    </div>
+                </div>
+
+                <!-- Fleet Group -->
+                <div class="nav-group">
+                    <div class="nav-item nav-header" onclick="toggleGroup(this)">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span class="icon">🚛</span>
+                            Fleet
+                        </div>
+                        <span class="nav-chevron">▶</span>
+                    </div>
+                    <div class="nav-children">
+                        <a href="vehicles.html" class="nav-child-item">Vehicles</a>
+                        <a href="#" class="nav-child-item">Drivers</a>
+                    </div>
+                </div>
+
+                <a href="routes.html" class="nav-item">
+                    <span class="icon">🗺️</span>
+                    Routes
+                </a>
+
+                <a href="#" class="nav-item">
+                    <span class="icon">⚙️</span>
+                    Settings
+                </a>
+            </nav>
+
+            <script>
+                function toggleGroup(header) {
+                    const group = header.parentElement;
+                    group.classList.toggle('expanded');
+                    const chevron = header.querySelector('.nav-chevron');
+                    if (group.classList.contains('expanded')) {
+                        chevron.style.transform = 'rotate(90deg)';
+                    } else {
+                        chevron.style.transform = 'rotate(0deg)';
+                    }
+                }
+            </script>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="avatar">JM</div>
+                    <div class="details">
+                        <span class="name">Admin User</span>
+                        <span class="role">Administrator</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-bar">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="Search services...">
+                </div>
+                <div class="actions">
+                    <button id="add-service-btn" class="btn-primary">+ Add Service</button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="page-header">
+                    <h2>Services</h2>
+                    <span class="date">Manage service catalog</span>
+                </div>
+
+                <!-- Services Table -->
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name / Code</th>
+                                <th>Type</th>
+                                <th>Duration</th>
+                                <th>Price</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="services-table-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Footer -->
+                <div class="pagination-footer"
+                    style="padding: 16px 20px; border-top: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between;">
+                    <div class="rows-per-page">
+                        <label for="rows-select" style="margin-right: 8px; color: var(--text-secondary);">Rows per
+                            page:</label>
+                        <select id="rows-select"
+                            style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); color: var(--text-primary); border-radius: 4px; padding: 4px 8px;">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                    <div class="pagination-controls" style="display: flex; align-items: center; gap: 16px;">
+                        <span id="pagination-info" style="color: var(--text-secondary); font-size: 0.9rem;">0-0 of
+                            0</span>
+                        <div class="page-nav">
+                            <button id="prev-page-btn" class="action-btn" style="padding: 4px 8px;"
+                                disabled>Previous</button>
+                            <button id="next-page-btn" class="action-btn" style="padding: 4px 8px;"
+                                disabled>Next</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Service Modal -->
+    <div id="add-service-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Add New Service</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="service-form">
+                    <input type="hidden" id="service-id">
+                    <div class="form-group">
+                        <label for="service-name">Name *</label>
+                        <input type="text" id="service-name" required placeholder="e.g. Standard Delivery">
+                    </div>
+                    <div class="form-group">
+                        <label for="service-code">Code *</label>
+                        <input type="text" id="service-code" required placeholder="e.g. DEL-STD">
+                    </div>
+                    <div class="form-group">
+                        <label for="service-type">Type *</label>
+                        <select id="service-type">
+                            <option value="delivery">Delivery</option>
+                            <option value="installation">Installation</option>
+                            <option value="maintenance">Maintenance</option>
+                            <option value="consultation">Consultation</option>
+                            <option value="rental">Rental</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="service-description">Description</label>
+                        <textarea id="service-description" rows="3"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="service-duration">Avg. Duration (min) *</label>
+                            <input type="number" id="service-duration" required min="1" placeholder="30">
+                        </div>
+                        <div class="form-group">
+                            <label for="service-price">Base Price ($) *</label>
+                            <input type="number" id="service-price" required min="0" step="0.01" placeholder="0.00">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="service-status">Status</label>
+                        <select id="service-status">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="discontinued">Discontinued</option>
+                        </select>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary close-modal-btn">Cancel</button>
+                        <button type="submit" class="btn-primary">Save Service</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: var(--bg-card);
+            margin: 5% auto;
+            padding: 0;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            width: 500px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .close-modal {
+            color: var(--text-secondary);
+            font-size: 28px;
+            font-weight: normal;
+            cursor: pointer;
+            line-height: 1;
+            background: none;
+            border: none;
+        }
+
+        .close-modal:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            background-color: rgba(64, 169, 255, 0.05);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text-secondary);
+            color: var(--text-primary);
+        }
+    </style>
+
+    <script src="../preload.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tableBody = document.getElementById('services-table-body');
+            const addServiceBtn = document.getElementById('add-service-btn');
+            const modal = document.getElementById('add-service-modal');
+            const closeModalBtns = document.querySelectorAll('.close-modal, .close-modal-btn');
+            const serviceForm = document.getElementById('service-form');
+            const modalTitle = document.getElementById('modal-title');
+            const searchInput = document.querySelector('.search-bar input');
+
+            // Form Fields
+            const idField = document.getElementById('service-id');
+            const nameField = document.getElementById('service-name');
+            const codeField = document.getElementById('service-code');
+            const typeField = document.getElementById('service-type');
+            const descField = document.getElementById('service-description');
+            const durationField = document.getElementById('service-duration');
+            const priceField = document.getElementById('service-price');
+            const statusField = document.getElementById('service-status');
+
+            let isEditing = false;
+            let currentServices = []; // Store for client-side access if needed
+            let currentPage = 1;
+            let limit = 10;
+            let totalItems = 0;
+
+            const rowsSelect = document.getElementById('rows-select');
+            const prevPageBtn = document.getElementById('prev-page-btn');
+            const nextPageBtn = document.getElementById('next-page-btn');
+            const paginationInfo = document.getElementById('pagination-info');
+
+            // Modal Functions
+            function openModal(editMode = false) {
+                isEditing = editMode;
+                if (modalTitle) modalTitle.textContent = editMode ? 'Edit Service' : 'Add New Service';
+                if (modal) modal.style.display = 'block';
+            }
+
+            function closeModal() {
+                if (modal) modal.style.display = 'none';
+                if (serviceForm) serviceForm.reset();
+                if (idField) idField.value = '';
+                isEditing = false;
+            }
+
+            // Event Listeners
+            if (addServiceBtn) {
+                addServiceBtn.addEventListener('click', () => openModal(false));
+            } else {
+                console.error('Add Service Button not found');
+            }
+
+            closeModalBtns.forEach(btn => {
+                btn.addEventListener('click', closeModal);
+            });
+
+            if (serviceForm) {
+                serviceForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const serviceData = {
+                        name: nameField.value,
+                        code: codeField.value,
+                        serviceType: typeField.value,
+                        description: descField.value,
+                        averageDurationMinutes: parseInt(durationField.value, 10),
+                        basePrice: parseFloat(priceField.value),
+                        status: statusField.value,
+                        priceCurrency: 'USD'
+                    };
+
+                    if (isEditing && idField.value) {
+                        serviceData.id = idField.value;
+                    }
+
+                    try {
+                        if (isEditing) {
+                            await window.electronAPI.services.update(serviceData);
+                        } else {
+                            await window.electronAPI.services.create(serviceData);
+                        }
+                        closeModal();
+                        loadServices();
+                    } catch (error) {
+                        console.error(isEditing ? 'Update failed' : 'Create failed', error);
+                        alert((isEditing ? 'Failed to update service: ' : 'Failed to create service: ') + error.message);
+                    }
+                });
+            }
+
+            // Search
+            let debounceTimer;
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        currentPage = 1; // Reset to page 1 on search
+                        loadServices(e.target.value);
+                    }, 300);
+                });
+            }
+
+            // Pagination Event Listeners
+            if (rowsSelect) {
+                rowsSelect.addEventListener('change', (e) => {
+                    limit = parseInt(e.target.value);
+                    currentPage = 1;
+                    loadServices(searchInput ? searchInput.value : '');
+                });
+            }
+
+            if (prevPageBtn) {
+                prevPageBtn.addEventListener('click', () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        loadServices(searchInput ? searchInput.value : '');
+                    }
+                });
+            }
+
+            if (nextPageBtn) {
+                nextPageBtn.addEventListener('click', () => {
+                    const totalPages = Math.ceil(totalItems / limit);
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        loadServices(searchInput ? searchInput.value : '');
+                    }
+                });
+            }
+
+            // Load and Render
+            async function loadServices(searchTerm = '') {
+                try {
+                    const filters = searchTerm ? { searchTerm } : {};
+                    const pagination = { page: currentPage, limit };
+
+                    const response = await window.electronAPI.services.getAll(filters, pagination);
+
+                    let services = [];
+                    if (response.pagination) {
+                        services = response.data;
+                        const meta = response.pagination;
+                        totalItems = meta.total;
+                        updatePaginationControls(meta);
+                    } else {
+                        // Fallback for non-paginated response
+                        services = response.data || response || [];
+                        totalItems = services.length;
+                        // Hide pagination if not supported? Or just show 1 page
+                        updatePaginationControls({ page: 1, limit: totalItems, total: totalItems, totalPages: 1 });
+                    }
+
+                    currentServices = services;
+                    renderTable(services);
+                } catch (error) {
+                    console.error('Failed to load services:', error);
+                    if (tableBody) {
+                        tableBody.innerHTML = `<tr><td colspan="6" style="color: red; text-align:center;">Error loading services: ${error.message}</td></tr>`;
+                    }
+                }
+            }
+
+            function updatePaginationControls(meta) {
+                if (!paginationInfo) return;
+
+                const { page, limit, total, totalPages } = meta;
+                const start = total === 0 ? 0 : (page - 1) * limit + 1;
+                const end = Math.min(page * limit, total);
+
+                paginationInfo.textContent = `${start}-${end} of ${total}`;
+
+                if (prevPageBtn) prevPageBtn.disabled = page <= 1;
+                if (nextPageBtn) nextPageBtn.disabled = page >= totalPages;
+            }
+
+            function renderTable(services) {
+                if (!tableBody) return;
+                tableBody.innerHTML = '';
+
+                if (services.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No services found.</td></tr>';
+                    return;
+                }
+
+                services.forEach(service => {
+                    const row = document.createElement('tr');
+                    const priceDisplay = new Intl.NumberFormat('en-US', { style: 'currency', currency: service.priceCurrency || 'USD' }).format(service.basePrice || 0);
+                    const durationDisplay = `${service.averageDurationMinutes} min`;
+
+                    row.innerHTML = `
+                        <td>
+                            <div><strong>${service.name}</strong></div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); font-family: monospace;">${service.code}</div>
+                        </td>
+                        <td style="text-transform: capitalize;">${service.serviceType}</td>
+                        <td>${durationDisplay}</td>
+                        <td>${priceDisplay}</td>
+                        <td><span class="status-badge ${service.status}">${service.status}</span></td>
+                        <td>
+                            <button class="action-btn edit-btn" data-id="${service.id}">✏️</button>
+                            <button class="action-btn delete-btn" data-id="${service.id}">🗑️</button>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // Attach Row Listeners
+                attachRowListeners(services);
+            }
+
+            function attachRowListeners(services) {
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const button = e.target.closest('.edit-btn');
+                        const id = button.dataset.id;
+                        const service = services.find(s => s.id === id);
+                        if (service) {
+                            idField.value = service.id;
+                            nameField.value = service.name;
+                            codeField.value = service.code;
+                            typeField.value = service.serviceType;
+                            descField.value = service.description || '';
+                            durationField.value = service.averageDurationMinutes;
+                            priceField.value = service.basePrice;
+                            statusField.value = service.status;
+                            openModal(true);
+                        }
+                    });
+                });
+
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const button = e.target.closest('.delete-btn');
+                        const id = button.dataset.id;
+                        if (confirm('Are you sure you want to delete this service?')) {
+                            try {
+                                await window.electronAPI.services.delete(id);
+                                loadServices();
+                            } catch (err) {
+                                console.error('Delete failed', err);
+                                alert('Failed to delete: ' + err.message);
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Initial Load
+            loadServices();
+        });
+    </script>
+</body>
+
+</html>

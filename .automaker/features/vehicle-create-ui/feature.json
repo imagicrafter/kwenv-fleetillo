@@ -1,0 +1,24 @@
+{
+  "id": "vehicle-create-ui",
+  "category": "UI",
+  "title": "Build Vehicle Registration Form",
+  "description": "Create user interface for adding new vehicles with service type selection and availability configuration. Note: Do not modify any code in the electron-launcher folder.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "web-server-setup",
+    "api-routes-vehicles",
+    "api-routes-services"
+  ],
+  "createdAt": "2025-12-27T06:30:30.001Z",
+  "updatedAt": "2025-12-27T06:30:30.001Z",
+  "skipTests": false,
+  "model": "opus",
+  "thinkingLevel": "none",
+  "imagePaths": [],
+  "textFilePaths": [],
+  "branchName": "main",
+  "planningMode": "skip",
+  "requirePlanApproval": false
+}

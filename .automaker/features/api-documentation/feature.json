@@ -1,0 +1,26 @@
+{
+  "id": "api-documentation",
+  "category": "Documentation",
+  "title": "Create API Integration Documentation",
+  "description": "Document all API endpoints, request/response formats, and integration requirements for external systems.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "api-routes-clients",
+    "api-routes-services",
+    "api-routes-vehicles",
+    "api-routes-bookings",
+    "api-routes-routes"
+  ],
+  "createdAt": "2025-12-27T06:30:30.003Z",
+  "updatedAt": "2025-12-27T06:30:30.003Z",
+  "skipTests": false,
+  "model": "sonnet",
+  "thinkingLevel": "medium",
+  "imagePaths": [],
+  "textFilePaths": [],
+  "branchName": "main",
+  "planningMode": "skip",
+  "requirePlanApproval": false
+}

@@ -1,0 +1,15 @@
+{
+  "id": "route-details-ui",
+  "category": "UI",
+  "title": "Build Route Details Page",
+  "description": "Create user interface for viewing comprehensive route information including stops, times, and optimization metrics.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "web-server-setup",
+    "api-routes-routes"
+  ],
+  "createdAt": "2025-12-27T06:30:30.002Z",
+  "updatedAt": "2025-12-27T06:30:30.002Z"
+}

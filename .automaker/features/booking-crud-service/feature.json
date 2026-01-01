@@ -1,0 +1,26 @@
+{
+  "id": "booking-crud-service",
+  "category": "Business Logic",
+  "title": "Implement Booking CRUD Service",
+  "description": "Service layer for booking management supporting one-time and recurring bookings with client and service associations. Fully implemented during electron UI development.",
+  "status": "completed",
+  "priority": 1,
+  "complexity": "complex",
+  "dependencies": [
+    "api-client-service",
+    "client-crud-service",
+    "service-crud-service",
+    "error-handling-framework"
+  ],
+  "createdAt": "2025-12-27T06:30:29.997Z",
+  "updatedAt": "2025-12-28T19:02:14.458Z",
+  "skipTests": false,
+  "model": "sonnet",
+  "thinkingLevel": "medium",
+  "imagePaths": [],
+  "textFilePaths": [],
+  "branchName": "main",
+  "planningMode": "skip",
+  "requirePlanApproval": false,
+  "startedAt": "2025-12-28T18:49:55.395Z"
+}

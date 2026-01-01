@@ -1,0 +1,24 @@
+{
+  "id": "database-schema-maintenance",
+  "category": "Database",
+  "title": "Create Vehicle Maintenance Table Schema",
+  "description": "Vehicle maintenance table schema defined and created in Supabase routeiq schema. Reference: supabase/migrations scripts for current schema state including maintenance records, vehicle references, and scheduling information.",
+  "status": "completed",
+  "priority": 1,
+  "complexity": "simple",
+  "dependencies": [
+    "supabase-connection",
+    "database-schema-vehicles"
+  ],
+  "createdAt": "2025-12-27T06:30:29.995Z",
+  "updatedAt": "2025-12-28T16:06:38.832Z",
+  "skipTests": false,
+  "model": "sonnet",
+  "thinkingLevel": "medium",
+  "imagePaths": [],
+  "textFilePaths": [],
+  "branchName": "main",
+  "planningMode": "skip",
+  "requirePlanApproval": false,
+  "startedAt": "2025-12-28T15:54:21.767Z"
+}

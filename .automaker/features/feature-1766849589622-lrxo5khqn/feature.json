@@ -1,0 +1,21 @@
+{
+  "category": "Uncategorized",
+  "description": "Migrate Database Schema from Public to RouteIQ\n\nUpdate the application's database references to use the `routeiq` schema instead of the default `public` schema for all database operations.\n\nRequirements:\n- Update all database queries, models, and ORM configurations to reference `routeiq` schema\n- Ensure proper schema qualification for the following tables:\n  - clients\n  - services\n  - vehicles\n- Update any database connection configurations or initialization scripts to set default schema\n- Verify all CRUD operations work correctly against the new schema\n- Update any raw SQL queries to include schema prefix (e.g., `routeiq.clients` instead of `clients`)\n- Check for and update any migration files or seeding scripts\n- Ensure foreign key relationships work across the schema\n- Test all database-dependent features to confirm successful migration\n- Update any database utility functions or helpers that assume `public` schema\n\nEdge Cases to Consider:\n- Existing data in `public` schema (if migration of data is needed, clarify with stakeholder)\n- Mixed references where some tables might still need to reference `public` schema\n- Database views or stored procedures that may reference the old schema\n- Any third-party integrations or tools that expect `public` schema",
+  "title": "Migrate database schema from public to routeiq",
+  "images": [],
+  "imagePaths": [],
+  "textFilePaths": [],
+  "skipTests": false,
+  "model": "sonnet",
+  "thinkingLevel": "medium",
+  "branchName": "main",
+  "priority": 2,
+  "planningMode": "skip",
+  "requirePlanApproval": true,
+  "dependencies": [],
+  "titleGenerating": false,
+  "status": "completed",
+  "id": "feature-1766849589622-lrxo5khqn",
+  "startedAt": "2025-12-27T16:04:58.843Z",
+  "updatedAt": "2025-12-27T16:05:11.516Z"
+}

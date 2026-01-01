@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customers - RouteIQ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Specific override to keep sidebar expanding working comfortably */
+        .nav-group.expanded .nav-children {
+            display: flex;
+        }
+    </style>
+</head>
+
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon">IQ</div>
+                <h1>RouteIQ</h1>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item">
+                    <span class="icon">📊</span>
+                    Dashboard
+                </a>
+
+                <!-- Planning Group (Expanded by default here since we are in Customers) -->
+                <div class="nav-group expanded">
+                    <div class="nav-item nav-header" onclick="toggleGroup(this)">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span class="icon">💼</span>
+                            Planning
+                        </div>
+                        <span class="nav-chevron" style="transform: rotate(90deg);">▶</span>
+                    </div>
+                    <div class="nav-children">
+                        <a href="customers.html" class="nav-child-item"
+                            style="color: var(--text-primary); background-color: rgba(255,255,255,0.05);">Customers</a>
+                        <a href="services.html" class="nav-child-item">Services</a>
+                        <a href="bookings.html" class="nav-child-item">Bookings</a>
+                        <a href="calendar.html" class="nav-child-item">Calendar</a>
+                        <a href="locations.html" class="nav-child-item">Locations</a>
+                    </div>
+                </div>
+
+                <!-- Fleet Group -->
+                <div class="nav-group">
+                    <div class="nav-item nav-header" onclick="toggleGroup(this)">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span class="icon">🚛</span>
+                            Fleet
+                        </div>
+                        <span class="nav-chevron">▶</span>
+                    </div>
+                    <div class="nav-children">
+                        <a href="vehicles.html" class="nav-child-item">Vehicles</a>
+                        <a href="#" class="nav-child-item">Drivers</a>
+                    </div>
+                </div>
+
+                <a href="routes.html" class="nav-item">
+                    <span class="icon">🗺️</span>
+                    Routes
+                </a>
+
+                <a href="#" class="nav-item">
+                    <span class="icon">⚙️</span>
+                    Settings
+                </a>
+            </nav>
+
+            <script>
+                function toggleGroup(header) {
+                    const group = header.parentElement;
+                    group.classList.toggle('expanded');
+                    const chevron = header.querySelector('.nav-chevron');
+                    if (group.classList.contains('expanded')) {
+                        chevron.style.transform = 'rotate(90deg)';
+                    } else {
+                        chevron.style.transform = 'rotate(0deg)';
+                    }
+                }
+            </script>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="avatar">JM</div>
+                    <div class="details">
+                        <span class="name">Admin User</span>
+                        <span class="role">Administrator</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-bar">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="Search customers...">
+                </div>
+                <div class="actions">
+                    <button id="add-customer-btn" class="btn-primary">+ Add Customer</button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="page-header">
+                    <h2>Customers</h2>
+                    <span class="date">Manage your client database</span>
+                </div>
+
+                <!-- Customers Table -->
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name / Company</th>
+                                <th>Contact</th>
+                                <th>Location</th>
+                                <th>Tags</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customers-table-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Footer -->
+                <div class="pagination-footer"
+                    style="padding: 16px 20px; border-top: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between;">
+                    <div class="rows-per-page">
+                        <label for="rows-select" style="margin-right: 8px; color: var(--text-secondary);">Rows per
+                            page:</label>
+                        <select id="rows-select"
+                            style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); color: var(--text-primary); border-radius: 4px; padding: 4px 8px;">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                    <div class="pagination-controls" style="display: flex; align-items: center; gap: 16px;">
+                        <span id="pagination-info" style="color: var(--text-secondary); font-size: 0.9rem;">0-0 of
+                            0</span>
+                        <div class="page-nav">
+                            <button id="prev-page-btn" class="action-btn" style="padding: 4px 8px;"
+                                disabled>Previous</button>
+                            <button id="next-page-btn" class="action-btn" style="padding: 4px 8px;"
+                                disabled>Next</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../preload.js"></script>
+    <!-- Add Customer Modal -->
+    <!-- Add Customer Modal -->
+    <div id="add-customer-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Customer</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="add-customer-form">
+                    <input type="hidden" id="customer-id">
+                    <div class="form-group">
+                        <label for="customer-name">Name *</label>
+                        <input type="text" id="customer-name" required placeholder="e.g. John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="customer-company">Company</label>
+                        <input type="text" id="customer-company" placeholder="e.g. Acme Corp">
+                    </div>
+                    <div class="form-group">
+                        <label for="customer-email">Email</label>
+                        <input type="email" id="customer-email" placeholder="john@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="customer-phone">Phone</label>
+                        <input type="tel" id="customer-phone" placeholder="(555) 123-4567">
+                    </div>
+                    <div class="form-group">
+                        <label for="customer-city">City</label>
+                        <input type="text" id="customer-city" placeholder="Austin">
+                    </div>
+                    <div class="form-group">
+                        <label for="customer-state">State</label>
+                        <input type="text" id="customer-state" placeholder="TX">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary close-modal-btn">Cancel</button>
+                        <button type="submit" class="btn-primary">Add Customer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: var(--bg-card);
+            margin: 5% auto;
+            padding: 0;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            width: 500px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .close-modal {
+            color: var(--text-secondary);
+            font-size: 28px;
+            font-weight: normal;
+            cursor: pointer;
+            line-height: 1;
+            background: none;
+            border: none;
+        }
+
+        .close-modal:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            background-color: rgba(64, 169, 255, 0.05);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text-secondary);
+            color: var(--text-primary);
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tableBody = document.getElementById('customers-table-body');
+            const addCustomerBtn = document.getElementById('add-customer-btn');
+            const modal = document.getElementById('add-customer-modal');
+            const closeModalBtns = document.querySelectorAll('.close-modal, .close-modal-btn');
+            const addCustomerForm = document.getElementById('add-customer-form');
+            const modalTitle = document.querySelector('.modal-header h3');
+
+            // Form Fields
+            const idField = document.getElementById('customer-id');
+            const nameInput = document.getElementById('customer-name');
+            const companyInput = document.getElementById('customer-company');
+            const emailInput = document.getElementById('customer-email');
+            const phoneInput = document.getElementById('customer-phone');
+            const cityInput = document.getElementById('customer-city');
+            const stateInput = document.getElementById('customer-state');
+
+            let isEditing = false;
+            let currentClients = [];
+            let currentPage = 1;
+            let limit = 10;
+            let totalItems = 0;
+
+            const rowsSelect = document.getElementById('rows-select');
+            const prevPageBtn = document.getElementById('prev-page-btn');
+            const nextPageBtn = document.getElementById('next-page-btn');
+            const paginationInfo = document.getElementById('pagination-info');
+
+            // Modal Functions
+            function openModal(editMode = false) {
+                isEditing = editMode;
+                if (modalTitle) modalTitle.textContent = editMode ? 'Edit Customer' : 'Add New Customer';
+                if (modal) {
+                    modal.style.display = 'block';
+                }
+            }
+
+            function closeModal() {
+                if (modal) modal.style.display = 'none';
+                if (addCustomerForm) addCustomerForm.reset();
+                if (idField) idField.value = '';
+                isEditing = false;
+            }
+
+            // Event Listeners
+            if (addCustomerBtn) {
+                addCustomerBtn.addEventListener('click', () => openModal(false));
+            } else {
+                console.error('Add Customer Button not found');
+            }
+
+            closeModalBtns.forEach(btn => {
+                btn.addEventListener('click', closeModal);
+            });
+
+            // Form Submit handler
+            if (addCustomerForm) {
+                addCustomerForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const name = nameInput ? nameInput.value : '';
+                    const companyName = companyInput ? companyInput.value : '';
+                    const email = emailInput ? emailInput.value : '';
+                    const phone = phoneInput ? phoneInput.value : '';
+                    const city = cityInput ? cityInput.value : '';
+                    const state = stateInput ? stateInput.value : '';
+
+                    const customerData = {
+                        name,
+                        companyName: companyName || undefined,
+                        email: email || undefined,
+                        phone: phone || undefined,
+                        city: city || undefined,
+                        state: state || undefined,
+                        status: 'active'
+                    };
+
+                    if (isEditing && idField.value) {
+                        customerData.id = idField.value;
+                    }
+
+                    try {
+                        if (isEditing) {
+                            await window.electronAPI.clients.update(customerData);
+                        } else {
+                            await window.electronAPI.clients.create(customerData);
+                        }
+                        closeModal();
+                        loadCustomers();
+                    } catch (error) {
+                        console.error(isEditing ? 'Update failed' : 'Create failed', error);
+                        alert((isEditing ? 'Failed to update customer: ' : 'Failed to create customer: ') + error.message);
+                    }
+                });
+            }
+
+            // Pagination Event Listeners
+            if (rowsSelect) {
+                rowsSelect.addEventListener('change', (e) => {
+                    limit = parseInt(e.target.value);
+                    currentPage = 1;
+                    loadCustomers();
+                });
+            }
+
+            if (prevPageBtn) {
+                prevPageBtn.addEventListener('click', () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        loadCustomers();
+                    }
+                });
+            }
+
+            if (nextPageBtn) {
+                nextPageBtn.addEventListener('click', () => {
+                    const totalPages = Math.ceil(totalItems / limit);
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        loadCustomers();
+                    }
+                });
+            }
+
+            // Search Input Listener (assuming one exists or adding generic one)
+            const searchInput = document.querySelector('.search-bar input');
+            let debounceTimer;
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(() => {
+                        currentPage = 1;
+                        loadCustomers(e.target.value);
+                    }, 300);
+                });
+            }
+
+            // Load and Render
+            async function loadCustomers(searchTerm = '') {
+                try {
+                    const filters = searchTerm ? { searchTerm } : {};
+                    const pagination = { page: currentPage, limit };
+
+                    const response = await window.electronAPI.clients.getAll(filters, pagination);
+
+                    let clients = [];
+                    if (response.pagination) {
+                        clients = response.data;
+                        const meta = response.pagination;
+                        totalItems = meta.total;
+                        updatePaginationControls(meta);
+                    } else {
+                        // Fallback
+                        clients = response.data || response || [];
+                        totalItems = clients.length;
+                        updatePaginationControls({ page: 1, limit: totalItems, total: totalItems, totalPages: 1 });
+                    }
+
+                    currentClients = clients;
+
+                    if (!tableBody) return;
+                    tableBody.innerHTML = '';
+
+                    if (clients.length === 0) {
+                        tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 20px;">No customers found.</td></tr>';
+                        return;
+                    }
+
+                    clients.forEach(client => {
+                        const row = document.createElement('tr');
+
+                        // Format Tags
+                        const tags = client.tags || [];
+                        const tagsHtml = tags.map(tag => `<span style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-right: 4px;">${tag}</span>`).join('');
+
+                        // Format Company
+                        const nameDisplay = client.companyName
+                            ? `<div><strong>${client.companyName}</strong></div><div style="font-size: 0.8rem; color: var(--text-secondary);">${client.name}</div>`
+                            : `<strong>${client.name}</strong>`;
+
+                        row.innerHTML = `
+                        <td>${nameDisplay}</td>
+                        <td>
+                            <div>${client.email || '-'}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">${client.phone || '-'}</div>
+                        </td>
+                        <td>${client.city || '-'}, ${client.state || '-'}</td>
+                        <td>${tagsHtml || '<span style="color: var(--text-muted);">-</span>'}</td>
+                        <td><span class="status-badge ${client.status}">${client.status}</span></td>
+                        <td>
+                            <button class="action-btn edit-btn" data-id="${client.id}">✏️</button>
+                            <button class="action-btn delete-btn" data-id="${client.id}">🗑️</button>
+                        </td>
+                    `;
+                        tableBody.appendChild(row);
+                    });
+
+                    // Attach Row Listeners
+                    attachRowListeners(currentClients);
+
+                } catch (error) {
+                    console.error('Failed to load customers:', error);
+                    if (tableBody) {
+                        tableBody.innerHTML = `<tr><td colspan="6" style="color: red; text-align:center;">Error loading customers: ${error.message}</td></tr>`;
+                    }
+                }
+            }
+
+            function updatePaginationControls(meta) {
+                if (!paginationInfo) return;
+
+                const { page, limit, total, totalPages } = meta;
+                const start = total === 0 ? 0 : (page - 1) * limit + 1;
+                const end = Math.min(page * limit, total);
+
+                paginationInfo.textContent = `${start}-${end} of ${total}`;
+
+                if (prevPageBtn) prevPageBtn.disabled = page <= 1;
+                if (nextPageBtn) nextPageBtn.disabled = page >= totalPages;
+            }
+
+            function attachRowListeners(clients) {
+                // Attach listeners for Edit buttons
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const button = e.target.closest('.edit-btn');
+                        const id = button.dataset.id;
+                        const client = clients.find(c => c.id === id);
+
+                        if (client) {
+                            if (idField) idField.value = client.id;
+                            if (nameInput) nameInput.value = client.name;
+                            if (companyInput) companyInput.value = client.companyName || '';
+                            if (emailInput) emailInput.value = client.email || '';
+                            if (phoneInput) phoneInput.value = client.phone || '';
+                            if (cityInput) cityInput.value = client.city || '';
+                            if (stateInput) stateInput.value = client.state || '';
+
+                            openModal(true);
+                        }
+                    });
+                });
+
+                // Attach listeners for Delete buttons
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const button = e.target.closest('.delete-btn');
+                        const id = button.dataset.id;
+                        if (confirm('Are you sure you want to delete this customer?')) {
+                            try {
+                                await window.electronAPI.clients.delete(id);
+                                loadCustomers();
+                            } catch (err) {
+                                console.error('Delete failed', err);
+                                alert('Failed to delete: ' + err.message);
+                            }
+                        }
+                    });
+                });
+            }
+
+            // Initial Load
+            loadCustomers();
+        });
+    </script>
+</body>
+
+</html>

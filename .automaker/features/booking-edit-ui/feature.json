@@ -1,0 +1,23 @@
+{
+  "id": "booking-edit-ui",
+  "category": "UI",
+  "title": "Build Booking Edit Form",
+  "description": "Create user interface for modifying existing bookings with date, time, and service adjustments. Note: Do not modify any code in the electron-launcher folder.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "complex",
+  "dependencies": [
+    "web-server-setup",
+    "api-routes-bookings"
+  ],
+  "createdAt": "2025-12-27T06:30:30.001Z",
+  "updatedAt": "2025-12-27T06:30:30.001Z",
+  "skipTests": false,
+  "model": "opus",
+  "thinkingLevel": "none",
+  "imagePaths": [],
+  "textFilePaths": [],
+  "branchName": "main",
+  "planningMode": "skip",
+  "requirePlanApproval": false
+}

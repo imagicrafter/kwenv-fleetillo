@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Routes - RouteIQ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .nav-group.expanded .nav-children {
+            display: flex;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        /* Override global .modal { display: none } from styles.css */
+        .modal-overlay .modal {
+            display: block;
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            min-width: 400px;
+            max-width: 500px;
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        .btn-secondary {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-subtle);
+            background: transparent;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        .loading-row td {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .alert-success {
+            background: rgba(63, 185, 80, 0.15);
+            border: 1px solid rgba(63, 185, 80, 0.3);
+            color: #3fb950;
+        }
+
+        .alert-warning {
+            background: rgba(210, 153, 34, 0.15);
+            border: 1px solid rgba(210, 153, 34, 0.3);
+            color: #d29922;
+        }
+
+        .alert-error {
+            background: rgba(248, 81, 73, 0.15);
+            border: 1px solid rgba(248, 81, 73, 0.3);
+            color: #f85149;
+        }
+
+        .result-summary {
+            margin-top: 16px;
+            padding: 16px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+        }
+
+        .result-summary h4 {
+            margin: 0 0 12px 0;
+            color: var(--text-primary);
+        }
+
+        .result-summary ul {
+            margin: 0;
+            padding-left: 20px;
+            color: var(--text-secondary);
+        }
+
+        /* Calendar Styles */
+        .calendar-container {
+            margin-bottom: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .calendar-header h3 {
+            margin: 0;
+            color: var(--text-primary);
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .calendar-nav button {
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calendar-nav button:hover {
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
+        }
+
+        .calendar-day {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 12px;
+            border: 1px solid transparent;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .calendar-day.active {
+            border-color: var(--accent-primary);
+            background: rgba(88, 166, 255, 0.1);
+        }
+
+        .calendar-day.today {
+            border-color: var(--accent-secondary);
+            box-shadow: 0 0 0 1px var(--accent-secondary);
+        }
+
+        .day-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .day-header .date-num {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .day-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            padding: 2px 0;
+        }
+
+        .stat-badge {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        /* Map Styles */
+        #map-view-container {
+            display: none;
+            /* Hidden by default */
+            margin-top: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        #route-map {
+            height: 400px;
+            width: 100%;
+            background-color: #0d1117;
+            /* Default dark bg */
+        }
+
+        .map-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .calendar-day {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .calendar-day:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon">IQ</div>
+                <h1>RouteIQ</h1>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item">
+                    <span class="icon">📊</span>
+                    Dashboard
+                </a>
+
+                <!-- Planning Group -->
+                <div class="nav-group">
+                    <div class="nav-item nav-header" onclick="toggleGroup(this)">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span class="icon">💼</span>
+                            Planning
+                        </div>
+                        <span class="nav-chevron">▶</span>
+                    </div>
+                    <div class="nav-children">
+                        <a href="customers.html" class="nav-child-item">Customers</a>
+                        <a href="services.html" class="nav-child-item">Services</a>
+                        <a href="bookings.html" class="nav-child-item">Bookings</a>
+                        <a href="calendar.html" class="nav-child-item">Calendar</a>
+                        <a href="locations.html" class="nav-child-item">Locations</a>
+                    </div>
+                </div>
+
+                <!-- Fleet Group -->
+                <div class="nav-group">
+                    <div class="nav-item nav-header" onclick="toggleGroup(this)">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span class="icon">🚛</span>
+                            Fleet
+                        </div>
+                        <span class="nav-chevron">▶</span>
+                    </div>
+                    <div class="nav-children">
+                        <a href="vehicles.html" class="nav-child-item">Vehicles</a>
+                        <a href="#" class="nav-child-item">Drivers</a>
+                    </div>
+                </div>
+
+                <a href="routes.html" class="nav-item active">
+                    <span class="icon">🗺️</span>
+                    Routes
+                </a>
+
+                <a href="#" class="nav-item">
+                    <span class="icon">⚙️</span>
+                    Settings
+                </a>
+            </nav>
+
+            <script>
+                function toggleGroup(header) {
+                    const group = header.parentElement;
+                    group.classList.toggle('expanded');
+                    const chevron = header.querySelector('.nav-chevron');
+                    if (group.classList.contains('expanded')) {
+                        chevron.style.transform = 'rotate(90deg)';
+                    } else {
+                        chevron.style.transform = 'rotate(0deg)';
+                    }
+                }
+            </script>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="avatar">JM</div>
+                    <div class="details">
+                        <span class="name">Admin User</span>
+                        <span class="role">Administrator</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-bar">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="Search routes..." id="search-input">
+                </div>
+                <div class="actions">
+                    <button class="btn-primary" id="plan-routes-btn">🗓️ Plan Routes</button>
+                    <button class="btn-icon">⚙️</button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="page-header">
+                    <h2>Routes</h2>
+                    <span class="date">Plan and optimize delivery routes</span>
+                </div>
+
+                <!-- Calendar View -->
+                <div class="calendar-container" id="calendar-view">
+                    <div class="calendar-header">
+                        <h3 id="calendar-title">Week of ...</h3>
+                        <div class="calendar-nav">
+                            <button onclick="calendar.prevWeek()">←</button>
+                            <button onclick="calendar.nextWeek()">→</button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid" id="calendar-grid">
+                        <!-- Days generated by JS -->
+                        <div
+                            style="grid-column: 1/-1; text-align: center; padding: 20px; color: var(--text-secondary);">
+                            Loading calendar...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Routes Table -->
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Route Name / Code</th>
+                                <th>Date / Time</th>
+                                <th>Distance / Duration</th>
+                                <th>Stops / Score</th>
+                                <th>Status</th>
+                                <th>Cost</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="routes-table-body">
+                            <tr class="loading-row">
+                                <td colspan="7">Loading routes...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Map View Container -->
+                <div id="map-view-container">
+                    <div class="map-header">
+                        <h3 id="map-route-title">Route Map</h3>
+                        <button class="btn-text" onclick="closeMap()">Close Map</button>
+                    </div>
+                    <div id="route-map"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Plan Routes Modal -->
+    <div class="modal-overlay" id="plan-routes-modal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Plan Routes</h3>
+                <button class="modal-close" onclick="closePlanModal()">&times;</button>
+            </div>
+            <div id="plan-result"></div>
+            <form id="plan-routes-form">
+                <div class="form-group">
+                    <label for="route-date">Route Date</label>
+                    <input type="date" id="route-date" required onchange="updateTrafficOptions(); clearPreview();">
+                </div>
+                <div class="form-group">
+                    <label for="max-stops">Max Stops Per Route (default: 15)</label>
+                    <input type="number" id="max-stops" value="15" min="1" max="50" onchange="clearPreview();">
+                </div>
+                <div class="form-group" id="traffic-options-group" style="display: none;">
+                    <label>Traffic Awareness <span style="font-size: 0.8rem; color: var(--text-secondary);">(only for
+                            same-day routes)</span></label>
+                    <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 8px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="routing-preference" value="TRAFFIC_AWARE" checked>
+                            <span>Traffic Aware</span>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary);">— considers current
+                                traffic</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="routing-preference" value="TRAFFIC_UNAWARE">
+                            <span>Traffic Unaware</span>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary);">— fastest, no traffic
+                                data</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Vehicle Allocation Section (shown after preview) -->
+                <div id="vehicle-allocation-section"
+                    style="display: none; margin-top: 16px; padding: 16px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--border-subtle);">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                        <h4 style="margin: 0; color: var(--text-primary);">Vehicle Allocation</h4>
+                        <span id="booking-count-badge"
+                            style="background: var(--accent-primary); color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem;"></span>
+                    </div>
+                    <div id="vehicle-allocation-list" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Dynamically populated -->
+                    </div>
+                    <div id="allocation-warning"
+                        style="display: none; margin-top: 12px; padding: 8px; background: rgba(210, 153, 34, 0.15); border-radius: 6px; color: #d29922; font-size: 0.85rem;">
+                    </div>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 16px;">
+                    <button type="button" class="btn-secondary" onclick="closePlanModal()">Cancel</button>
+                    <button type="button" class="btn-secondary" id="preview-btn"
+                        onclick="previewRoutes()">Preview</button>
+                    <button type="submit" class="btn-primary" id="plan-submit-btn" style="display: none;">Plan
+                        Routes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const tableBody = document.getElementById('routes-table-body');
+        let allRoutes = [];
+
+        // Format date for display
+        function formatDate(dateStr) {
+            if (!dateStr) return 'N/A';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+        }
+
+        // Format time for display
+        function formatTime(timeStr) {
+            if (!timeStr) return '';
+            return timeStr.substring(0, 5);
+        }
+
+        // Render routes table
+        function renderRoutes(routes) {
+            tableBody.innerHTML = '';
+
+            if (!routes || routes.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <p>No routes found</p>
+                            <p>Click "Plan Routes" to create optimized routes from your bookings</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            routes.forEach(route => {
+                const row = document.createElement('tr');
+
+                // Format Status Badge
+                let statusStyle = '';
+                if (route.status === 'in_progress') statusStyle = 'color: #58a6ff; border-color: rgba(88,166,255,0.2); background-color: rgba(88,166,255,0.15);';
+                if (route.status === 'completed') statusStyle = 'color: #3fb950; border-color: rgba(63,185,80,0.2); background-color: rgba(63,185,80,0.15);';
+                if (route.status === 'draft') statusStyle = 'color: #8b949e; border-color: rgba(139,148,158,0.2); background-color: rgba(139,148,158,0.15); border-style: dashed;';
+                if (route.status === 'planned') statusStyle = 'color: #a371f7; border-color: rgba(163,113,247,0.2); background-color: rgba(163,113,247,0.15);';
+                if (route.status === 'optimized') statusStyle = 'color: #3fb950; border-color: rgba(63,185,80,0.2); background-color: rgba(63,185,80,0.15);';
+
+                // Format Cost
+                const costValue = route.actualCost || route.estimatedCost || 0;
+                const costDisplay = new Intl.NumberFormat('en-US', { style: 'currency', currency: route.costCurrency || 'USD' }).format(costValue);
+                const costLabel = route.actualCost ? 'Actual' : 'Est.';
+
+                // Format Duration
+                const hours = Math.floor((route.totalDurationMinutes || 0) / 60);
+                const minutes = (route.totalDurationMinutes || 0) % 60;
+                const durationDisplay = `${hours}h ${minutes}m`;
+
+                // Opt Score
+                let scoreColor = '#8b949e';
+                const score = route.optimizationScore || 0;
+                if (score > 90) scoreColor = '#3fb950';
+                else if (score > 70) scoreColor = '#d29922';
+                else if (score > 0) scoreColor = '#f85149';
+
+                row.innerHTML = `
+                    <td>
+                        <div><strong>${route.routeName || 'Unnamed Route'}</strong></div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); font-family: monospace;">${route.routeCode || 'N/A'}</div>
+                    </td>
+                    <td>
+                        <div>${formatDate(route.routeDate)}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">${formatTime(route.plannedStartTime)} - ${formatTime(route.plannedEndTime)}</div>
+                    </td>
+                    <td>
+                        <div>${(route.totalDistanceKm || 0).toFixed(1)} km</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">${durationDisplay}</div>
+                    </td>
+                    <td>
+                        <div style="font-weight: 600;">${route.totalStops || 0}</div>
+                        <div style="font-size: 0.7rem; color: ${scoreColor};" title="Optimization Score">Score: ${score || 'N/A'}</div>
+                    </td>
+                    <td><span class="status-badge" style="${statusStyle}">${(route.status || 'unknown').replace('_', ' ')}</span></td>
+                    <td>
+                        <div>${costDisplay}</div>
+                        <div style="font-size: 0.7rem; color: var(--text-secondary);">${costLabel}</div>
+                    </td>
+                    <td>
+                        <button class="action-btn" onclick="viewRoute('${route.id}')">🗺️</button>
+                        <button class="action-btn" onclick="deleteRoute('${route.id}')">🗑️</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+
+        // Load routes from API
+        async function loadRoutes(filters = {}) {
+            try {
+                tableBody.innerHTML = '<tr class="loading-row"><td colspan="7">Loading routes...</td></tr>';
+                // Hide map when reloading list
+                closeMap();
+
+                const result = await window.electronAPI.routes.getAll(filters, { page: 1, limit: 100 });
+                allRoutes = result.data || [];
+                renderRoutes(allRoutes);
+            } catch (error) {
+                console.error('Failed to load routes:', error);
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <p style="color: #f85149;">Error loading routes: ${error.message}</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Google Maps Controller
+        let map = null;
+        let markers = [];
+        let routePath = null;
+        let infoWindow = null;
+        let googleMapsLoaded = false;
+
+        async function loadGoogleMaps() {
+            if (googleMapsLoaded) return;
+
+            const apiKey = await window.electronAPI.config.getGoogleMapsApiKey();
+            if (!apiKey) {
+                console.error('Google Maps API key not found');
+                return;
+            }
+
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=geometry`;
+                script.async = true;
+                script.defer = true;
+                script.onload = () => {
+                    googleMapsLoaded = true;
+                    resolve();
+                };
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        }
+
+        async function initMap() {
+            if (map) return;
+
+            await loadGoogleMaps();
+
+            const mapEl = document.getElementById('route-map');
+
+            map = new google.maps.Map(mapEl, {
+                center: { lat: 39.8283, lng: -98.5795 },
+                zoom: 4,
+                styles: [
+                    { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
+                    { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
+                    { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
+                    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] },
+                    { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
+                    { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9ca5b3' }] },
+                    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#17263c' }] },
+                    { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#515c6d' }] },
+                ]
+            });
+
+            infoWindow = new google.maps.InfoWindow();
+        }
+
+        function clearMapLayers() {
+            markers.forEach(m => m.setMap(null));
+            markers = [];
+            if (routePath) {
+                routePath.setMap(null);
+                routePath = null;
+            }
+        }
+
+        function closeMap() {
+            document.getElementById('map-view-container').style.display = 'none';
+        }
+
+        async function viewRoute(id) {
+            const container = document.getElementById('map-view-container');
+            const titleEl = document.getElementById('map-route-title');
+
+            // Show container
+            container.style.display = 'block';
+            titleEl.textContent = 'Loading Route...';
+
+            // Init map if needed
+            await initMap();
+
+            try {
+                // 1. Get Route Details with geometry
+                const routeDetails = await window.electronAPI.routes.getById(id);
+                if (!routeDetails) throw new Error('Route not found');
+
+                titleEl.textContent = `Route: ${routeDetails.routeName}`;
+
+                // 2. Get Stops (Bookings)
+                if (!routeDetails.stopSequence || routeDetails.stopSequence.length === 0) {
+                    alert('This route has no stops assigned.');
+                    return;
+                }
+
+                // Fetch bookings by IDs
+                const bookingsRes = await window.electronAPI.bookings.getAll({
+                    ids: routeDetails.stopSequence
+                }, { page: 1, limit: 100 });
+
+                const bookings = bookingsRes.data || [];
+
+                // Sort bookings based on stopSequence order
+                const sortedBookings = [];
+                routeDetails.stopSequence.forEach(stopId => {
+                    const booking = bookings.find(b => b.id === stopId);
+                    if (booking) sortedBookings.push(booking);
+                });
+
+                // Pass route geometry for encoded polyline display
+                renderRouteOnGoogleMap(sortedBookings, routeDetails.routeGeometry);
+
+            } catch (err) {
+                console.error('Error viewing route map:', err);
+                titleEl.textContent = `Error: ${err.message}`;
+            }
+        }
+
+        function renderRouteOnGoogleMap(bookings, routeGeometry) {
+            clearMapLayers();
+
+            if (bookings.length === 0) return;
+
+            const bounds = new google.maps.LatLngBounds();
+
+            // Add markers for each booking
+            bookings.forEach((booking, index) => {
+                const lat = parseFloat(booking.locationLatitude || booking.serviceLatitude);
+                const lng = parseFloat(booking.locationLongitude || booking.serviceLongitude);
+
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    const position = { lat, lng };
+                    bounds.extend(position);
+
+                    const marker = new google.maps.Marker({
+                        position,
+                        map,
+                        label: {
+                            text: String(index + 1),
+                            color: 'white',
+                            fontWeight: 'bold'
+                        },
+                        title: booking.clientName || 'Stop ' + (index + 1)
+                    });
+
+                    marker.addListener('click', () => {
+                        infoWindow.setContent(`
+                            <div style="color: #333; padding: 8px;">
+                                <strong>Stop ${index + 1}</strong><br>
+                                <b>${booking.clientName || 'Unknown Client'}</b><br>
+                                ${booking.serviceName || 'Unknown Service'}<br>
+                                ${booking.locationName || ''}
+                            </div>
+                        `);
+                        infoWindow.open(map, marker);
+                    });
+
+                    markers.push(marker);
+                }
+            });
+
+            // Draw route path from encoded polyline if available (actual driving route)
+            console.log('routeGeometry:', routeGeometry);
+            console.log('encodedPolyline:', routeGeometry?.encodedPolyline);
+            console.log('geometry library loaded:', !!google.maps.geometry);
+
+            if (routeGeometry?.encodedPolyline && google.maps.geometry) {
+                try {
+                    const decodedPath = google.maps.geometry.encoding.decodePath(
+                        routeGeometry.encodedPolyline
+                    );
+                    routePath = new google.maps.Polyline({
+                        path: decodedPath,
+                        geodesic: true,
+                        strokeColor: '#3fb950',
+                        strokeOpacity: 1.0,
+                        strokeWeight: 4
+                    });
+                    routePath.setMap(map);
+
+                    // Extend bounds with polyline path
+                    decodedPath.forEach(point => bounds.extend(point));
+
+                    // Add START marker (first point of polyline)
+                    if (decodedPath.length > 0) {
+                        const startPoint = decodedPath[0];
+                        const startMarker = new google.maps.Marker({
+                            position: startPoint,
+                            map,
+                            icon: {
+                                path: google.maps.SymbolPath.CIRCLE,
+                                scale: 12,
+                                fillColor: '#22c55e', // Green
+                                fillOpacity: 1,
+                                strokeColor: '#ffffff',
+                                strokeWeight: 3
+                            },
+                            title: 'Route Start (Home Location)',
+                            zIndex: 1000
+                        });
+
+                        startMarker.addListener('click', () => {
+                            infoWindow.setContent(`
+                                <div style="color: #333; padding: 8px;">
+                                    <strong>🏠 Route Start</strong><br>
+                                    Home / Departure Location
+                                </div>
+                            `);
+                            infoWindow.open(map, startMarker);
+                        });
+                        markers.push(startMarker);
+                    }
+
+                    // Add END marker (last point of polyline) - only if different from start
+                    if (decodedPath.length > 1) {
+                        const endPoint = decodedPath[decodedPath.length - 1];
+                        const startPoint = decodedPath[0];
+
+                        // Check if end is different from start (not returning to start)
+                        const isSameAsStart = Math.abs(endPoint.lat() - startPoint.lat()) < 0.0001 &&
+                            Math.abs(endPoint.lng() - startPoint.lng()) < 0.0001;
+
+                        if (!isSameAsStart) {
+                            const endMarker = new google.maps.Marker({
+                                position: endPoint,
+                                map,
+                                icon: {
+                                    path: google.maps.SymbolPath.CIRCLE,
+                                    scale: 12,
+                                    fillColor: '#ef4444', // Red
+                                    fillOpacity: 1,
+                                    strokeColor: '#ffffff',
+                                    strokeWeight: 3
+                                },
+                                title: 'Route End',
+                                zIndex: 1000
+                            });
+
+                            endMarker.addListener('click', () => {
+                                infoWindow.setContent(`
+                                    <div style="color: #333; padding: 8px;">
+                                        <strong>🏁 Route End</strong><br>
+                                        Final Destination
+                                    </div>
+                                `);
+                                infoWindow.open(map, endMarker);
+                            });
+                            markers.push(endMarker);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Failed to decode polyline:', e);
+                }
+            } else if (markers.length > 1) {
+                // Fallback to straight lines between markers
+                const pathCoords = markers.map(m => m.getPosition());
+                routePath = new google.maps.Polyline({
+                    path: pathCoords,
+                    geodesic: true,
+                    strokeColor: '#3fb950',
+                    strokeOpacity: 0.6,
+                    strokeWeight: 3,
+                    strokeDashArray: [5, 5] // Dashed to indicate it's not the actual route
+                });
+                routePath.setMap(map);
+            }
+
+            // Fit map to bounds
+            if (markers.length > 0) {
+                if (markers.length === 1) {
+                    map.setCenter(markers[0].getPosition());
+                    map.setZoom(15);
+                } else {
+                    map.fitBounds(bounds, { padding: 50 });
+                }
+            }
+        }
+
+
+        // Delete route
+        async function deleteRoute(id) {
+            if (!confirm('Are you sure you want to delete this route?')) return;
+
+            try {
+                await window.electronAPI.routes.delete(id);
+                await loadRoutes();
+            } catch (error) {
+                alert('Failed to delete route: ' + error.message);
+            }
+        }
+
+        // Open plan routes modal
+        async function openPlanModal() {
+            document.getElementById('plan-routes-modal').classList.add('active');
+            document.getElementById('plan-result').innerHTML = '';
+
+            // Try to get the earliest confirmed booking date
+            try {
+                const result = await window.electronAPI.bookings.getAll(
+                    { status: 'confirmed' },
+                    { page: 1, limit: 1, sortBy: 'scheduled_date', sortOrder: 'asc' }
+                );
+
+                if (result && result.data && result.data.length > 0) {
+                    const booking = result.data[0];
+                    // Get the scheduled date (handle both Date object and string)
+                    let dateStr = '';
+                    if (booking.scheduledDate) {
+                        if (typeof booking.scheduledDate === 'string') {
+                            dateStr = booking.scheduledDate.substring(0, 10);
+                        } else if (booking.scheduledDate instanceof Date) {
+                            dateStr = booking.scheduledDate.toISOString().split('T')[0];
+                        }
+                    }
+                    if (dateStr) {
+                        document.getElementById('route-date').value = dateStr;
+                    } else {
+                        document.getElementById('route-date').valueAsDate = new Date();
+                    }
+                } else {
+                    // No confirmed bookings, default to today
+                    document.getElementById('route-date').valueAsDate = new Date();
+                }
+            } catch (error) {
+                console.error('Failed to fetch earliest booking date:', error);
+                // Fallback to today
+                document.getElementById('route-date').valueAsDate = new Date();
+            }
+
+            // Check if traffic options should be shown
+            updateTrafficOptions();
+        }
+
+        // Update traffic options visibility based on selected date
+        function updateTrafficOptions() {
+            const selectedDate = document.getElementById('route-date').value;
+            const today = new Date().toISOString().split('T')[0];
+            const trafficGroup = document.getElementById('traffic-options-group');
+
+            if (selectedDate === today) {
+                trafficGroup.style.display = 'block';
+            } else {
+                trafficGroup.style.display = 'none';
+            }
+        }
+
+        // State for preview
+        let currentPreview = null;
+
+        // Clear preview when date/settings change
+        function clearPreview() {
+            currentPreview = null;
+            document.getElementById('vehicle-allocation-section').style.display = 'none';
+            document.getElementById('plan-submit-btn').style.display = 'none';
+            document.getElementById('preview-btn').style.display = 'inline-block';
+            document.getElementById('plan-result').innerHTML = '';
+        }
+
+        // Toggle vehicle details panel
+        function toggleVehicleDetails(headerElement) {
+            const container = headerElement.parentElement;
+            const details = container.querySelector('.vehicle-details');
+            const chevron = headerElement.querySelector('span');
+
+            if (details.style.display === 'none') {
+                details.style.display = 'block';
+                chevron.style.transform = 'rotate(90deg)';
+                headerElement.style.borderRadius = '6px 6px 0 0';
+            } else {
+                details.style.display = 'none';
+                chevron.style.transform = 'rotate(0deg)';
+                headerElement.style.borderRadius = '6px';
+            }
+        }
+
+        // Preview routes - fetch available vehicles and bookings
+        async function previewRoutes() {
+            const routeDate = document.getElementById('route-date').value;
+            const maxStops = parseInt(document.getElementById('max-stops').value) || 15;
+
+            if (!routeDate) {
+                alert('Please select a date first');
+                return;
+            }
+
+            const previewBtn = document.getElementById('preview-btn');
+            const resultDiv = document.getElementById('plan-result');
+
+            previewBtn.disabled = true;
+            previewBtn.textContent = 'Loading...';
+            resultDiv.innerHTML = '<div class="alert alert-warning">Fetching bookings and vehicles...</div>';
+
+            try {
+                const preview = await window.electronAPI.routes.previewPlan({
+                    routeDate: routeDate,
+                    maxStopsPerRoute: maxStops
+                });
+
+                currentPreview = preview;
+
+                if (preview.bookings.length === 0) {
+                    resultDiv.innerHTML = '<div class="alert alert-warning">No compatible bookings found for this date.</div>';
+                    previewBtn.disabled = false;
+                    previewBtn.textContent = 'Preview';
+                    return;
+                }
+
+                if (preview.vehicles.length === 0) {
+                    resultDiv.innerHTML = '<div class="alert alert-error">No available vehicles found.</div>';
+                    previewBtn.disabled = false;
+                    previewBtn.textContent = 'Preview';
+                    return;
+                }
+
+                // Show allocation section
+                document.getElementById('vehicle-allocation-section').style.display = 'block';
+                document.getElementById('booking-count-badge').textContent = `${preview.bookings.length} bookings`;
+
+                // Populate vehicle allocation list
+                const listDiv = document.getElementById('vehicle-allocation-list');
+                listDiv.innerHTML = '';
+
+                for (const alloc of preview.defaultAllocation) {
+                    const vehicleContainer = document.createElement('div');
+                    vehicleContainer.className = 'vehicle-allocation-item';
+                    vehicleContainer.style.cssText = 'margin-bottom: 8px;';
+
+                    // Build location options from vehicle's available locations (or fall back to base)
+                    const vehicleLocations = alloc.availableLocations || preview.availableBaseLocations;
+                    const locationOptions = vehicleLocations.map(loc =>
+                        `<option value="${loc.id}"${loc.isPrimary ? ' data-primary="true"' : ''}>${loc.name} - ${loc.city}, ${loc.state}${loc.isPrimary ? ' ⭐' : ''}</option>`
+                    ).join('');
+
+                    // Find primary location for default selection
+                    const primaryLoc = vehicleLocations.find(l => l.isPrimary);
+                    const primaryLocName = primaryLoc ? `${primaryLoc.name} - ${primaryLoc.city}, ${primaryLoc.state}` : alloc.homeLocationName;
+
+                    const homeLocationDisplay = primaryLocName
+                        ? `<div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">📍 ${primaryLocName}</div>`
+                        : (vehicleLocations.length > 0
+                            ? `<div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 2px;">📍 ${vehicleLocations.length} location(s) assigned</div>`
+                            : `<div style="font-size: 0.75rem; color: #ff9900; margin-top: 2px;">⚠️ No locations assigned</div>`);
+
+                    vehicleContainer.innerHTML = `
+                        <div class="vehicle-header" style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; background: rgba(255,255,255,0.02); border-radius: 6px; cursor: pointer;" onclick="toggleVehicleDetails(this)">
+                            <span style="font-size: 0.8rem; transition: transform 0.2s;">▶</span>
+                            <div style="flex: 1;">
+                                <span style="color: var(--text-primary); font-weight: 500;">${alloc.vehicleName}</span>
+                                ${homeLocationDisplay}
+                            </div>
+                            <input type="number" 
+                                   class="vehicle-allocation-input" 
+                                   data-vehicle-id="${alloc.vehicleId}"
+                                   value="${alloc.bookingCount}" 
+                                   min="0" 
+                                   max="${preview.bookings.length}"
+                                   style="width: 60px; padding: 6px 8px; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary); text-align: center;"
+                                   onclick="event.stopPropagation()"
+                                   onchange="validateAllocation()">
+                        </div>
+                        <div class="vehicle-details" style="display: none; padding: 12px 12px 12px 32px; background: rgba(0,0,0,0.15); border-radius: 0 0 6px 6px; margin-top: -6px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                <div>
+                                    <label style="display: block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 4px;">Start Location</label>
+                                    <select class="start-location-select" data-vehicle-id="${alloc.vehicleId}" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.85rem;">
+                                        <option value="" selected>${primaryLocName ? '📍 ' + primaryLocName + ' (default)' : '-- Use first booking --'}</option>
+                                        ${locationOptions}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display: block; font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 4px;">End Location</label>
+                                    <select class="end-location-select" data-vehicle-id="${alloc.vehicleId}" style="width: 100%; padding: 6px 8px; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary); font-size: 0.85rem;">
+                                        <option value="return" selected>↩ Return to start</option>
+                                        <option value="">-- Use last booking --</option>
+                                        ${locationOptions}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    listDiv.appendChild(vehicleContainer);
+                }
+
+                // Clear warnings
+                document.getElementById('allocation-warning').style.display = 'none';
+
+                // Show warnings from preview
+                if (preview.warnings && preview.warnings.length > 0) {
+                    resultDiv.innerHTML = `<div class="alert alert-warning" style="margin-bottom: 12px;">
+                        ${preview.warnings.join('<br>')}
+                    </div>`;
+                } else {
+                    resultDiv.innerHTML = '';
+                }
+
+                // Show Plan button, hide Preview button
+                document.getElementById('preview-btn').style.display = 'none';
+                document.getElementById('plan-submit-btn').style.display = 'inline-block';
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="alert alert-error">Failed to preview: ${error.message}</div>`;
+            } finally {
+                previewBtn.disabled = false;
+                previewBtn.textContent = 'Preview';
+            }
+        }
+
+        // Validate that allocation total matches booking count
+        function validateAllocation() {
+            if (!currentPreview) return;
+
+            const inputs = document.querySelectorAll('.vehicle-allocation-input');
+            let total = 0;
+            inputs.forEach(input => {
+                total += parseInt(input.value) || 0;
+            });
+
+            const warningDiv = document.getElementById('allocation-warning');
+            const expectedTotal = currentPreview.bookings.length;
+
+            if (total !== expectedTotal) {
+                warningDiv.style.display = 'block';
+                warningDiv.textContent = `Allocated ${total} of ${expectedTotal} bookings. Please adjust to match.`;
+                document.getElementById('plan-submit-btn').disabled = true;
+            } else {
+                warningDiv.style.display = 'none';
+                document.getElementById('plan-submit-btn').disabled = false;
+            }
+        }
+
+        // Close plan routes modal
+        function closePlanModal() {
+            document.getElementById('plan-routes-modal').classList.remove('active');
+            clearPreview();
+        }
+
+        // Handle plan routes form submission
+        document.getElementById('plan-routes-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const routeDate = document.getElementById('route-date').value;
+            const maxStops = parseInt(document.getElementById('max-stops').value) || 15;
+
+            // Get routing preference (only if planning for today)
+            const today = new Date().toISOString().split('T')[0];
+            let routingPreference = 'TRAFFIC_UNAWARE'; // Default for future dates
+            if (routeDate === today) {
+                const selectedPref = document.querySelector('input[name="routing-preference"]:checked');
+                routingPreference = selectedPref ? selectedPref.value : 'TRAFFIC_AWARE';
+            }
+
+            // Collect vehicle allocations from the UI with location overrides
+            const vehicleAllocations = [];
+            const allocationItems = document.querySelectorAll('.vehicle-allocation-item');
+            allocationItems.forEach(item => {
+                const input = item.querySelector('.vehicle-allocation-input');
+                const startSelect = item.querySelector('.start-location-select');
+                const endSelect = item.querySelector('.end-location-select');
+
+                const vehicleId = input.getAttribute('data-vehicle-id');
+                const bookingCount = parseInt(input.value) || 0;
+
+                if (bookingCount > 0) {
+                    const allocation = { vehicleId, bookingCount };
+
+                    // Add start location override if changed
+                    if (startSelect && startSelect.value && startSelect.selectedIndex > 1) {
+                        // Index 0 = default, 1 = use first booking, 2+ = specific location
+                        allocation.startLocationId = startSelect.value;
+                    }
+
+                    // Add end location override
+                    if (endSelect) {
+                        if (endSelect.value === 'return') {
+                            // Return to start (default)
+                        } else if (endSelect.value === '') {
+                            // Use last booking - might need special handling
+                        } else if (endSelect.selectedIndex > 1) {
+                            allocation.endLocationId = endSelect.value;
+                        }
+                    }
+
+                    vehicleAllocations.push(allocation);
+                }
+            });
+
+            const submitBtn = document.getElementById('plan-submit-btn');
+            const resultDiv = document.getElementById('plan-result');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Planning...';
+            resultDiv.innerHTML = '<div class="alert alert-warning">Planning routes, please wait...</div>';
+
+            try {
+                const result = await window.electronAPI.routes.plan({
+                    routeDate: routeDate,
+                    maxStopsPerRoute: maxStops,
+                    routingPreference: routingPreference,
+                    vehicleAllocations: vehicleAllocations.length > 0 ? vehicleAllocations : undefined
+                });
+
+                // Show success message
+                let html = `<div class="alert alert-success">Route planning completed!</div>`;
+                html += `<div class="result-summary">
+                    <h4>Summary</h4>
+                    <ul>
+                        <li>Total Bookings: ${result.summary.totalBookings}</li>
+                        <li>Assigned to Routes: ${result.summary.assignedBookings}</li>
+                        <li>Routes Created: ${result.summary.routesCreated}</li>
+                        <li>Vehicles Used: ${result.summary.vehiclesUsed}</li>
+                    </ul>
+                </div>`;
+
+                if (result.warnings && result.warnings.length > 0) {
+                    html += `<div class="alert alert-warning" style="margin-top: 12px;">
+                        <strong>Warnings:</strong><br>
+                        ${result.warnings.join('<br>')}
+                    </div>`;
+                }
+
+                resultDiv.innerHTML = html;
+
+                // Reload routes table
+                await loadRoutes();
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="alert alert-error">Failed to plan routes: ${error.message}</div>`;
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Plan Routes';
+            }
+        });
+
+        // Search functionality
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allRoutes.filter(route =>
+                (route.routeName || '').toLowerCase().includes(term) ||
+                (route.routeCode || '').toLowerCase().includes(term)
+            );
+            renderRoutes(filtered);
+        });
+
+        // Event listeners
+        document.getElementById('plan-routes-btn').addEventListener('click', openPlanModal);
+
+        // Initialize calendar
+        class CalendarController {
+            constructor() {
+                this.currentDate = new Date(); // Represents the start of the week (Monday)
+                this.grid = document.getElementById('calendar-grid');
+                this.title = document.getElementById('calendar-title');
+            }
+
+            // Helper to parse "YYYY-MM-DD" as local midnight
+            parseDateString(str) {
+                if (!str) return new Date();
+                const [y, m, d] = str.split('-').map(Number);
+                return new Date(y, m - 1, d);
+            }
+
+            // Helper to format Date as "YYYY-MM-DD" using local time
+            formatDateString(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+
+            async init() {
+                try {
+                    // Fetch next available route date or defaut to today
+                    // Backend now returns "YYYY-MM-DD" string (or null) - robust against timezone
+                    const nextDateStr = await window.electronAPI.routes.getNextAvailableDate(new Date());
+                    let targetDate = new Date();
+
+                    if (nextDateStr && typeof nextDateStr === 'string') {
+                        targetDate = this.parseDateString(nextDateStr);
+                    } else if (nextDateStr instanceof Date) {
+                        // Fallback simply in case
+                        targetDate = nextDateStr;
+                    }
+
+                    // Align to Monday
+                    this.setWeekFromDate(targetDate);
+                    await this.render();
+                } catch (err) {
+                    console.error('Failed to init calendar', err);
+                    this.grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: #f85149;">
+                        Failed to load calendar: ${err.message}
+                    </div>`;
+                }
+            }
+
+            setWeekFromDate(date) {
+                // Determine Monday of the week (assuming ISO week starts Monday)
+                const day = date.getDay(); // 0 is Sun, 1 is Mon
+                const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+                this.currentDate = new Date(date);
+                this.currentDate.setDate(diff);
+                this.currentDate.setHours(0, 0, 0, 0);
+            }
+
+            async prevWeek() {
+                this.currentDate.setDate(this.currentDate.getDate() - 7);
+                await this.render();
+            }
+
+            async nextWeek() {
+                this.currentDate.setDate(this.currentDate.getDate() + 7);
+                await this.render();
+            }
+
+            async render() {
+                // Prepare dates
+                const startOfWeek = new Date(this.currentDate);
+                const endOfWeek = new Date(this.currentDate);
+                endOfWeek.setDate(endOfWeek.getDate() + 6);
+
+                // Update Title
+                const startStr = startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                const endStr = endOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                this.title.textContent = `Week of ${startStr} - ${endStr}`;
+
+                // Fetch Stats
+                let stats = {};
+                try {
+                    // Format dates as YYYY-MM-DD strings for backend
+                    const sStr = this.formatDateString(startOfWeek);
+                    const eStr = this.formatDateString(endOfWeek);
+
+                    // Backend now handles string range logic precisely
+                    stats = await window.electronAPI.routes.getStatsByDateRange(
+                        sStr,
+                        eStr
+                    );
+                } catch (err) {
+                    console.error('Failed to fetch stats', err);
+                }
+
+                // Render Grid
+                this.grid.innerHTML = '';
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const todayRes = today.getTime();
+
+                for (let i = 0; i < 7; i++) {
+                    const dayDate = new Date(this.currentDate);
+                    dayDate.setDate(dayDate.getDate() + i);
+
+                    // Robust key generation
+                    const dateKey = this.formatDateString(dayDate);
+                    const dayStats = stats[dateKey] || {};
+
+                    const dayEl = document.createElement('div');
+                    dayEl.className = 'calendar-day';
+
+                    // Highlight today
+                    if (dayDate.getTime() === todayRes) {
+                        dayEl.classList.add('today');
+                    }
+
+                    const totalRoutes = Object.values(dayStats).reduce((a, b) => a + b, 0);
+                    if (totalRoutes > 0) {
+                        dayEl.classList.add('active');
+                    }
+
+                    // Add click handler for the day
+                    dayEl.onclick = () => {
+                        // Remove active-selection class from others (if we had one)
+                        document.querySelectorAll('.calendar-day').forEach(d => {
+                            d.style.borderColor = '';
+                            d.classList.remove('selected');
+                        });
+
+                        // Highlight this day visually
+                        dayEl.classList.add('selected');
+                        dayEl.style.borderColor = 'var(--accent-primary)';
+
+                        // Load Routes for this day
+                        // Pass date filter
+                        loadRoutes({
+                            routeDateFrom: new Date(dateKey),
+                            routeDateTo: new Date(dateKey)
+                        });
+                    };
+
+                    const dayName = dayDate.toLocaleDateString('en-US', { weekday: 'short' });
+                    const dayNum = dayDate.getDate();
+
+                    let statsHtml = '';
+                    if (totalRoutes === 0) {
+                        statsHtml = '<div style="color: var(--text-secondary); font-size: 0.8rem; margin-top: auto; text-align: center;">-</div>';
+                    } else {
+                        // Order: Planned, In Progress, Completed
+                        if (dayStats.planned) {
+                            statsHtml += `<div class="stat-item" style="color: #a371f7"><span class="stat-badge" style="background: #a371f7"></span> Planned: ${dayStats.planned}</div>`;
+                        }
+                        if (dayStats.in_progress) {
+                            statsHtml += `<div class="stat-item" style="color: #58a6ff"><span class="stat-badge" style="background: #58a6ff"></span> Active: ${dayStats.in_progress}</div>`;
+                        }
+                        if (dayStats.completed) {
+                            statsHtml += `<div class="stat-item" style="color: #3fb950"><span class="stat-badge" style="background: #3fb950"></span> Done: ${dayStats.completed}</div>`;
+                        }
+                        if (dayStats.draft) {
+                            statsHtml += `<div class="stat-item" style="color: #8b949e"><span class="stat-badge" style="background: #8b949e"></span> Draft: ${dayStats.draft}</div>`;
+                        }
+                    }
+
+                    dayEl.innerHTML = `
+                        <div class="day-header">
+                            <span class="date-num">${dayNum}</span>
+                        </div>
+                        <div class="day-stats">
+                            ${statsHtml}
+                        </div>
+                    `;
+                    this.grid.appendChild(dayEl);
+                }
+            }
+        }
+
+        const calendar = new CalendarController();
+
+        // Load routes on page load
+        loadRoutes();
+        calendar.init();
+    </script>
+</body>
+
+</html>

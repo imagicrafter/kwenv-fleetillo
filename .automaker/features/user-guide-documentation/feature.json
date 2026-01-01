@@ -1,0 +1,25 @@
+{
+  "id": "user-guide-documentation",
+  "category": "Documentation",
+  "title": "Create User Guide Documentation",
+  "description": "Document user workflows, feature usage, and best practices for operating the RouteIQ application.",
+  "status": "backlog",
+  "priority": 2,
+  "complexity": "moderate",
+  "dependencies": [
+    "client-list-ui",
+    "service-list-ui",
+    "vehicle-list-ui",
+    "booking-calendar-ui"
+  ],
+  "createdAt": "2025-12-27T06:30:30.004Z",
+  "updatedAt": "2025-12-27T06:30:30.004Z",
+  "skipTests": false,
+  "model": "sonnet",
+  "thinkingLevel": "medium",
+  "imagePaths": [],
+  "textFilePaths": [],
+  "branchName": "main",
+  "planningMode": "skip",
+  "requirePlanApproval": false
+}

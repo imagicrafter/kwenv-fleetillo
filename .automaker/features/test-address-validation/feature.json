@@ -1,0 +1,24 @@
+{
+  "id": "test-address-validation",
+  "category": "Testing",
+  "title": "Write Tests for Address Validation",
+  "description": "Implement comprehensive Playwright tests for address validation integration including error cases and edge cases.",
+  "status": "verified",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "testing-framework-setup",
+    "address-validation-service"
+  ],
+  "createdAt": "2025-12-27T06:30:30.003Z",
+  "updatedAt": "2025-12-28T19:23:13.593Z",
+  "skipTests": false,
+  "model": "sonnet",
+  "thinkingLevel": "medium",
+  "imagePaths": [],
+  "textFilePaths": [],
+  "branchName": "main",
+  "planningMode": "skip",
+  "requirePlanApproval": false,
+  "startedAt": "2025-12-28T19:11:23.725Z"
+}

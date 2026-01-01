@@ -1,0 +1,24 @@
+{
+  "id": "test-vehicle-management",
+  "category": "Testing",
+  "title": "Write Tests for Vehicle Management",
+  "description": "Implement comprehensive Playwright tests for vehicle inventory operations including service type configuration.",
+  "status": "backlog",
+  "priority": 1,
+  "complexity": "moderate",
+  "dependencies": [
+    "testing-framework-setup",
+    "vehicle-crud-service",
+    "api-routes-vehicles"
+  ],
+  "createdAt": "2025-12-27T06:30:30.003Z",
+  "updatedAt": "2025-12-27T06:30:30.003Z",
+  "skipTests": false,
+  "model": "sonnet",
+  "thinkingLevel": "medium",
+  "imagePaths": [],
+  "textFilePaths": [],
+  "branchName": "main",
+  "planningMode": "skip",
+  "requirePlanApproval": false
+}

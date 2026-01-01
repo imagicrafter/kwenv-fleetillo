@@ -1,0 +1,23 @@
+{
+  "id": "database-schema-vehicles",
+  "category": "Database",
+  "title": "Create Vehicles Table Schema",
+  "description": "Vehicles table schema defined and created in Supabase routeiq schema. Reference: supabase/migrations scripts for current schema state including vehicle ID, name, status, and service type capabilities.",
+  "status": "completed",
+  "priority": 1,
+  "complexity": "simple",
+  "dependencies": [
+    "supabase-connection"
+  ],
+  "createdAt": "2025-12-27T06:30:29.995Z",
+  "updatedAt": "2025-12-28T15:54:21.470Z",
+  "branchName": "main",
+  "startedAt": "2025-12-28T15:50:08.439Z",
+  "skipTests": false,
+  "model": "sonnet",
+  "thinkingLevel": "medium",
+  "imagePaths": [],
+  "textFilePaths": [],
+  "planningMode": "skip",
+  "requirePlanApproval": false
+}
