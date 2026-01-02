@@ -319,6 +319,27 @@ export async function getRoutes(
     const routes = (data as RouteRow[]).map(convertRowToRoute);
     const total = count ?? 0;
 
+    // Fetch vehicle names for routes that have a vehicleId
+    const vehicleIds = [...new Set(routes.filter(r => r.vehicleId).map(r => r.vehicleId!))] as string[];
+    if (vehicleIds.length > 0) {
+      const { data: vehiclesData } = await supabase
+        .from('vehicles')
+        .select('id, unit_number, vehicle_type')
+        .in('id', vehicleIds);
+
+      if (vehiclesData) {
+        const vehicleMap = new Map(vehiclesData.map(v => [v.id, v]));
+        routes.forEach(route => {
+          if (route.vehicleId) {
+            const vehicle = vehicleMap.get(route.vehicleId);
+            if (vehicle) {
+              route.vehicleName = `${vehicle.unit_number}${vehicle.vehicle_type ? ' - ' + vehicle.vehicle_type : ''}`;
+            }
+          }
+        });
+      }
+    }
+
     return {
       success: true,
       data: {
@@ -428,10 +449,10 @@ export async function deleteRoute(id: string): Promise<Result<void>> {
     // Use admin client if available to bypass RLS policies
     const supabase = getAdminSupabaseClient() || getSupabaseClient();
 
-    // First, get the route to find its booking IDs (stopSequence)
+    // First, get the route to find its booking IDs (stopSequence) and vehicle/date for fallback
     const { data: route, error: fetchError } = await supabase
       .from(ROUTES_TABLE)
-      .select('stop_sequence')
+      .select('stop_sequence, vehicle_id, route_date')
       .eq('id', id)
       .is('deleted_at', null)
       .single();
@@ -448,9 +469,9 @@ export async function deleteRoute(id: string): Promise<Result<void>> {
       };
     }
 
-    // Reset bookings if route has assigned stops
+    // Reset bookings - try by stop_sequence first, then fallback to vehicle_id + date
     if (route?.stop_sequence && route.stop_sequence.length > 0) {
-      logger.debug('Resetting bookings for deleted route', {
+      logger.debug('Resetting bookings for deleted route by stop_sequence', {
         routeId: id,
         bookingCount: route.stop_sequence.length
       });
@@ -459,18 +480,43 @@ export async function deleteRoute(id: string): Promise<Result<void>> {
         .from('bookings')
         .update({
           vehicle_id: null,
-          status: 'confirmed' // Reset to confirmed so they can be re-planned
+          status: 'confirmed'
         })
         .in('id', route.stop_sequence);
 
       if (bookingError) {
         logger.warn('Failed to reset bookings for deleted route', { error: bookingError.message });
-        // Continue with route deletion even if booking reset fails
       } else {
         logger.info('Reset bookings for deleted route', {
           routeId: id,
           bookingIds: route.stop_sequence
         });
+      }
+    }
+
+    // Fallback: Also reset any bookings with matching vehicle_id and scheduled_date
+    // This catches bookings that might have been missed if stop_sequence was incomplete
+    if (route?.vehicle_id && route?.route_date) {
+      logger.debug('Resetting bookings by vehicle_id and date as fallback', {
+        routeId: id,
+        vehicleId: route.vehicle_id,
+        routeDate: route.route_date
+      });
+
+      const { error: fallbackError, count } = await supabase
+        .from('bookings')
+        .update({
+          vehicle_id: null,
+          status: 'confirmed'
+        })
+        .eq('vehicle_id', route.vehicle_id)
+        .eq('scheduled_date', route.route_date)
+        .is('deleted_at', null);
+
+      if (fallbackError) {
+        logger.warn('Failed fallback reset of bookings', { error: fallbackError.message });
+      } else if (count && count > 0) {
+        logger.info('Fallback reset additional bookings', { count });
       }
     }
 

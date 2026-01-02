@@ -76,6 +76,7 @@ export interface Route extends Timestamps {
 
   // Vehicle assignment
   vehicleId?: ID;
+  vehicleName?: string; // Populated from join with vehicles table
 
   // Date and time
   routeDate: Date;
@@ -258,6 +259,9 @@ export function rowToRoute(row: RouteRow): Route {
     routeName: row.route_name,
     routeCode: row.route_code ?? undefined,
     vehicleId: row.vehicle_id ?? undefined,
+    vehicleName: (row as any).vehicles?.unit_number
+      ? `${(row as any).vehicles.unit_number}${(row as any).vehicles.vehicle_type ? ' - ' + (row as any).vehicles.vehicle_type : ''}`
+      : undefined,
     routeDate: new Date(row.route_date),
     plannedStartTime: row.planned_start_time ?? undefined,
     plannedEndTime: row.planned_end_time ?? undefined,

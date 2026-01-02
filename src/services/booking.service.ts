@@ -458,7 +458,8 @@ export async function getBookings(
 export async function updateBooking(input: UpdateBookingInput): Promise<Result<Booking>> {
   logger.debug('Updating booking', { id: input.id });
 
-  // Validate input if required fields are being updated
+  // Only validate core required fields if they are being updated
+  // Skip full validation for simple updates like status changes
   if (input.clientId || input.serviceId || input.bookingType || input.scheduledDate || input.scheduledStartTime) {
     const validationInput: CreateBookingInput = {
       clientId: input.clientId ?? '',
@@ -466,12 +467,23 @@ export async function updateBooking(input: UpdateBookingInput): Promise<Result<B
       bookingType: input.bookingType ?? 'one_time',
       scheduledDate: input.scheduledDate ?? new Date(),
       scheduledStartTime: input.scheduledStartTime ?? '00:00',
-      ...input,
     };
     const validationResult = validateBookingInput(validationInput);
     if (!validationResult.success) {
       return validationResult as Result<Booking>;
     }
+  }
+
+  // Validate estimatedDurationMinutes only if explicitly provided with a value
+  if (input.estimatedDurationMinutes !== undefined && input.estimatedDurationMinutes <= 0) {
+    return {
+      success: false,
+      error: new BookingServiceError(
+        'Estimated duration must be greater than 0',
+        BookingErrorCodes.VALIDATION_FAILED,
+        { field: 'estimatedDurationMinutes', value: input.estimatedDurationMinutes }
+      ),
+    };
   }
 
   try {

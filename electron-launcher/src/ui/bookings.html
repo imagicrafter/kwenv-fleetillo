@@ -952,7 +952,7 @@
                     bookingType: document.getElementById('booking-type').value,
                     status: document.getElementById('status').value,
                     quotedPrice: parseFloat(document.getElementById('quoted-price').value) || 0,
-                    estimatedDurationMinutes: parseInt(document.getElementById('estimated-duration').value) || 0,
+                    estimatedDurationMinutes: parseInt(document.getElementById('estimated-duration').value) || undefined,
                     specialInstructions: document.getElementById('special-instructions').value
                 };
 
