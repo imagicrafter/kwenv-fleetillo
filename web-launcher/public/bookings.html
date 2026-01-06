@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookings - RouteIQ</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .nav-group.expanded .nav-children {
+            display: flex;
+        }
+    </style>
+</head>
+
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon">IQ</div>
+                <h1>RouteIQ</h1>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </span>
+                    Dashboard
+                </a>
+
+                <!-- Planning Group (Expanded) -->
+                <div class="nav-group expanded">
+                    <div class="nav-item nav-header" onclick="toggleGroup(this)">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span class="icon">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </span>
+                            Planning
+                        </div>
+                        <span class="nav-chevron" style="transform: rotate(90deg);">▶</span>
+                    </div>
+                    <div class="nav-children">
+                        <a href="customers.html" class="nav-child-item">Customers</a>
+                        <a href="services.html" class="nav-child-item">Services</a>
+                        <a href="bookings.html" class="nav-child-item"
+                            style="color: var(--text-primary); background-color: rgba(255,255,255,0.05);">Bookings</a>
+                        <a href="calendar.html" class="nav-child-item">Calendar</a>
+                        <a href="locations.html" class="nav-child-item">Locations</a>
+                    </div>
+                </div>
+
+                <!-- Fleet Group -->
+                <div class="nav-group">
+                    <div class="nav-item nav-header" onclick="toggleGroup(this)">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span class="icon">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                </svg>
+                            </span>
+                            Fleet
+                        </div>
+                        <span class="nav-chevron">▶</span>
+                    </div>
+                    <div class="nav-children">
+                        <a href="vehicles.html" class="nav-child-item">Vehicles</a>
+                        <a href="#" class="nav-child-item">Drivers</a>
+                    </div>
+                </div>
+
+                <a href="routes.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                        </svg>
+                    </span>
+                    Routes
+                </a>
+
+                <a href="#" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </span>
+                    Settings
+                </a>
+            </nav>
+
+            <script>
+                function toggleGroup(header) {
+                    const group = header.parentElement;
+                    group.classList.toggle('expanded');
+                    const chevron = header.querySelector('.nav-chevron');
+                    if (group.classList.contains('expanded')) {
+                        chevron.style.transform = 'rotate(90deg)';
+                    } else {
+                        chevron.style.transform = 'rotate(0deg)';
+                    }
+                }
+            </script>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="avatar">JM</div>
+                    <div class="details">
+                        <span class="name">Admin User</span>
+                        <span class="role">Administrator</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-bar">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="search-input" placeholder="Search bookings...">
+                </div>
+                <div class="actions">
+                    <button class="btn-primary" id="add-booking-btn">+ New Booking</button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="page-header">
+                    <h2>Bookings</h2>
+                    <span class="date">Manage service appointments</span>
+                </div>
+
+                <!-- Bookings Table -->
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Booking #</th>
+                                <th>Customer</th>
+                                <th>Service / Type</th>
+                                <th>Location</th>
+                                <th>Date & Time</th>
+                                <th>Status</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bookings-table-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Footer -->
+                <div class="pagination-footer"
+                    style="padding: 16px 20px; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+                    <div class="rows-per-page">
+                        <label for="rows-select" style="margin-right: 8px; color: var(--text-secondary);">Rows per
+                            page:</label>
+                        <select id="rows-select"
+                            style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; padding: 4px 8px;">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                    <div class="pagination-controls" style="display: flex; align-items: center; gap: 16px;">
+                        <span id="pagination-info" style="color: var(--text-secondary); font-size: 0.9rem;">0-0 of
+                            0</span>
+                        <div class="page-nav">
+                            <button id="prev-page-btn" class="action-btn" style="padding: 4px 8px;"
+                                disabled>Previous</button>
+                            <button id="next-page-btn" class="action-btn" style="padding: 4px 8px;"
+                                disabled>Next</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Booking Modal -->
+    <div id="add-booking-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Add New Booking</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="booking-form">
+                    <input type="hidden" id="booking-id">
+
+                    <div class="form-group" style="position: relative;">
+                        <label>Client *</label>
+                        <input type="text" id="client-search" placeholder="Search client by name..." autocomplete="off">
+                        <input type="hidden" id="client-id">
+                        <div id="client-search-results"
+                            style="display: none; position: absolute; width: 100%; top: 100%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; z-index: 10; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                        </div>
+                        <div id="selected-client-display"
+                            style="display: none; margin-top: 8px; padding: 8px; background: rgba(88, 166, 255, 0.1); border-radius: 4px; align-items: center; justify-content: space-between;">
+                            <span id="selected-client-name" style="font-weight: 500;"></span>
+                            <button type="button" id="clear-client-btn"
+                                style="background: none; border: none; color: var(--text-secondary); cursor: pointer;">✕</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="position: relative;">
+                        <label>Service *</label>
+                        <input type="text" id="service-search" placeholder="Search service by name..."
+                            autocomplete="off">
+                        <input type="hidden" id="service-id">
+                        <div id="service-search-results"
+                            style="display: none; position: absolute; width: 100%; top: 100%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; z-index: 10; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                        </div>
+                        <div id="selected-service-display"
+                            style="display: none; margin-top: 8px; padding: 8px; background: rgba(88, 166, 255, 0.1); border-radius: 4px; align-items: center; justify-content: space-between;">
+                            <div style="display:flex; flex-direction:column;">
+                                <span id="selected-service-name" style="font-weight: 500;"></span>
+                                <span id="selected-service-details"
+                                    style="font-size: 0.8rem; color: var(--text-secondary);"></span>
+                            </div>
+                            <button type="button" id="clear-service-btn"
+                                style="background: none; border: none; color: var(--text-secondary); cursor: pointer;">✕</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="position: relative;">
+                        <label>Location</label>
+                        <input type="text" id="location-search" placeholder="Search location by name..."
+                            autocomplete="off">
+                        <input type="hidden" id="location-id">
+                        <div id="location-search-results"
+                            style="display: none; position: absolute; width: 100%; top: 100%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; z-index: 10; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                        </div>
+                        <div id="selected-location-display"
+                            style="display: none; margin-top: 8px; padding: 8px; background: rgba(88, 166, 255, 0.1); border-radius: 4px; align-items: center; justify-content: space-between;">
+                            <div style="display:flex; flex-direction:column;">
+                                <span id="selected-location-name" style="font-weight: 500;"></span>
+                                <span id="selected-location-address"
+                                    style="font-size: 0.8rem; color: var(--text-secondary);"></span>
+                            </div>
+                            <button type="button" id="clear-location-btn"
+                                style="background: none; border: none; color: var(--text-secondary); cursor: pointer;">✕</button>
+                        </div>
+                        <div id="location-client-hint"
+                            style="display: none; margin-top: 4px; font-size: 0.8rem; color: var(--text-secondary);">
+                            Select a client first to filter locations
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="booking-type">Booking Type *</label>
+                            <select id="booking-type" required>
+                                <option value="one_time">One Time</option>
+                                <option value="recurring">Recurring</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="status">Status</label>
+                            <select id="status">
+                                <option value="pending">Pending</option>
+                                <option value="confirmed">Confirmed</option>
+                                <option value="scheduled">Scheduled</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                                <option value="no_show">No Show</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="scheduled-date">Date *</label>
+                            <input type="date" id="scheduled-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="scheduled-start-time">Start Time *</label>
+                            <input type="time" id="scheduled-start-time" required>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="quoted-price">Quoted Price</label>
+                            <input type="number" id="quoted-price" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="estimated-duration">Est. Duration (min)</label>
+                            <input type="number" id="estimated-duration" min="1">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="special-instructions">Notes / Special Instructions</label>
+                        <textarea id="special-instructions" rows="2"
+                            placeholder="Gate codes, access details, etc."></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary close-modal-btn">Cancel</button>
+                        <button type="submit" class="btn-primary">Save Booking</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Styles -->
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: var(--bg-card);
+            margin: 5% auto;
+            padding: 0;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            width: 500px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .close-modal {
+            color: var(--text-secondary);
+            font-size: 28px;
+            font-weight: normal;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close-modal:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            box-sizing: border-box;
+            /* Fix for width: 100% overflowing */
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            background-color: rgba(64, 169, 255, 0.05);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 32px;
+        }
+    </style>
+
+    <script src="preload.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Helper function to format dates without timezone conversion
+            // Dates from DB are in YYYY-MM-DD format and should be displayed as-is
+            function formatDateForDisplay(dateStr) {
+                if (!dateStr) return 'N/A';
+
+                // If it's a Date object, convert to ISO string first
+                if (dateStr instanceof Date) {
+                    dateStr = dateStr.toISOString().split('T')[0];
+                }
+
+                // Ensure it's a string
+                if (typeof dateStr !== 'string') {
+                    dateStr = String(dateStr);
+                }
+
+                // Parse YYYY-MM-DD format directly without timezone conversion
+                const parts = dateStr.split('-');
+                if (parts.length === 3) {
+                    const month = parseInt(parts[1], 10);
+                    const day = parseInt(parts[2], 10);
+                    const year = parts[0];
+                    return `${month}/${day}/${year}`;
+                }
+                return dateStr;
+            }
+
+            const bookingsTable = document.getElementById('bookings-table-body');
+            const searchInput = document.getElementById('search-input');
+            const addBookingBtn = document.getElementById('add-booking-btn');
+            const modal = document.getElementById('add-booking-modal');
+            const form = document.getElementById('booking-form');
+            const modalTitle = document.getElementById('modal-title');
+            const closeButtons = document.querySelectorAll('.close-modal, .close-modal-btn');
+
+            let isEditing = false;
+            let currentBookingId = null;
+            let currentPage = 1;
+            let limit = 10;
+            let totalItems = 0;
+
+            const rowsSelect = document.getElementById('rows-select');
+            const prevPageBtn = document.getElementById('prev-page-btn');
+            const nextPageBtn = document.getElementById('next-page-btn');
+            const paginationInfo = document.getElementById('pagination-info');
+
+            // Load bookings on startup
+            loadBookings();
+
+            // Event Listeners
+            addBookingBtn.addEventListener('click', () => openModal());
+
+            closeButtons.forEach(btn => {
+                btn.addEventListener('click', closeModal);
+            });
+
+            // Close on outside click: REMOVED per user request
+            /*
+            window.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+            */
+
+            form.addEventListener('submit', handleFormSubmit);
+
+            // Search functionality with debounce
+            let searchTimeout;
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    loadBookingsWithFilter(e.target.value);
+                }, 300);
+            });
+
+            async function loadBookingsWithFilter(searchTerm) {
+                // Reset to page 1 for new search
+                currentPage = 1;
+                loadBookings(searchTerm);
+            }
+
+            // Event Listeners related to pagination
+            rowsSelect.addEventListener('change', (e) => {
+                limit = parseInt(e.target.value);
+                currentPage = 1;
+                loadBookings();
+            });
+
+            prevPageBtn.addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    loadBookings();
+                }
+            });
+
+            nextPageBtn.addEventListener('click', () => {
+                const totalPages = Math.ceil(totalItems / limit);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    loadBookings();
+                }
+            });
+
+            async function loadBookings(searchTerm = '') {
+                try {
+                    console.log(`Requesting bookings... Page: ${currentPage}, Limit: ${limit}`);
+                    const filters = searchTerm ? { searchTerm } : {};
+                    const pagination = { page: currentPage, limit };
+
+                    const response = await window.electronAPI.bookings.getAll(filters, pagination);
+
+                    // Handle PaginatedResponse
+                    let bookings = [];
+                    if (response.pagination) {
+                        // Paginated structure: { data: [], pagination: {} }
+                        bookings = response.data;
+                        const meta = response.pagination;
+                        totalItems = meta.total;
+                        updatePaginationControls(meta);
+                    } else if (response.data && Array.isArray(response.data)) {
+                        // Wrapper structure: { data: [] } (unlikely with current setup but possible)
+                        bookings = response.data;
+                        totalItems = bookings.length;
+                    } else if (Array.isArray(response)) {
+                        // Direct array
+                        bookings = response;
+                        totalItems = bookings.length;
+                    }
+
+                    renderTable(bookings);
+                } catch (error) {
+                    console.error('Error loading bookings:', error);
+                    alert('Error loading bookings: ' + error.message);
+                    bookingsTable.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">Error loading bookings. Check console for details.</td></tr>';
+                }
+            }
+
+            function updatePaginationControls(meta) {
+                const { page, limit, total, totalPages } = meta;
+                const start = total === 0 ? 0 : (page - 1) * limit + 1;
+                const end = Math.min(page * limit, total);
+
+                paginationInfo.textContent = `${start}-${end} of ${total}`;
+                prevPageBtn.disabled = page <= 1;
+                nextPageBtn.disabled = page >= totalPages;
+            }
+
+            function renderTable(bookings) {
+                bookingsTable.innerHTML = '';
+
+                if (!bookings || bookings.length === 0) {
+                    bookingsTable.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: var(--text-secondary);">No bookings found</td></tr>';
+                    return;
+                }
+
+                bookings.forEach(booking => {
+                    const row = document.createElement('tr');
+
+                    const priceDisplay = new Intl.NumberFormat('en-US', {
+                        style: 'currency',
+                        currency: 'USD'
+                    }).format(booking.quotedPrice || 0);
+
+                    // Badge logic
+                    let badgeClass = 'inactive';
+                    if (['confirmed', 'scheduled', 'in_progress', 'completed'].includes(booking.status)) badgeClass = 'active';
+                    if (['cancelled', 'no_show'].includes(booking.status)) badgeClass = 'suspended';
+
+                    let statusStyle = '';
+                    if (booking.status === 'in_progress') statusStyle = 'color: #58a6ff; border-color: rgba(88,166,255,0.2); background-color: rgba(88,166,255,0.15);';
+
+                    // Location display
+                    const locationDisplay = booking.locationName || '-';
+
+                    row.innerHTML = `
+                        <td>
+                            <div style="font-family: monospace; font-weight: 600;">${booking.bookingNumber || 'N/A'}</div>
+                        </td>
+                        <td>${booking.clientName || 'Unknown Client'}</td>
+                        <td>
+                            <div><strong>${booking.serviceName || 'Unknown Service'}</strong></div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: capitalize;">${(booking.bookingType || '').replace('_', ' ')}</div>
+                        </td>
+                        <td>
+                            <div style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${locationDisplay}">${locationDisplay}</div>
+                        </td>
+                        <td>
+                            <div>${formatDateForDisplay(booking.scheduledDate)}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">${booking.scheduledStartTime ? booking.scheduledStartTime.substring(0, 5) : ''}</div>
+                        </td>
+                        <td><span class="status-badge ${badgeClass}" style="${statusStyle}">${booking.status}</span></td>
+                        <td>${priceDisplay}</td>
+                        <td>
+                            <button class="action-btn edit-btn" data-id="${booking.id}">✏️</button>
+                            <button class="action-btn delete-btn" data-id="${booking.id}">🗑️</button>
+                        </td>
+                    `;
+
+                    bookingsTable.appendChild(row);
+                });
+
+                // Attach event listeners to buttons
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = e.target.closest('button').dataset.id;
+                        openEditModal(id);
+                    });
+                });
+
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = e.target.closest('button').dataset.id;
+                        // deleteBooking(id); // Using logs for specific implementation verification
+                        if (confirm('Delete booking?')) {
+                            window.electronAPI.bookings.delete(id).then(() => loadBookings());
+                        }
+                    });
+                });
+            }
+
+            const clientSearchInput = document.getElementById('client-search');
+            const clientIdInput = document.getElementById('client-id');
+            const clientSearchResults = document.getElementById('client-search-results');
+            const selectedClientDisplay = document.getElementById('selected-client-display');
+            const selectedClientName = document.getElementById('selected-client-name');
+            const clearClientBtn = document.getElementById('clear-client-btn');
+
+            const serviceSearchInput = document.getElementById('service-search');
+            const serviceIdInput = document.getElementById('service-id');
+            const serviceSearchResults = document.getElementById('service-search-results');
+            const selectedServiceDisplay = document.getElementById('selected-service-display');
+            const selectedServiceName = document.getElementById('selected-service-name');
+            const selectedServiceDetails = document.getElementById('selected-service-details');
+            const clearServiceBtn = document.getElementById('clear-service-btn');
+
+            // --- Client Search Logic ---
+            let clientSearchTimeout;
+            clientSearchInput.addEventListener('input', (e) => {
+                clearTimeout(clientSearchTimeout);
+                const term = e.target.value.trim();
+
+                if (term.length < 2) {
+                    clientSearchResults.style.display = 'none';
+                    return;
+                }
+
+                clientSearchTimeout = setTimeout(async () => {
+                    try {
+                        const result = await window.electronAPI.clients.getAll({ searchTerm: term, limit: 5 });
+                        const clients = result.data.data || result.data || [];
+                        renderClientResults(clients);
+                    } catch (err) {
+                        console.error('Client search failed', err);
+                    }
+                }, 300);
+            });
+
+            function renderClientResults(clients) {
+                clientSearchResults.innerHTML = '';
+                if (clients.length === 0) {
+                    const div = document.createElement('div');
+                    div.style.padding = '8px 12px';
+                    div.style.color = 'var(--text-secondary)';
+                    div.textContent = 'No clients found';
+                    clientSearchResults.appendChild(div);
+                } else {
+                    clients.forEach(client => {
+                        const div = document.createElement('div');
+                        div.style.padding = '8px 12px';
+                        div.style.cursor = 'pointer';
+                        div.style.borderBottom = '1px solid var(--border-subtle)';
+                        div.innerHTML = `<div style="font-weight:500">${client.name}</div><div style="font-size:0.8rem; color:var(--text-secondary)">${client.email || 'No email'}</div>`;
+                        div.addEventListener('mouseover', () => div.style.backgroundColor = 'rgba(255,255,255,0.05)');
+                        div.addEventListener('mouseout', () => div.style.backgroundColor = 'transparent');
+                        div.addEventListener('click', () => {
+                            selectClient(client);
+                        });
+                        clientSearchResults.appendChild(div);
+                    });
+                }
+                clientSearchResults.style.display = 'block';
+            }
+
+            // --- Location Search Logic ---
+            const locationSearchInput = document.getElementById('location-search');
+            const locationIdInput = document.getElementById('location-id');
+            const locationSearchResults = document.getElementById('location-search-results');
+            const selectedLocationDisplay = document.getElementById('selected-location-display');
+            const selectedLocationName = document.getElementById('selected-location-name');
+            const selectedLocationAddress = document.getElementById('selected-location-address');
+            const clearLocationBtn = document.getElementById('clear-location-btn');
+            const locationClientHint = document.getElementById('location-client-hint');
+
+            let locationSearchTimeout;
+
+            async function performLocationSearch(term) {
+                const selectedClientId = clientIdInput.value;
+
+                // Show hint if no client selected
+                if (!selectedClientId) {
+                    locationClientHint.style.display = 'block';
+                    locationSearchResults.style.display = 'none';
+                    return;
+                }
+                locationClientHint.style.display = 'none';
+
+                try {
+                    // Search locations filtered by client
+                    // If term is empty, this fetches all locations for the client
+                    const result = await window.electronAPI.locations.getAll({ clientId: selectedClientId, searchTerm: term });
+                    const locations = result.data || result || [];
+                    renderLocationResults(locations);
+                } catch (err) {
+                    console.error('Location search failed', err);
+                }
+            }
+
+            locationSearchInput.addEventListener('input', (e) => {
+                clearTimeout(locationSearchTimeout);
+                const term = e.target.value.trim();
+                locationSearchTimeout = setTimeout(() => performLocationSearch(term), 300);
+            });
+
+            locationSearchInput.addEventListener('focus', (e) => {
+                const term = e.target.value.trim();
+                // Find immediately on focus if client is selected
+                if (clientIdInput.value) {
+                    performLocationSearch(term);
+                } else {
+                    locationClientHint.style.display = 'block';
+                }
+            });
+
+            function renderLocationResults(locations) {
+                locationSearchResults.innerHTML = '';
+                if (locations.length === 0) {
+                    const div = document.createElement('div');
+                    div.style.padding = '8px 12px';
+                    div.style.color = 'var(--text-secondary)';
+                    div.textContent = 'No locations found for this client';
+                    locationSearchResults.appendChild(div);
+                } else {
+                    locations.forEach(loc => {
+                        const div = document.createElement('div');
+                        div.style.padding = '8px 12px';
+                        div.style.cursor = 'pointer';
+                        div.style.borderBottom = '1px solid var(--border-subtle)';
+                        const addressParts = [loc.city, loc.state].filter(Boolean).join(', ');
+                        div.innerHTML = `<div style="font-weight:500">${loc.name}</div><div style="font-size:0.8rem; color:var(--text-secondary)">${addressParts || loc.addressLine1 || 'No address'}</div>`;
+                        div.addEventListener('mouseover', () => div.style.backgroundColor = 'rgba(255,255,255,0.05)');
+                        div.addEventListener('mouseout', () => div.style.backgroundColor = 'transparent');
+                        div.addEventListener('click', () => {
+                            selectLocation(loc);
+                        });
+                        locationSearchResults.appendChild(div);
+                    });
+                }
+                locationSearchResults.style.display = 'block';
+            }
+
+            function selectLocation(location) {
+                locationIdInput.value = location.id;
+                selectedLocationName.textContent = location.name;
+                const addressParts = [location.addressLine1, location.city, location.state].filter(Boolean).join(', ');
+                selectedLocationAddress.textContent = addressParts || '';
+                selectedLocationDisplay.style.display = 'flex';
+                locationSearchInput.style.display = 'none';
+                locationSearchResults.style.display = 'none';
+                locationClientHint.style.display = 'none';
+            }
+
+            clearLocationBtn.addEventListener('click', () => {
+                locationIdInput.value = '';
+                selectedLocationName.textContent = '';
+                selectedLocationAddress.textContent = '';
+                selectedLocationDisplay.style.display = 'none';
+                locationSearchInput.style.display = 'block';
+                locationSearchInput.value = '';
+            });
+
+            // When client changes, clear location selection
+            clientIdInput.addEventListener('change', () => {
+                clearLocationBtn.click();
+            });
+            // Modal Functions
+            async function openModal(editMode = false) {
+                isEditing = editMode;
+                modalTitle.textContent = editMode ? 'Edit Booking' : 'New Booking';
+
+                if (!editMode) {
+                    // Clear logic handled by closeModal/reset, but ensure search fields valid state
+                    if (!clientIdInput.value) clearClientBtn.click();
+                    if (!serviceIdInput.value) clearServiceBtn.click();
+                    if (!locationIdInput.value) clearLocationBtn.click();
+                }
+
+                if (modal) {
+                    modal.style.display = 'block';
+                }
+            }
+
+            async function openEditModal(id) {
+                try {
+                    const response = await window.electronAPI.bookings.getById(id);
+                    const booking = response.data || response;
+
+                    if (!booking) throw new Error('Booking not found');
+                    currentBookingId = booking.id;
+
+                    // Populate simple fields
+                    // Populate simple fields
+                    // Convert scheduledDate to YYYY-MM-DD format for the date input
+                    let dateValue = '';
+                    if (booking.scheduledDate) {
+                        if (typeof booking.scheduledDate === 'string') {
+                            // Already a string, use first 10 chars (YYYY-MM-DD)
+                            dateValue = booking.scheduledDate.substring(0, 10);
+                        } else if (booking.scheduledDate instanceof Date) {
+                            // Date object - convert to ISO and take date part
+                            dateValue = booking.scheduledDate.toISOString().split('T')[0];
+                        }
+                    }
+                    document.getElementById('scheduled-date').value = dateValue;
+                    document.getElementById('scheduled-start-time').value = booking.scheduledStartTime || '';
+                    document.getElementById('booking-type').value = booking.bookingType || 'one_time';
+                    document.getElementById('status').value = booking.status || 'pending';
+                    document.getElementById('quoted-price').value = booking.quotedPrice || '';
+                    document.getElementById('estimated-duration').value = booking.estimatedDurationMinutes || '';
+                    const notesField = document.getElementById('special-instructions');
+                    if (notesField) notesField.value = booking.specialInstructions || '';
+
+                    // Populate Client
+                    if (booking.clientId) {
+                        if (booking.clientName) {
+                            selectClient({ id: booking.clientId, name: booking.clientName, email: booking.clientEmail });
+                        } else {
+                            try {
+                                const clientData = await window.electronAPI.clients.getById(booking.clientId);
+                                const client = clientData.data || clientData;
+                                selectClient({ id: booking.clientId, name: client.name || 'Unknown Client' });
+                            } catch (e) {
+                                console.error('Failed to fetch client details', e);
+                                selectClient({ id: booking.clientId, name: 'Unknown Client (ID: ' + booking.clientId.substring(0, 6) + ')' });
+                            }
+                        }
+                    } else {
+                        clearClientBtn.click();
+                    }
+
+                    // Populate Service
+                    if (booking.serviceId) {
+                        if (booking.serviceName) {
+                            selectService({
+                                id: booking.serviceId,
+                                name: booking.serviceName,
+                                code: booking.serviceCode, // Optional display
+                                basePrice: booking.quotedPrice, // Use quoted as base if fallback
+                            });
+                            // selectService expects service object with basePrice usually?
+                            // Let's check selectService impl. It uses service.name, priceCurrency, basePrice.
+                            // We can construct a mock service object from booking data if needed, or just partial.
+                        } else {
+                            try {
+                                const serviceData = await window.electronAPI.services.getById(booking.serviceId);
+                                const service = serviceData.data || serviceData;
+                                selectService({
+                                    id: booking.serviceId,
+                                    name: service.name || 'Unknown Service',
+                                    defaultPrice: service.basePrice,
+                                    duration: service.avgDurationMinutes,
+                                    priceCurrency: service.priceCurrency
+                                });
+                            } catch (e) {
+                                console.error('Failed to fetch service details', e);
+                                selectService({ id: booking.serviceId, name: 'Unknown Service', defaultPrice: 0, duration: 0 });
+                            }
+                        }
+                    } else {
+                        clearServiceBtn.click();
+                    }
+
+                    // Populate Location
+                    if (booking.locationId) {
+                        try {
+                            // If location name/address already in booking view (from join), use it
+                            if (booking.locationName) {
+                                selectLocation({
+                                    id: booking.locationId,
+                                    name: booking.locationName,
+                                    addressLine1: booking.locationAddressLine1 || '',
+                                    city: booking.locationCity || '',
+                                    state: booking.locationState || ''
+                                });
+                            } else {
+                                // Fetch fresh
+                                const locData = await window.electronAPI.locations.getById(booking.locationId);
+                                const loc = locData.data || locData;
+                                selectLocation(loc);
+                            }
+                        } catch (e) {
+                            console.error('Failed to fetch location details', e);
+                            selectLocation({ id: booking.locationId, name: 'Unknown Location', addressLine1: '' });
+                        }
+                    } else {
+                        clearLocationBtn.click();
+                    }
+
+                    openModal(true);
+                } catch (error) {
+                    console.error('Failed to open edit modal:', error);
+                    alert('Failed to load booking details: ' + error.message);
+                }
+            }
+
+            function closeModal() {
+                if (modal) modal.style.display = 'none';
+                if (form && !isEditing) {
+                    form.reset();
+                    // Reset custom search components
+                    clearClientBtn.click();
+                    clearServiceBtn.click();
+                    clearLocationBtn.click();
+                }
+                isEditing = false;
+                currentBookingId = null;
+            }
+
+            async function handleFormSubmit(e) {
+                e.preventDefault();
+
+                const bookingData = {
+                    clientId: clientIdInput.value,
+                    locationId: locationIdInput.value,
+                    serviceId: serviceIdInput.value,
+                    scheduledDate: document.getElementById('scheduled-date').value,
+                    scheduledStartTime: document.getElementById('scheduled-start-time').value,
+                    bookingType: document.getElementById('booking-type').value,
+                    status: document.getElementById('status').value,
+                    quotedPrice: parseFloat(document.getElementById('quoted-price').value) || 0,
+                    estimatedDurationMinutes: parseInt(document.getElementById('estimated-duration').value) || undefined,
+                    specialInstructions: document.getElementById('special-instructions').value
+                };
+
+                try {
+                    if (isEditing && currentBookingId) {
+                        bookingData.id = currentBookingId;
+                        await window.electronAPI.bookings.update(bookingData);
+                    } else {
+                        await window.electronAPI.bookings.create(bookingData);
+                    }
+                    closeModal();
+                    loadBookings();
+                } catch (error) {
+                    console.error('Save failed', error);
+                    alert('Failed to save booking: ' + error.message);
+                }
+            }
+
+            function selectClient(client) {
+                clientIdInput.value = client.id;
+                selectedClientName.textContent = client.name;
+                clientSearchInput.style.display = 'none';
+                clientSearchResults.style.display = 'none';
+                selectedClientDisplay.style.display = 'flex';
+            }
+
+            clearClientBtn.addEventListener('click', () => {
+                clientIdInput.value = '';
+                selectedClientDisplay.style.display = 'none';
+                clientSearchInput.style.display = 'block';
+                clientSearchInput.value = '';
+                clientSearchInput.focus();
+            });
+
+            // --- Service Search Logic ---
+            let serviceSearchTimeout;
+            serviceSearchInput.addEventListener('input', (e) => {
+                clearTimeout(serviceSearchTimeout);
+                const term = e.target.value.trim();
+
+                if (term.length < 2) {
+                    serviceSearchResults.style.display = 'none';
+                    return;
+                }
+
+                serviceSearchTimeout = setTimeout(async () => {
+                    try {
+                        const result = await window.electronAPI.services.getAll({ searchTerm: term, limit: 5 });
+                        const services = result.data.data || result.data || [];
+                        renderServiceResults(services);
+                    } catch (err) {
+                        console.error('Service search failed', err);
+                    }
+                }, 300);
+            });
+
+            function renderServiceResults(services) {
+                serviceSearchResults.innerHTML = '';
+                if (services.length === 0) {
+                    const div = document.createElement('div');
+                    div.style.padding = '8px 12px';
+                    div.style.color = 'var(--text-secondary)';
+                    div.textContent = 'No services found';
+                    serviceSearchResults.appendChild(div);
+                } else {
+                    services.forEach(service => {
+                        const div = document.createElement('div');
+                        div.style.padding = '8px 12px';
+                        div.style.cursor = 'pointer';
+                        div.style.borderBottom = '1px solid var(--border-subtle)';
+                        const price = new Intl.NumberFormat('en-US', { style: 'currency', currency: service.priceCurrency || 'USD' }).format(service.basePrice || 0);
+                        div.innerHTML = `
+                            <div style="font-weight:500">${service.name}</div>
+                            <div style="font-size:0.8rem; color:var(--text-secondary); display:flex; justify-content:space-between;">
+                                <span>${service.code}</span>
+                                <span>${price}</span>
+                            </div>`;
+                        div.addEventListener('mouseover', () => div.style.backgroundColor = 'rgba(255,255,255,0.05)');
+                        div.addEventListener('mouseout', () => div.style.backgroundColor = 'transparent');
+                        div.addEventListener('click', () => {
+                            selectService(service);
+                        });
+                        serviceSearchResults.appendChild(div);
+                    });
+                }
+                serviceSearchResults.style.display = 'block';
+            }
+
+            function selectService(service) {
+                serviceIdInput.value = service.id;
+                selectedServiceName.textContent = service.name;
+                const price = new Intl.NumberFormat('en-US', { style: 'currency', currency: service.priceCurrency || 'USD' }).format(service.basePrice || 0);
+                selectedServiceDetails.textContent = `${service.code} • ${price}`;
+                serviceSearchInput.style.display = 'none';
+                serviceSearchResults.style.display = 'none';
+                selectedServiceDisplay.style.display = 'flex';
+
+                // Auto-fill price and duration if empty
+                if (!document.getElementById('quoted-price').value) {
+                    document.getElementById('quoted-price').value = service.basePrice;
+                }
+                if (!document.getElementById('estimated-duration').value) {
+                    document.getElementById('estimated-duration').value = service.averageDurationMinutes;
+                }
+            }
+
+            clearServiceBtn.addEventListener('click', () => {
+                serviceIdInput.value = '';
+                selectedServiceDisplay.style.display = 'none';
+                serviceSearchInput.style.display = 'block';
+                serviceSearchInput.value = '';
+                serviceSearchInput.focus();
+            });
+
+            // Close search dropdowns on click outside
+            // Close search dropdowns on click outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('#client-search-results') && e.target !== clientSearchInput) {
+                    clientSearchResults.style.display = 'none';
+                }
+                if (!e.target.closest('#service-search-results') && e.target !== serviceSearchInput) {
+                    serviceSearchResults.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

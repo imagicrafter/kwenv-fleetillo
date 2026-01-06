@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RouteIQ Dashboard (V1)</title>
+    <!-- Use a modern Google Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon">IQ</div>
+                <h1>RouteIQ</h1>
+            </div>
+
+            <nav class="nav-menu">
+                <!-- Dashboard -->
+                <a href="index.html" class="nav-item active">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </span>
+                    Dashboard
+                </a>
+
+                <!-- Planning Group -->
+                <div class="nav-group">
+                    <div class="nav-item nav-header" onclick="toggleGroup(this)">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span class="icon">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </span>
+                            Planning
+                        </div>
+                        <span class="nav-chevron">▶</span>
+                    </div>
+                    <div class="nav-children">
+                        <a href="customers.html" class="nav-child-item">Customers</a>
+                        <a href="services.html" class="nav-child-item">Services</a>
+                        <a href="bookings.html" class="nav-child-item">Bookings</a>
+                        <a href="calendar.html" class="nav-child-item">Calendar</a>
+                        <a href="locations.html" class="nav-child-item">Locations</a>
+                    </div>
+                </div>
+
+                <!-- Fleet Group -->
+                <div class="nav-group">
+                    <div class="nav-item nav-header" onclick="toggleGroup(this)">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span class="icon">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                </svg>
+                            </span>
+                            Fleet
+                        </div>
+                        <span class="nav-chevron">▶</span>
+                    </div>
+                    <div class="nav-children">
+                        <a href="vehicles.html" class="nav-child-item">Vehicles</a>
+                        <a href="#" class="nav-child-item">Drivers</a>
+                    </div>
+                </div>
+
+                <!-- Routes -->
+                <a href="routes.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                        </svg>
+                    </span>
+                    Routes
+                </a>
+
+                <!-- Settings -->
+                <a href="#" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </span>
+                    Settings
+                </a>
+            </nav>
+
+            <script>
+                function toggleGroup(header) {
+                    const group = header.parentElement;
+                    group.classList.toggle('expanded');
+                }
+            </script>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="avatar">JM</div>
+                    <div class="details">
+                        <span class="name">Admin User</span>
+                        <span class="role">Administrator</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-bar">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="Search routes, drivers...">
+                </div>
+                <div class="actions">
+                    <button class="btn-icon">🔔</button>
+                    <!-- <button class="btn-primary">+ New Route</button> -->
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Welcome Header -->
+                <div class="page-header">
+                    <div>
+                        <h2>Welcome to RouteIQ</h2>
+                        <span class="date" id="current-date"></span>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="card stat-card" onclick="window.location.href='bookings.html'">
+                        <div class="stat-header primary">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span class="label">Active Bookings</span>
+                        </div>
+                        <span class="stat-value">24</span>
+                        <span class="trend positive">↑ 33% vs. 18</span>
+                    </div>
+                    <div class="card stat-card" onclick="window.location.href='routes.html'">
+                        <div class="stat-header success">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                            </svg>
+                            <span class="label">Active Routes</span>
+                        </div>
+                        <span class="stat-value">8</span>
+                        <span class="trend positive">↑ 33% vs. 6</span>
+                    </div>
+                    <div class="card stat-card" onclick="window.location.href='vehicles.html'">
+                        <div class="stat-header primary">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                            </svg>
+                            <span class="label">Active Vehicles</span>
+                        </div>
+                        <span class="stat-value">12</span>
+                        <span class="trend positive">↑ 9% vs. 11</span>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-header muted">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="label">Pending Services</span>
+                        </div>
+                        <span class="stat-value">5</span>
+                        <span class="trend positive">↑ 29% vs. 7</span>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions-section">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Quick Actions</h3>
+                        </div>
+                        <div class="quick-actions-grid">
+                            <button class="quick-action-btn primary"
+                                onclick="window.location.href='bookings.html?action=new'">
+                                <span class="action-icon">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 4v16m8-8H4" />
+                                    </svg>
+                                </span>
+                                <span class="action-label">New Booking</span>
+                            </button>
+                            <button class="quick-action-btn secondary"
+                                onclick="window.location.href='customers.html?action=new'">
+                                <span class="action-icon">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                    </svg>
+                                </span>
+                                <span class="action-label">New Client</span>
+                            </button>
+                            <button class="quick-action-btn success"
+                                onclick="window.location.href='routes.html?action=plan'">
+                                <span class="action-icon">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                                    </svg>
+                                </span>
+                                <span class="action-label">Plan Routes</span>
+                            </button>
+                            <button class="quick-action-btn info" onclick="window.location.href='routes.html'">
+                                <span class="action-icon">
+                                    <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                                    </svg>
+                                </span>
+                                <span class="action-label">Today's Routes</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Dashboard Section -->
+                <div class="dashboard-split">
+                    <div class="card chart-section">
+                        <div class="card-header">
+                            <h3>Live Fleet Map</h3>
+                            <button class="btn-text">View Full Map</button>
+                        </div>
+                        <div class="placeholder-map">
+                            <div class="map-overlay">
+                                <p>Interactive Map Module</p>
+                                <small>Connecting to RouteIQ Services...</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card recent-activity">
+                        <div class="card-header">
+                            <h3>Recent Activity</h3>
+                        </div>
+                        <ul class="activity-list">
+                            <li class="activity-item">
+                                <span class="dot success"></span>
+                                <div class="activity-text">
+                                    <p><strong>Route #492</strong> completed by <strong>John D.</strong></p>
+                                    <small>2 minutes ago</small>
+                                </div>
+                            </li>
+                            <li class="activity-item">
+                                <span class="dot warning"></span>
+                                <div class="activity-text">
+                                    <p><strong>Vehicle V-02</strong> reported implementation delay</p>
+                                    <small>15 minutes ago</small>
+                                </div>
+                            </li>
+                            <li class="activity-item">
+                                <span class="dot primary"></span>
+                                <div class="activity-text">
+                                    <p>New route query received from API</p>
+                                    <small>1 hour ago</small>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- System Info (From Electron) -->
+                <footer class="system-info">
+                    <p>Powered by RouteIQ Core • Electron <span id="electron-version"></span> • Node <span
+                            id="node-version"></span></p>
+                </footer>
+            </div>
+        </main>
+    </div>
+    <script src="preload.js"></script>
+    <script>
+        // Display current date
+        document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    </script>
+</body>
+
+</html>
