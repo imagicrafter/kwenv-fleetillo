@@ -46,3 +46,4 @@ temp/
 # package-lock.json
 # yarn.lock
 .env.bak
+do-app-spec.yaml
