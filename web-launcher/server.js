@@ -221,12 +221,17 @@ app.post('/api/chat', async (req, res) => {
         const { messages, endpoint } = req.body;
         const apiKey = process.env.DIGITALOCEAN_API_TOKEN;
 
+        console.log('[DEBUG] Chat Request Received');
+        console.log(`[DEBUG] Endpoint: ${endpoint}`);
+        console.log(`[DEBUG] API Key present: ${!!apiKey}`);
+
         if (!endpoint) {
+            console.error('[DEBUG] Missing endpoint');
             return res.status(400).json({ error: 'Endpoint is required' });
         }
 
         if (!apiKey) {
-            console.error('Missing DIGITALOCEAN_API_TOKEN');
+            console.error('[DEBUG] Missing DIGITALOCEAN_API_TOKEN');
             return res.status(500).json({ error: 'Server configuration error' });
         }
 
@@ -245,9 +250,11 @@ app.post('/api/chat', async (req, res) => {
 
         if (!response.ok) {
             const errorText = await response.text();
-            console.error(`Gradient API Error (${response.status}):`, errorText);
+            console.error(`[DEBUG] Gradient API Error (${response.status}):`, errorText);
             return res.status(response.status).json({ error: `Upstream error: ${response.status}` });
         }
+
+        console.log('[DEBUG] Gradient API Success, starting stream');
 
         // Stream the response back to the client
         res.setHeader('Content-Type', 'text/plain; charset=utf-8');
@@ -260,7 +267,7 @@ app.post('/api/chat', async (req, res) => {
         res.end();
 
     } catch (err) {
-        console.error('Chat Proxy Error:', err);
+        console.error('[DEBUG] Chat Proxy Exception:', err);
         res.status(500).json({ error: err.message });
     }
 });
