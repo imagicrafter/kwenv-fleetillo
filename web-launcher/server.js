@@ -103,11 +103,15 @@ const activityService = require(`${SERVICE_PATH}/activity.service.js`);
 const supabaseService = require(`${SERVICE_PATH}/supabase.js`);
 
 // Initialize Supabase
+const supabaseSchema = process.env.SUPABASE_SCHEMA || 'optiroute';
+console.log(`[DEBUG] Supabase Schema: ${supabaseSchema}`);
+console.log(`[DEBUG] SUPABASE_SERVICE_ROLE_KEY present: ${!!process.env.SUPABASE_SERVICE_ROLE_KEY}`);
+
 supabaseService.initializeSupabase({
     url: process.env.SUPABASE_URL,
     anonKey: process.env.SUPABASE_KEY,
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-    schema: process.env.SUPABASE_SCHEMA || 'optiroute'
+    schema: supabaseSchema
 });
 
 // RPC Dispatcher
