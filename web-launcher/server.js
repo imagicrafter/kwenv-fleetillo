@@ -26,6 +26,11 @@ const DEMO_PASSWORD = process.env.DEMO_PASSWORD || 'demo123';
 console.log(`[DEBUG] DEMO_PASSWORD loaded: ${DEMO_PASSWORD ? DEMO_PASSWORD.substring(0, 3) + '***' : 'NOT SET'}`);
 console.log(`[DEBUG] NODE_ENV: ${process.env.NODE_ENV || 'not set'}`);
 
+// Trust proxy - required for secure cookies behind load balancer
+if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1);
+}
+
 app.use(cors());
 app.use(cookieParser());
 app.use(session({
@@ -34,6 +39,8 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         secure: process.env.NODE_ENV === 'production',
+        httpOnly: true,
+        sameSite: 'lax',
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
 }));
