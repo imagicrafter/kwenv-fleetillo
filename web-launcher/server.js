@@ -125,9 +125,37 @@ const rpcMap = {
         getById: clientService.getClient,
         count: async (filters) => {
             console.log('[DEBUG] clients.count called with filters:', filters);
-            const result = await clientService.countClients(filters);
-            console.log('[DEBUG] clients.count result:', JSON.stringify(result));
-            return result;
+            try {
+                // Direct query to bypass potential service layer issues
+                const { getAdminSupabaseClient } = require(`${SERVICE_PATH}/supabase.js`);
+                const admin = getAdminSupabaseClient();
+
+                let query = admin.from('clients').select('id', { count: 'exact', head: true });
+
+                if (filters && filters.status) {
+                    query = query.eq('status', filters.status);
+                }
+
+                // Always exclude deleted unless specified (matching service logic)
+                if (!filters || !filters.includeDeleted) {
+                    query = query.is('deleted_at', null);
+                }
+
+                const { count, error } = await query;
+
+                console.log('[DEBUG] Direct Admin Count:', count, 'Error:', error);
+
+                if (error) {
+                    console.error('Direct count failed:', error);
+                    // Fallback to service if direct fails
+                    return clientService.countClients(filters);
+                }
+
+                return { success: true, data: count || 0 };
+            } catch (err) {
+                console.error('Direct count exception:', err);
+                return clientService.countClients(filters);
+            }
         }
     },
     services: {
