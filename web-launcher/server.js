@@ -3,15 +3,76 @@ const cors = require('cors');
 const path = require('path');
 const dotenv = require('dotenv');
 
+const session = require('express-session');
+const cookieParser = require('cookie-parser');
+
 // Load env vars
 dotenv.config({ path: path.join(__dirname, '../.env') });
+// Also load agent env vars for the chat proxy
+dotenv.config({ path: path.join(__dirname, '../gradient-agents/optiroute-support-agent/.env') });
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.WEB_PORT || 8080;
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || 'demo123';
 
 app.use(cors());
+app.use(cookieParser());
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'optiroute-demo-secret',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+}));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+// Auth Middleware
+const requireAuth = (req, res, next) => {
+    // Allow login page and static assets that might be needed for login (like css)
+    if (req.path === '/login.html' || req.path === '/api/login' || req.path.endsWith('.css') || req.path.endsWith('.js') || req.path.endsWith('.jpg') || req.path.endsWith('.png')) {
+        return next();
+    }
+
+    if (req.session && req.session.authenticated) {
+        return next();
+    }
+
+    // If API call, return 401
+    if (req.path.startsWith('/api/')) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    // Otherwise redirect to login
+    res.redirect('/login.html');
+};
+
+app.use(requireAuth);
+
+// Serve static files from shared/public
+const staticPath = path.join(__dirname, '../shared/public');
+console.log('Static files path:', staticPath);
+console.log('Static path exists:', require('fs').existsSync(staticPath));
+if (require('fs').existsSync(staticPath)) {
+    const files = require('fs').readdirSync(staticPath);
+    console.log('Files in static directory:', files);
+}
+app.use(express.static(staticPath));
+
+// Login Routes
+app.post('/api/login', (req, res) => {
+    const { password } = req.body;
+    if (password === DEMO_PASSWORD) {
+        req.session.authenticated = true;
+        return res.json({ success: true });
+    }
+    return res.status(401).json({ success: false, message: 'Invalid access code' });
+});
+
+app.post('/api/logout', (req, res) => {
+    req.session.destroy();
+    res.json({ success: true });
+});
 
 // Import Services
 // We assume web-launcher is at routeIQ-typescript/web-launcher and dist is at routeIQ-typescript/dist
@@ -26,6 +87,7 @@ const routeService = require(`${SERVICE_PATH}/route.service.js`);
 const routePlanningService = require(`${SERVICE_PATH}/route-planning.service.js`);
 const vehicleLocationService = require(`${SERVICE_PATH}/vehicle-location.service.js`);
 const googleMapsService = require(`${SERVICE_PATH}/googlemaps.service.js`);
+const activityService = require(`${SERVICE_PATH}/activity.service.js`);
 const supabaseService = require(`${SERVICE_PATH}/supabase.js`);
 
 // Initialize Supabase
@@ -33,7 +95,7 @@ supabaseService.initializeSupabase({
     url: process.env.SUPABASE_URL,
     anonKey: process.env.SUPABASE_KEY,
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-    schema: process.env.SUPABASE_SCHEMA || 'routeiq'
+    schema: process.env.SUPABASE_SCHEMA || 'optiroute'
 });
 
 // RPC Dispatcher
@@ -44,7 +106,8 @@ const rpcMap = {
         create: clientService.createClient,
         update: clientService.updateClient,
         delete: clientService.deleteClient,
-        getById: clientService.getClient
+        getById: clientService.getClient,
+        count: clientService.countClients
     },
     services: {
         getAll: serviceService.getServices,
@@ -58,7 +121,8 @@ const rpcMap = {
         create: bookingService.createBooking,
         update: bookingService.updateBooking,
         delete: bookingService.deleteBooking,
-        getById: bookingService.getBookingById
+        getById: bookingService.getBookingById,
+        count: bookingService.countBookings
     },
     locations: {
         getAll: locationService.getAllLocations,
@@ -72,7 +136,8 @@ const rpcMap = {
         create: vehicleService.createVehicle,
         update: vehicleService.updateVehicle,
         delete: vehicleService.deleteVehicle,
-        getById: vehicleService.getVehicleById
+        getById: vehicleService.getVehicleById,
+        count: vehicleService.countVehicles
     },
     vehicleLocations: {
         getByVehicle: vehicleLocationService.getVehicleLocations,
@@ -90,7 +155,8 @@ const rpcMap = {
         getNextAvailableDate: routeService.getNextAvailableRouteDate,
         getStatsByDateRange: routeService.getRouteStatsByDateRange,
         plan: routePlanningService.planRoutes,
-        previewPlan: routePlanningService.previewRoutePlan
+        previewPlan: routePlanningService.previewRoutePlan,
+        count: routeService.countRoutes
     },
     geocoding: {
         autocomplete: googleMapsService.getPlaceAutocomplete,
@@ -98,8 +164,63 @@ const rpcMap = {
     },
     config: {
         getGoogleMapsApiKey: async () => process.env.GOOGLE_MAPS_API_KEY
+    },
+    activities: {
+        getRecent: activityService.getRecentActivities,
+        getAll: activityService.getActivities,
+        getByEntity: activityService.getActivitiesByEntity
     }
 };
+
+// Chat Proxy Endpoint
+app.post('/api/chat', async (req, res) => {
+    try {
+        const { messages, endpoint } = req.body;
+        const apiKey = process.env.DIGITALOCEAN_API_TOKEN;
+
+        if (!endpoint) {
+            return res.status(400).json({ error: 'Endpoint is required' });
+        }
+
+        if (!apiKey) {
+            console.error('Missing DIGITALOCEAN_API_TOKEN');
+            return res.status(500).json({ error: 'Server configuration error' });
+        }
+
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                input: {
+                    messages: messages
+                }
+            })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`Gradient API Error (${response.status}):`, errorText);
+            return res.status(response.status).json({ error: `Upstream error: ${response.status}` });
+        }
+
+        // Stream the response back to the client
+        res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+
+        if (response.body) {
+            for await (const chunk of response.body) {
+                res.write(chunk);
+            }
+        }
+        res.end();
+
+    } catch (err) {
+        console.error('Chat Proxy Error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
 
 app.post('/api/rpc', async (req, res) => {
     try {
@@ -108,7 +229,13 @@ app.post('/api/rpc', async (req, res) => {
         console.log(`RPC Call: ${namespace}.${method}`, args);
 
         if (!rpcMap[namespace] || !rpcMap[namespace][method]) {
-            return res.status(404).json({ error: 'Method not found' });
+            console.error(`Method not found: ${namespace}.${method}`);
+            if (rpcMap[namespace]) {
+                console.error(`Available methods for ${namespace}:`, Object.keys(rpcMap[namespace]));
+            } else {
+                console.error(`Namespace ${namespace} not found. Available:`, Object.keys(rpcMap));
+            }
+            return res.status(404).json({ error: 'Method not found', available: rpcMap[namespace] ? Object.keys(rpcMap[namespace]) : [] });
         }
 
         const fn = rpcMap[namespace][method];
@@ -153,9 +280,14 @@ app.post('/api/rpc', async (req, res) => {
 
 // Serve index.html for root
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, '../shared/public', 'index.html'));
 });
 
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    const url = `http://localhost:${PORT}`;
+    console.log(`Server running at ${url}`);
+
+    // Auto-open browser
+    const start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open');
+    require('child_process').exec(start + ' ' + url);
 });
