@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Booking - RouteIQ</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background-color: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      margin-bottom: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
+
+    header p {
+      opacity: 0.9;
+      margin-top: 5px;
+    }
+
+    .form-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+
+    .form-section {
+      margin-bottom: 30px;
+    }
+
+    .form-section h2 {
+      font-size: 1.2rem;
+      color: #444;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #eee;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 20px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #555;
+    }
+
+    label .required {
+      color: #e74c3c;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"],
+    input[type="date"],
+    input[type="time"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 1rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    input:disabled,
+    select:disabled {
+      background-color: #f5f5f5;
+      cursor: not-allowed;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 20px;
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 12px 20px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .radio-option:hover {
+      border-color: #667eea;
+    }
+
+    .radio-option.selected {
+      border-color: #667eea;
+      background-color: rgba(102, 126, 234, 0.1);
+    }
+
+    .radio-option input[type="radio"] {
+      width: 18px;
+      height: 18px;
+    }
+
+    .recurrence-options {
+      display: none;
+      margin-top: 20px;
+      padding: 20px;
+      background-color: #f8f9fa;
+      border-radius: 6px;
+    }
+
+    .recurrence-options.visible {
+      display: block;
+    }
+
+    .btn {
+      padding: 14px 28px;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background-color: #e9ecef;
+      color: #495057;
+    }
+
+    .btn-secondary:hover {
+      background-color: #dee2e6;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 15px;
+      justify-content: flex-end;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #eee;
+    }
+
+    .alert {
+      padding: 15px 20px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .alert.visible {
+      display: block;
+    }
+
+    .alert-success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert-error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #ffffff;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .field-hint {
+      font-size: 0.85rem;
+      color: #888;
+      margin-top: 5px;
+    }
+
+    .price-input {
+      position: relative;
+    }
+
+    .price-input::before {
+      content: '$';
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #888;
+    }
+
+    .price-input input {
+      padding-left: 30px;
+    }
+
+    /* Loading overlay for selects */
+    .select-wrapper {
+      position: relative;
+    }
+
+    .select-loading {
+      position: absolute;
+      right: 40px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ddd;
+      border-radius: 50%;
+      border-top-color: #667eea;
+      animation: spin 1s linear infinite;
+      display: none;
+    }
+
+    .select-wrapper.loading .select-loading {
+      display: block;
+    }
+
+    @media (max-width: 600px) {
+      .form-row {
+        flex-direction: column;
+        gap: 0;
+      }
+
+      .radio-group {
+        flex-direction: column;
+      }
+
+      .form-actions {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Create New Booking</h1>
+      <p>Schedule a one-time or recurring service booking</p>
+    </header>
+
+    <div id="alert" class="alert"></div>
+
+    <form id="bookingForm" class="form-card">
+      <!-- Booking Type Section -->
+      <div class="form-section">
+        <h2>Booking Type</h2>
+        <div class="form-group">
+          <label>Select booking type <span class="required">*</span></label>
+          <div class="radio-group">
+            <label class="radio-option selected" data-booking-type="one_time">
+              <input type="radio" name="bookingType" value="one_time" checked>
+              <span>One-Time Booking</span>
+            </label>
+            <label class="radio-option" data-booking-type="recurring">
+              <input type="radio" name="bookingType" value="recurring">
+              <span>Recurring Booking</span>
+            </label>
+          </div>
+        </div>
+
+        <div id="recurrenceOptions" class="recurrence-options">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="recurrencePattern">Recurrence Pattern <span class="required">*</span></label>
+              <select id="recurrencePattern" name="recurrencePattern">
+                <option value="">Select pattern...</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+                <option value="biweekly">Biweekly</option>
+                <option value="monthly">Monthly</option>
+                <option value="quarterly">Quarterly</option>
+                <option value="yearly">Yearly</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="recurrenceEndDate">End Date</label>
+              <input type="date" id="recurrenceEndDate" name="recurrenceEndDate">
+              <p class="field-hint">Leave blank for indefinite recurring</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Client & Service Selection -->
+      <div class="form-section">
+        <h2>Client & Service</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="clientId">Client <span class="required">*</span></label>
+            <div class="select-wrapper" id="clientSelectWrapper">
+              <select id="clientId" name="clientId" required>
+                <option value="">Loading clients...</option>
+              </select>
+              <span class="select-loading"></span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="serviceId">Service <span class="required">*</span></label>
+            <div class="select-wrapper" id="serviceSelectWrapper">
+              <select id="serviceId" name="serviceId" required>
+                <option value="">Loading services...</option>
+              </select>
+              <span class="select-loading"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scheduling -->
+      <div class="form-section">
+        <h2>Schedule</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="scheduledDate">Date <span class="required">*</span></label>
+            <input type="date" id="scheduledDate" name="scheduledDate" required>
+          </div>
+          <div class="form-group">
+            <label for="scheduledStartTime">Start Time <span class="required">*</span></label>
+            <input type="time" id="scheduledStartTime" name="scheduledStartTime" required>
+          </div>
+          <div class="form-group">
+            <label for="scheduledEndTime">End Time</label>
+            <input type="time" id="scheduledEndTime" name="scheduledEndTime">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="estimatedDurationMinutes">Estimated Duration (minutes)</label>
+            <input type="number" id="estimatedDurationMinutes" name="estimatedDurationMinutes" min="1" placeholder="60">
+          </div>
+          <div class="form-group">
+            <label for="priority">Priority</label>
+            <select id="priority" name="priority">
+              <option value="normal" selected>Normal</option>
+              <option value="low">Low</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Service Location (Optional) -->
+      <div class="form-section">
+        <h2>Service Location (Optional)</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="serviceAddressLine1">Address Line 1</label>
+            <input type="text" id="serviceAddressLine1" name="serviceAddressLine1" placeholder="123 Main Street">
+          </div>
+          <div class="form-group">
+            <label for="serviceAddressLine2">Address Line 2</label>
+            <input type="text" id="serviceAddressLine2" name="serviceAddressLine2" placeholder="Suite 100">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="serviceCity">City</label>
+            <input type="text" id="serviceCity" name="serviceCity" placeholder="Boston">
+          </div>
+          <div class="form-group">
+            <label for="serviceState">State</label>
+            <input type="text" id="serviceState" name="serviceState" placeholder="MA">
+          </div>
+          <div class="form-group">
+            <label for="servicePostalCode">Postal Code</label>
+            <input type="text" id="servicePostalCode" name="servicePostalCode" placeholder="02101">
+          </div>
+        </div>
+      </div>
+
+      <!-- Pricing -->
+      <div class="form-section">
+        <h2>Pricing (Optional)</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="quotedPrice">Quoted Price</label>
+            <div class="price-input">
+              <input type="number" id="quotedPrice" name="quotedPrice" min="0" step="0.01" placeholder="0.00">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="priceCurrency">Currency</label>
+            <select id="priceCurrency" name="priceCurrency">
+              <option value="USD" selected>USD</option>
+              <option value="EUR">EUR</option>
+              <option value="GBP">GBP</option>
+              <option value="CAD">CAD</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Additional Details -->
+      <div class="form-section">
+        <h2>Additional Details</h2>
+        <div class="form-group">
+          <label for="specialInstructions">Special Instructions</label>
+          <textarea id="specialInstructions" name="specialInstructions" placeholder="Any special instructions for this booking..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="internalNotes">Internal Notes</label>
+          <textarea id="internalNotes" name="internalNotes" placeholder="Notes visible only to staff..."></textarea>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="resetForm()">Reset Form</button>
+        <button type="submit" class="btn btn-primary" id="submitBtn">
+          <span id="submitText">Create Booking</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // API Base URL
+    const API_BASE = '/api/v1';
+
+    // DOM Elements
+    const form = document.getElementById('bookingForm');
+    const alertBox = document.getElementById('alert');
+    const submitBtn = document.getElementById('submitBtn');
+    const submitText = document.getElementById('submitText');
+    const recurrenceOptions = document.getElementById('recurrenceOptions');
+    const clientSelect = document.getElementById('clientId');
+    const serviceSelect = document.getElementById('serviceId');
+    const clientSelectWrapper = document.getElementById('clientSelectWrapper');
+    const serviceSelectWrapper = document.getElementById('serviceSelectWrapper');
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      loadClients();
+      loadServices();
+      setupBookingTypeToggle();
+      setDefaultDate();
+    });
+
+    // Set default date to today
+    function setDefaultDate() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('scheduledDate').value = today;
+      document.getElementById('scheduledDate').min = today;
+    }
+
+    // Load clients from API
+    async function loadClients() {
+      clientSelectWrapper.classList.add('loading');
+      try {
+        const response = await fetch(`${API_BASE}/clients?limit=100`);
+        const result = await response.json();
+
+        clientSelect.innerHTML = '<option value="">Select a client...</option>';
+
+        if (result.success && result.data) {
+          result.data.forEach(client => {
+            const option = document.createElement('option');
+            option.value = client.id;
+            option.textContent = client.companyName
+              ? `${client.name} (${client.companyName})`
+              : client.name;
+            clientSelect.appendChild(option);
+          });
+        } else {
+          clientSelect.innerHTML = '<option value="">No clients available</option>';
+        }
+      } catch (error) {
+        console.error('Error loading clients:', error);
+        clientSelect.innerHTML = '<option value="">Error loading clients</option>';
+      } finally {
+        clientSelectWrapper.classList.remove('loading');
+      }
+    }
+
+    // Load services from API
+    async function loadServices() {
+      serviceSelectWrapper.classList.add('loading');
+      try {
+        const response = await fetch(`${API_BASE}/services?limit=100`);
+        const result = await response.json();
+
+        serviceSelect.innerHTML = '<option value="">Select a service...</option>';
+
+        if (result.success && result.data) {
+          result.data.forEach(service => {
+            const option = document.createElement('option');
+            option.value = service.id;
+            option.textContent = service.code
+              ? `${service.name} (${service.code})`
+              : service.name;
+            if (service.basePrice) {
+              option.textContent += ` - $${service.basePrice}`;
+            }
+            serviceSelect.appendChild(option);
+          });
+        } else {
+          serviceSelect.innerHTML = '<option value="">No services available</option>';
+        }
+      } catch (error) {
+        console.error('Error loading services:', error);
+        serviceSelect.innerHTML = '<option value="">Error loading services</option>';
+      } finally {
+        serviceSelectWrapper.classList.remove('loading');
+      }
+    }
+
+    // Setup booking type toggle
+    function setupBookingTypeToggle() {
+      const radioOptions = document.querySelectorAll('.radio-option');
+
+      radioOptions.forEach(option => {
+        option.addEventListener('click', () => {
+          // Update visual selection
+          radioOptions.forEach(opt => opt.classList.remove('selected'));
+          option.classList.add('selected');
+
+          // Check the radio button
+          const radio = option.querySelector('input[type="radio"]');
+          radio.checked = true;
+
+          // Show/hide recurrence options
+          const isRecurring = radio.value === 'recurring';
+          recurrenceOptions.classList.toggle('visible', isRecurring);
+
+          // Make recurrence pattern required/optional
+          const patternSelect = document.getElementById('recurrencePattern');
+          patternSelect.required = isRecurring;
+        });
+      });
+    }
+
+    // Show alert message
+    function showAlert(message, type = 'success') {
+      alertBox.textContent = message;
+      alertBox.className = `alert alert-${type} visible`;
+      alertBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      // Auto-hide after 5 seconds for success messages
+      if (type === 'success') {
+        setTimeout(() => {
+          alertBox.classList.remove('visible');
+        }, 5000);
+      }
+    }
+
+    // Reset form
+    function resetForm() {
+      form.reset();
+
+      // Reset visual state
+      document.querySelectorAll('.radio-option').forEach(opt => opt.classList.remove('selected'));
+      document.querySelector('.radio-option[data-booking-type="one_time"]').classList.add('selected');
+      recurrenceOptions.classList.remove('visible');
+
+      // Reset date
+      setDefaultDate();
+
+      // Hide any alerts
+      alertBox.classList.remove('visible');
+    }
+
+    // Set loading state
+    function setLoading(loading) {
+      submitBtn.disabled = loading;
+      if (loading) {
+        submitText.innerHTML = '<span class="loading-spinner"></span>Creating...';
+      } else {
+        submitText.textContent = 'Create Booking';
+      }
+    }
+
+    // Form submission
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // Collect form data
+      const formData = new FormData(form);
+      const bookingType = formData.get('bookingType');
+
+      // Build request payload
+      const payload = {
+        clientId: formData.get('clientId'),
+        serviceId: formData.get('serviceId'),
+        bookingType: bookingType,
+        scheduledDate: formData.get('scheduledDate'),
+        scheduledStartTime: formData.get('scheduledStartTime'),
+      };
+
+      // Add optional fields if provided
+      if (formData.get('scheduledEndTime')) {
+        payload.scheduledEndTime = formData.get('scheduledEndTime');
+      }
+
+      if (formData.get('estimatedDurationMinutes')) {
+        payload.estimatedDurationMinutes = parseInt(formData.get('estimatedDurationMinutes'), 10);
+      }
+
+      if (formData.get('priority')) {
+        payload.priority = formData.get('priority');
+      }
+
+      // Recurrence fields
+      if (bookingType === 'recurring') {
+        const recurrencePattern = formData.get('recurrencePattern');
+        if (!recurrencePattern) {
+          showAlert('Please select a recurrence pattern for recurring bookings.', 'error');
+          return;
+        }
+        payload.recurrencePattern = recurrencePattern;
+
+        if (formData.get('recurrenceEndDate')) {
+          payload.recurrenceEndDate = formData.get('recurrenceEndDate');
+        }
+      }
+
+      // Service location fields
+      if (formData.get('serviceAddressLine1')) {
+        payload.serviceAddressLine1 = formData.get('serviceAddressLine1');
+      }
+      if (formData.get('serviceAddressLine2')) {
+        payload.serviceAddressLine2 = formData.get('serviceAddressLine2');
+      }
+      if (formData.get('serviceCity')) {
+        payload.serviceCity = formData.get('serviceCity');
+      }
+      if (formData.get('serviceState')) {
+        payload.serviceState = formData.get('serviceState');
+      }
+      if (formData.get('servicePostalCode')) {
+        payload.servicePostalCode = formData.get('servicePostalCode');
+      }
+
+      // Pricing fields
+      if (formData.get('quotedPrice')) {
+        payload.quotedPrice = parseFloat(formData.get('quotedPrice'));
+      }
+      if (formData.get('priceCurrency')) {
+        payload.priceCurrency = formData.get('priceCurrency');
+      }
+
+      // Additional details
+      if (formData.get('specialInstructions')) {
+        payload.specialInstructions = formData.get('specialInstructions');
+      }
+      if (formData.get('internalNotes')) {
+        payload.internalNotes = formData.get('internalNotes');
+      }
+
+      // Validate required fields
+      if (!payload.clientId || !payload.serviceId || !payload.scheduledDate || !payload.scheduledStartTime) {
+        showAlert('Please fill in all required fields.', 'error');
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const response = await fetch(`${API_BASE}/bookings`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          showAlert(`Booking created successfully! Booking #${result.data.bookingNumber || result.data.id}`, 'success');
+          resetForm();
+        } else {
+          const errorMessage = result.error?.message || 'Failed to create booking. Please try again.';
+          showAlert(errorMessage, 'error');
+        }
+      } catch (error) {
+        console.error('Error creating booking:', error);
+        showAlert('An error occurred while creating the booking. Please try again.', 'error');
+      } finally {
+        setLoading(false);
+      }
+    });
+  </script>
+</body>
+</html>
