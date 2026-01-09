@@ -64,10 +64,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Login Routes
 app.post('/api/login', (req, res) => {
     const { password } = req.body;
+    console.log(`[DEBUG] Login attempt - received: "${password}", expected: "${DEMO_PASSWORD}", match: ${password === DEMO_PASSWORD}`);
     if (password === DEMO_PASSWORD) {
         req.session.authenticated = true;
+        console.log('[DEBUG] Login successful, session authenticated');
         return res.json({ success: true });
     }
+    console.log('[DEBUG] Login failed - password mismatch');
     return res.status(401).json({ success: false, message: 'Invalid access code' });
 });
 
