@@ -67,7 +67,7 @@ app.post('/api/logout', (req, res) => {
 
 // Import Services
 // We assume web-launcher is at routeIQ-typescript/web-launcher and dist is at routeIQ-typescript/dist
-const SERVICE_PATH = '../dist/services';
+const SERVICE_PATH = path.resolve(__dirname, '../dist/services');
 
 const clientService = require(`${SERVICE_PATH}/client.service.js`);
 const serviceService = require(`${SERVICE_PATH}/service.service.js`);
