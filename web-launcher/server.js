@@ -48,16 +48,7 @@ const requireAuth = (req, res, next) => {
 };
 
 app.use(requireAuth);
-
-// Serve static files from shared/public
-const staticPath = path.join(__dirname, '../shared/public');
-console.log('Static files path:', staticPath);
-console.log('Static path exists:', require('fs').existsSync(staticPath));
-if (require('fs').existsSync(staticPath)) {
-    const files = require('fs').readdirSync(staticPath);
-    console.log('Files in static directory:', files);
-}
-app.use(express.static(staticPath));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Login Routes
 app.post('/api/login', (req, res) => {

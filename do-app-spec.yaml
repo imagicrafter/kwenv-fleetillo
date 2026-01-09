@@ -7,7 +7,7 @@ services:
     branch: main
     deploy_on_push: true
   source_dir: /
-  build_command: npm install && npm run build && cd web-launcher && npm install
+  build_command: npm install && npm run build && mkdir -p web-launcher/public && cp -r shared/public/* web-launcher/public/ && cd web-launcher && npm install
   run_command: node web-launcher/server.js
   http_port: 8080
   envs:
