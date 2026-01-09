@@ -243,6 +243,33 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
+app.get('/api/debug-db', async (req, res) => {
+    try {
+        const { getAdminSupabaseClient } = require(`${SERVICE_PATH}/supabase.js`);
+        const adminClient = getAdminSupabaseClient();
+
+        if (!adminClient) {
+            return res.status(500).json({ error: 'No admin client' });
+        }
+
+        const { data, error } = await adminClient
+            .from('clients')
+            .select('id, name, status, deleted_at')
+            .limit(10);
+
+        res.json({
+            schema: process.env.SUPABASE_SCHEMA,
+            hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+            keyLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length,
+            error,
+            data,
+            count: data?.length
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message, stack: err.stack });
+    }
+});
+
 app.post('/api/rpc', async (req, res) => {
     try {
         const { namespace, method, args } = req.body;
