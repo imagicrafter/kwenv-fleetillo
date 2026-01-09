@@ -130,7 +130,7 @@ const rpcMap = {
                 const { getAdminSupabaseClient } = require(`${SERVICE_PATH}/supabase.js`);
                 const admin = getAdminSupabaseClient();
 
-                let query = admin.from('clients').select('id', { count: 'exact', head: true });
+                let query = admin.from('clients').select('id', { count: 'exact', head: false }).limit(1);
 
                 if (filters && filters.status) {
                     query = query.eq('status', filters.status);
