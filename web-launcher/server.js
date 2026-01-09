@@ -123,7 +123,12 @@ const rpcMap = {
         update: clientService.updateClient,
         delete: clientService.deleteClient,
         getById: clientService.getClient,
-        count: clientService.countClients
+        count: async (filters) => {
+            console.log('[DEBUG] clients.count called with filters:', filters);
+            const result = await clientService.countClients(filters);
+            console.log('[DEBUG] clients.count result:', JSON.stringify(result));
+            return result;
+        }
     },
     services: {
         getAll: serviceService.getServices,
