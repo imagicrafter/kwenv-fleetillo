@@ -267,18 +267,28 @@ export async function getRoutes(
     }
 
     if (filters?.routeDate) {
-      const dateStr = filters.routeDate.toISOString().split('T')[0];
-      query = query.eq('route_date', dateStr);
+      const d = filters.routeDate instanceof Date ? filters.routeDate : new Date(filters.routeDate);
+      // Validate date
+      if (!isNaN(d.getTime())) {
+        const dateStr = d.toISOString().split('T')[0];
+        query = query.eq('route_date', dateStr);
+      }
     }
 
     if (filters?.routeDateFrom) {
-      const dateStr = filters.routeDateFrom.toISOString().split('T')[0];
-      query = query.gte('route_date', dateStr);
+      const d = filters.routeDateFrom instanceof Date ? filters.routeDateFrom : new Date(filters.routeDateFrom);
+      if (!isNaN(d.getTime())) {
+        const dateStr = d.toISOString().split('T')[0];
+        query = query.gte('route_date', dateStr);
+      }
     }
 
     if (filters?.routeDateTo) {
-      const dateStr = filters.routeDateTo.toISOString().split('T')[0];
-      query = query.lte('route_date', dateStr);
+      const d = filters.routeDateTo instanceof Date ? filters.routeDateTo : new Date(filters.routeDateTo);
+      if (!isNaN(d.getTime())) {
+        const dateStr = d.toISOString().split('T')[0];
+        query = query.lte('route_date', dateStr);
+      }
     }
 
     if (filters?.searchTerm) {
@@ -324,7 +334,7 @@ export async function getRoutes(
     if (vehicleIds.length > 0) {
       const { data: vehiclesData } = await supabase
         .from('vehicles')
-        .select('id, unit_number, vehicle_type')
+        .select('id, name')
         .in('id', vehicleIds);
 
       if (vehiclesData) {
@@ -333,7 +343,7 @@ export async function getRoutes(
           if (route.vehicleId) {
             const vehicle = vehicleMap.get(route.vehicleId);
             if (vehicle) {
-              route.vehicleName = `${vehicle.unit_number}${vehicle.vehicle_type ? ' - ' + vehicle.vehicle_type : ''}`;
+              route.vehicleName = vehicle.name;
             }
           }
         });
@@ -909,16 +919,19 @@ export async function getRoutesByDateRange(
  * Gets the next available route date on or after the given date
  * Returns the date as a YYYY-MM-DD string to avoid timezone issues
  */
-export async function getNextAvailableRouteDate(fromDate: Date): Promise<Result<string | null>> {
+export async function getNextAvailableRouteDate(fromDate: Date | string): Promise<Result<string | null>> {
   logger.debug('Getting next available route date', { fromDate });
 
   try {
     const supabase = getAdminSupabaseClient() || getSupabaseClient();
 
-    // Ensure we're comparing against the local date represented as string
-    // This is a bit loose, relying on the input date. 
-    // Ideally we pass just the string, but keeping signature for now.
-    const fromDateStr = fromDate.toISOString().split('T')[0];
+    // Handle both Date objects and strings (from JSON RPC)
+    const dateObj = fromDate instanceof Date ? fromDate : new Date(fromDate);
+
+    // Default to today if invalid date passed
+    const validDate = isNaN(dateObj.getTime()) ? new Date() : dateObj;
+
+    const fromDateStr = validDate.toISOString().split('T')[0];
 
     // Find the first date with any non-deleted route
     const { data, error } = await supabase
