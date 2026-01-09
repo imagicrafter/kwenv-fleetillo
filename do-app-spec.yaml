@@ -8,7 +8,7 @@ services:
     deploy_on_push: true
   source_dir: /
   build_command: npm install && npm run build && cd web-launcher && npm install
-  run_command: cd /workspace && node web-launcher/server.js
+  run_command: bash start.sh
   http_port: 8080
   envs:
   - key: SUPABASE_URL
