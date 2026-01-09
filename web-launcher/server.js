@@ -103,15 +103,11 @@ const activityService = require(`${SERVICE_PATH}/activity.service.js`);
 const supabaseService = require(`${SERVICE_PATH}/supabase.js`);
 
 // Initialize Supabase
-const supabaseSchema = process.env.SUPABASE_SCHEMA || 'optiroute';
-console.log(`[DEBUG] Supabase Schema: ${supabaseSchema}`);
-console.log(`[DEBUG] SUPABASE_SERVICE_ROLE_KEY present: ${!!process.env.SUPABASE_SERVICE_ROLE_KEY}`);
-
 supabaseService.initializeSupabase({
     url: process.env.SUPABASE_URL,
     anonKey: process.env.SUPABASE_KEY,
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-    schema: supabaseSchema
+    schema: process.env.SUPABASE_SCHEMA || 'optiroute'
 });
 
 // RPC Dispatcher
@@ -124,12 +120,12 @@ const rpcMap = {
         delete: clientService.deleteClient,
         getById: clientService.getClient,
         count: async (filters) => {
-            console.log('[DEBUG] clients.count called with filters:', filters);
             try {
                 // Direct query to bypass potential service layer issues
                 const { getAdminSupabaseClient } = require(`${SERVICE_PATH}/supabase.js`);
                 const admin = getAdminSupabaseClient();
 
+                // Using head: false and limit(1) to reliably get count without header stripping issues on DO
                 let query = admin.from('clients').select('id', { count: 'exact', head: false }).limit(1);
 
                 if (filters && filters.status) {
@@ -142,8 +138,6 @@ const rpcMap = {
                 }
 
                 const { count, error } = await query;
-
-                console.log('[DEBUG] Direct Admin Count:', count, 'Error:', error);
 
                 if (error) {
                     console.error('Direct count failed:', error);
@@ -268,33 +262,6 @@ app.post('/api/chat', async (req, res) => {
     } catch (err) {
         console.error('Chat Proxy Error:', err);
         res.status(500).json({ error: err.message });
-    }
-});
-
-app.get('/api/debug-db', async (req, res) => {
-    try {
-        const { getAdminSupabaseClient } = require(`${SERVICE_PATH}/supabase.js`);
-        const adminClient = getAdminSupabaseClient();
-
-        if (!adminClient) {
-            return res.status(500).json({ error: 'No admin client' });
-        }
-
-        const { data, error } = await adminClient
-            .from('clients')
-            .select('id, name, status, deleted_at')
-            .limit(10);
-
-        res.json({
-            schema: process.env.SUPABASE_SCHEMA,
-            hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-            keyLength: process.env.SUPABASE_SERVICE_ROLE_KEY?.length,
-            error,
-            data,
-            count: data?.length
-        });
-    } catch (err) {
-        res.status(500).json({ error: err.message, stack: err.stack });
     }
 });
 
