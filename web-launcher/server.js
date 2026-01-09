@@ -6,14 +6,25 @@ const dotenv = require('dotenv');
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
 
-// Load env vars
-dotenv.config({ path: path.join(__dirname, '../.env') });
-// Also load agent env vars for the chat proxy
-dotenv.config({ path: path.join(__dirname, '../gradient-agents/optiroute-support-agent/.env') });
+// Load env vars (only if .env file exists - in production, env vars come from platform)
+const fs = require('fs');
+const envPath = path.join(__dirname, '../.env');
+if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+}
+// Also load agent env vars for the chat proxy (if exists)
+const agentEnvPath = path.join(__dirname, '../gradient-agents/optiroute-support-agent/.env');
+if (fs.existsSync(agentEnvPath)) {
+    dotenv.config({ path: agentEnvPath });
+}
 
 const app = express();
 const PORT = process.env.WEB_PORT || 8080;
 const DEMO_PASSWORD = process.env.DEMO_PASSWORD || 'demo123';
+
+// Debug: Log password info at startup (masked)
+console.log(`[DEBUG] DEMO_PASSWORD loaded: ${DEMO_PASSWORD ? DEMO_PASSWORD.substring(0, 3) + '***' : 'NOT SET'}`);
+console.log(`[DEBUG] NODE_ENV: ${process.env.NODE_ENV || 'not set'}`);
 
 app.use(cors());
 app.use(cookieParser());

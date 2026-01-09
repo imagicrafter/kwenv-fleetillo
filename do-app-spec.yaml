@@ -27,8 +27,11 @@ services:
     value: routeiq
     scope: RUN_TIME
   - key: DEMO_PASSWORD
-    value: demo2026
+    value: demo123
     scope: RUN_TIME
   - key: SESSION_SECRET
     value: ***REMOVED_SESSION_SECRET***
     scope: RUN_TIME
+domains:
+- domain: optiroute.imagicrafterai.com
+  type: PRIMARY
