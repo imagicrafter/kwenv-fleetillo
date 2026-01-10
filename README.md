@@ -102,50 +102,45 @@ RouteIQ helps service-based businesses efficiently manage their daily operations
    ```
 
 ## Running the Application
-
-### Option 1: Electron Desktop App (Recommended)
-
-The Electron app provides a full desktop experience with direct database access.
-
-```bash
-# Make sure you've built the TypeScript first
-npm run build
-
-# Start the Electron app
-cd electron-launcher && npm start
-```
-
-Or from the project root:
-```bash
-cd electron-launcher && npm start
-```
-
-### Option 2: Express API Server
-
-Run the backend API server for web-based access or API development:
-
-```bash
-# Development mode (with hot reload)
-npm run dev
-
-# Production mode
-npm run build
-npm start
-```
-
-The server will start on `http://localhost:3000` (or the port specified in your `.env`).
-
-### Option 3: Run Both (Server + Electron)
-
-For development with both the API server and Electron app:
-
-```bash
-# Terminal 1: Start the Express server
-npm run dev
-
-# Terminal 2: Start the Electron app
-cd electron-launcher && npm start
-```
+ 
+ ### Option 1: Electron Desktop App
+ 
+ The Electron app provides a full desktop experience with direct database access.
+ 
+ ```bash
+ # Make sure you've built the TypeScript first
+ npm run build
+ 
+ # Start the Electron app
+ cd electron-launcher && npm start
+ ```
+ 
+ ### Option 2: Web App
+ 
+ Run the application in your browser via the web launcher.
+ 
+ ```bash
+ # Make sure you've built the TypeScript first
+ npm run build
+ 
+ # Start the Web Launcher
+ cd web-launcher && npm start
+ ```
+ The web app will be available at `http://localhost:8080`.
+ 
+ ### Option 3: Backend API Server
+ 
+ Run the backend API server for headless API access or development:
+ 
+ ```bash
+ # Development mode (with hot reload)
+ npm run dev
+ 
+ # Production mode
+ npm run build
+ npm start
+ ```
+ The server will start on `http://localhost:3000`.
 
 ## Available Scripts
 
@@ -240,6 +235,28 @@ npm run test:coverage
 - Verify your API key has the required APIs enabled (Maps JavaScript API, Routes API, Places API)
 - Check API key restrictions in Google Cloud Console
 
-## License
+## Deployment
+ 
+ ### Digital Ocean App Platform
+ 
+ This repository includes a `do-app-spec.yaml` file for easy deployment to Digital Ocean App Platform.
+ 
+ 1. **Install `doctl`**: Ensure you have the Digital Ocean setup and authenticated.
+ 2. **Create App**: Run the following command to create and deploy the app:
+    ```bash
+    doctl apps create --spec do-app-spec.yaml
+    ```
+ 3. **Environment Variables**: The `do-app-spec.yaml` contains placeholder or initial environment variables. **IMPORTANT:** You should update these values in the Digital Ocean dashboard after deployment, especially secrets like `SUPABASE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `GOOGLE_MAPS_API_KEY`.
+ 
+ The generic build command used is:
+ ```bash
+ npm install && npm run build && cd web-launcher && npm install
+ ```
+ And the run command:
+ ```bash
+ node web-launcher/server.js
+ ```
+ 
+ ## License
 
 MIT

@@ -1,5 +1,5 @@
 {
-    "name": "routeiq-electron-launcher",
+    "name": "optiroute-electron-launcher",
     "version": "1.0.0",
     "description": "Electron launcher for RouteIQ",
     "main": "src/main.js",

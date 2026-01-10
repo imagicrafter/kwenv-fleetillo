@@ -100,7 +100,7 @@ function createConfig(): AppConfig {
       url: getRequiredEnv('SUPABASE_URL'),
       anonKey: getRequiredEnv('SUPABASE_KEY'),
       serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-      schema: getOptionalEnv('SUPABASE_SCHEMA', 'routeiq'),
+      schema: getOptionalEnv('SUPABASE_SCHEMA', 'optiroute'),
     },
     googleMaps: {
       apiKey: getRequiredEnv('GOOGLE_MAPS_API_KEY'),

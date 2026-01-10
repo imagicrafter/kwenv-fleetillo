@@ -112,7 +112,8 @@ async function createRoute(input) {
             .select()
             .single();
         if (error) {
-            logger.error('Failed to create route', error);
+            const errStr = JSON.stringify(error, Object.getOwnPropertyNames(error));
+            logger.error(`Failed to create route: ${errStr}`);
             return {
                 success: false,
                 error: new RouteServiceError(`Failed to create route: ${error.message}`, exports.RouteErrorCodes.CREATE_FAILED, error),

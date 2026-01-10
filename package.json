@@ -1,5 +1,5 @@
 {
-  "name": "routeiq-typescript",
+  "name": "optiroute",
   "version": "1.0.0",
   "description": "RouteIQ - A TypeScript-based route planning and management system",
   "main": "dist/index.js",
@@ -8,8 +8,8 @@
     "build": "tsc && cp -r src/public dist/",
     "build:watch": "tsc --watch",
     "start": "node dist/server.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
-    "dev:lib": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "dev": "node --loader ts-node/esm --watch src/server.ts",
+    "dev:lib": "node --loader ts-node/esm --watch src/index.ts",
     "build:scripts": "tsc -p tsconfig.scripts.json",
     "db:check": "npm run build:scripts && node dist/scripts/check-db-connection.js",
     "pretest": "npm run db:check",
@@ -57,10 +57,12 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.22.1",
     "express-async-errors": "^3.1.1",
+    "express-session": "^1.18.2",
     "helmet": "^8.1.0",
     "morgan": "^1.10.1"
   }

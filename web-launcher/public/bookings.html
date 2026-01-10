@@ -90,7 +90,7 @@
                     Routes
                 </a>
 
-                <a href="#" class="nav-item">
+                <a href="settings.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -143,6 +143,66 @@
                 <div class="page-header">
                     <h2>Bookings</h2>
                     <span class="date">Manage service appointments</span>
+                </div>
+
+                <!-- Filters Bar -->
+                <div class="filters-bar"
+                    style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 16px; margin-bottom: 20px; display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end;">
+                    <div class="filter-group" style="display: flex; flex-direction: column; gap: 6px;">
+                        <label style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Date
+                            Range</label>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="date" id="filter-date-from"
+                                style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); color: var(--text-primary); padding: 8px; border-radius: 6px; font-family: inherit;">
+                            <span style="color: var(--text-secondary);">to</span>
+                            <input type="date" id="filter-date-to"
+                                style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); color: var(--text-primary); padding: 8px; border-radius: 6px; font-family: inherit;">
+                        </div>
+                    </div>
+
+                    <div class="filter-group"
+                        style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 150px; max-width: 250px;">
+                        <label style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Client</label>
+                        <select id="filter-client"
+                            style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); color: var(--text-primary); padding: 8px; border-radius: 6px; width: 100%;">
+                            <option value="">All Clients</option>
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+
+                    <div class="filter-group"
+                        style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 150px; max-width: 250px;">
+                        <label
+                            style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Vehicle</label>
+                        <select id="filter-vehicle"
+                            style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); color: var(--text-primary); padding: 8px; border-radius: 6px; width: 100%;">
+                            <option value="">All Vehicles</option>
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+
+                    <div class="filter-group"
+                        style="display: flex; flex-direction: column; gap: 6px; min-width: 140px;">
+                        <label style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Status</label>
+                        <select id="filter-status"
+                            style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); color: var(--text-primary); padding: 8px; border-radius: 6px; width: 100%;">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="in_progress">In Progress</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="no_show">No Show</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-actions" style="margin-left: auto; padding-bottom: 2px;">
+                        <button id="clear-filters-btn" class="btn-secondary"
+                            style="height: 36px; padding: 0 16px; background: transparent; border: 1px solid var(--border-subtle); color: var(--text-secondary); border-radius: 6px; cursor: pointer; transition: all 0.2s;">
+                            Clear Filters
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Bookings Table -->
@@ -292,8 +352,10 @@
                             <input type="date" id="scheduled-date" required>
                         </div>
                         <div class="form-group">
-                            <label for="scheduled-start-time">Start Time *</label>
-                            <input type="time" id="scheduled-start-time" required>
+                            <label for="scheduled-start-time">Start Time</label>
+                            <select id="scheduled-start-time">
+                                <option value="">Select time...</option>
+                            </select>
                         </div>
                     </div>
 
@@ -487,41 +549,148 @@
             const nextPageBtn = document.getElementById('next-page-btn');
             const paginationInfo = document.getElementById('pagination-info');
 
-            // Load bookings on startup
-            loadBookings();
+            // --- Filter UI Elements ---
+            const filterDateFrom = document.getElementById('filter-date-from');
+            const filterDateTo = document.getElementById('filter-date-to');
+            const filterClient = document.getElementById('filter-client');
+            const filterVehicle = document.getElementById('filter-vehicle');
+            const filterStatus = document.getElementById('filter-status');
+            const clearFiltersBtn = document.getElementById('clear-filters-btn');
 
-            // Event Listeners
+            // Populate time select with 15-minute intervals
+            const timeSelect = document.getElementById('scheduled-start-time');
+            for (let hour = 6; hour <= 20; hour++) {
+                for (let minute = 0; minute < 60; minute += 15) {
+                    const h = hour.toString().padStart(2, '0');
+                    const m = minute.toString().padStart(2, '0');
+                    const value = `${h}:${m}`;
+                    const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                    const label = `${displayHour}:${m} ${ampm}`;
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = label;
+                    timeSelect.appendChild(option);
+                }
+            }
+
+            // --- Initialization ---
+            initialize();
+
+            async function initialize() {
+                await populateFilters();
+                loadBookings();
+            }
+
+            async function populateFilters() {
+                try {
+                    // Load Clients
+                    const clientsRes = await window.electronAPI.clients.getAll();
+                    // Handle wrapped response
+                    const clients = clientsRes.data && Array.isArray(clientsRes.data.data)
+                        ? clientsRes.data.data
+                        : (Array.isArray(clientsRes.data) ? clientsRes.data : []);
+
+                    clients.sort((a, b) => a.name.localeCompare(b.name));
+
+                    clients.forEach(client => {
+                        const option = document.createElement('option');
+                        option.value = client.id;
+                        option.textContent = client.name;
+                        filterClient.appendChild(option);
+                    });
+
+                    // Load Vehicles
+                    const vehiclesRes = await window.electronAPI.vehicles.getAll();
+                    const vehicles = vehiclesRes.data || [];
+
+                    vehicles.sort((a, b) => a.name.localeCompare(b.name));
+
+                    vehicles.forEach(vehicle => {
+                        const option = document.createElement('option');
+                        option.value = vehicle.id;
+                        option.textContent = vehicle.name;
+                        filterVehicle.appendChild(option);
+                    });
+                } catch (error) {
+                    console.error('Failed to populate filters:', error);
+                }
+            }
+
+            // --- Event Listeners ---
             addBookingBtn.addEventListener('click', () => openModal());
 
             closeButtons.forEach(btn => {
                 btn.addEventListener('click', closeModal);
             });
 
-            // Close on outside click: REMOVED per user request
-            /*
-            window.addEventListener('click', (e) => {
-                if (e.target === modal) closeModal();
-            });
-            */
-
             form.addEventListener('submit', handleFormSubmit);
+
+            // Filter Change Listeners
+            [filterDateFrom, filterDateTo, filterClient, filterVehicle, filterStatus].forEach(el => {
+                if (el) {
+                    el.addEventListener('change', () => {
+                        currentPage = 1;
+                        loadBookings();
+                    });
+                }
+            });
+
+            if (clearFiltersBtn) {
+                clearFiltersBtn.addEventListener('click', () => {
+                    filterDateFrom.value = '';
+                    filterDateTo.value = '';
+                    filterClient.value = '';
+                    filterVehicle.value = '';
+                    filterStatus.value = '';
+                    searchInput.value = '';
+                    currentPage = 1;
+                    loadBookings();
+                });
+            }
 
             // Search functionality with debounce
             let searchTimeout;
             searchInput.addEventListener('input', (e) => {
                 clearTimeout(searchTimeout);
                 searchTimeout = setTimeout(() => {
-                    loadBookingsWithFilter(e.target.value);
+                    currentPage = 1;
+                    loadBookings(); // Uses current input value
                 }, 300);
             });
 
-            async function loadBookingsWithFilter(searchTerm) {
-                // Reset to page 1 for new search
-                currentPage = 1;
-                loadBookings(searchTerm);
+            // Sorting State
+            let currentSortBy = 'scheduled_date';
+            let currentSortOrder = 'asc';
+
+            const dateTimeHeader = document.querySelector('th:nth-child(5)'); // Date & Time column
+            if (dateTimeHeader) {
+                dateTimeHeader.style.cursor = 'pointer';
+                dateTimeHeader.title = 'Click to sort by Date & Time';
+                dateTimeHeader.innerHTML = 'Date & Time <span id="sort-indicator" style="font-size: 0.8em; margin-left: 4px;">▲</span>';
+
+                dateTimeHeader.addEventListener('click', () => {
+                    if (currentSortBy === 'scheduled_date') {
+                        currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        currentSortBy = 'scheduled_date';
+                        currentSortOrder = 'asc';
+                    }
+                    updateSortIndicator();
+                    loadBookings();
+                });
             }
 
-            // Event Listeners related to pagination
+            function updateSortIndicator() {
+                const indicator = document.getElementById('sort-indicator');
+                if (indicator) {
+                    indicator.textContent = currentSortBy === 'scheduled_date'
+                        ? (currentSortOrder === 'asc' ? '▲' : '▼')
+                        : '';
+                }
+            }
+
+            // Pagination Listeners
             rowsSelect.addEventListener('change', (e) => {
                 limit = parseInt(e.target.value);
                 currentPage = 1;
@@ -543,37 +712,57 @@
                 }
             });
 
-            async function loadBookings(searchTerm = '') {
+            async function loadBookings(searchTermOverride = null) {
                 try {
-                    console.log(`Requesting bookings... Page: ${currentPage}, Limit: ${limit}`);
-                    const filters = searchTerm ? { searchTerm } : {};
-                    const pagination = { page: currentPage, limit };
+                    // Use override if provided (legacy support), otherwise read input
+                    const term = searchTermOverride !== null ? searchTermOverride : (searchInput ? searchInput.value : '');
+
+                    // Gather filters from UI
+                    const filters = {
+                        searchTerm: term,
+                        scheduledDateFrom: filterDateFrom.value || undefined,
+                        scheduledDateTo: filterDateTo.value || undefined,
+                        clientId: filterClient.value || undefined,
+                        vehicleId: filterVehicle.value || undefined,
+                        status: filterStatus.value || undefined
+                    };
+
+                    console.log(`Requesting bookings... Page: ${currentPage}, Limit: ${limit}`, filters, `Sort: ${currentSortBy} (${currentSortOrder})`);
+                    const pagination = {
+                        page: currentPage,
+                        limit,
+                        sortBy: currentSortBy,
+                        sortOrder: currentSortOrder
+                    };
 
                     const response = await window.electronAPI.bookings.getAll(filters, pagination);
 
                     // Handle PaginatedResponse
                     let bookings = [];
                     if (response.pagination) {
-                        // Paginated structure: { data: [], pagination: {} }
                         bookings = response.data;
                         const meta = response.pagination;
                         totalItems = meta.total;
                         updatePaginationControls(meta);
                     } else if (response.data && Array.isArray(response.data)) {
-                        // Wrapper structure: { data: [] } (unlikely with current setup but possible)
                         bookings = response.data;
                         totalItems = bookings.length;
                     } else if (Array.isArray(response)) {
-                        // Direct array
                         bookings = response;
                         totalItems = bookings.length;
+                    }
+
+                    // Update pagination info if no metadata returned (legacy fallback)
+                    if (!response.pagination) {
+                        // Simple client-side pagination display if server doesn't return meta
+                        const totalPages = Math.ceil(totalItems / limit);
+                        updatePaginationControls({ page: currentPage, limit, total: totalItems, totalPages });
                     }
 
                     renderTable(bookings);
                 } catch (error) {
                     console.error('Error loading bookings:', error);
-                    alert('Error loading bookings: ' + error.message);
-                    bookingsTable.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;">Error loading bookings. Check console for details.</td></tr>';
+                    bookingsTable.innerHTML = '<tr><td colspan="8" style="text-align: center; padding: 20px; color: var(--text-error, red);">Error loading bookings: ' + error.message + '</td></tr>';
                 }
             }
 

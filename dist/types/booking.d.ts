@@ -46,7 +46,7 @@ export interface Booking extends Timestamps {
     recurrenceEndDate?: Date;
     parentBookingId?: ID;
     scheduledDate: Date;
-    scheduledStartTime: string;
+    scheduledStartTime?: string;
     scheduledEndTime?: string;
     estimatedDurationMinutes?: number;
     actualStartTime?: Date;
@@ -77,6 +77,7 @@ export interface Booking extends Timestamps {
     clientEmail?: string;
     serviceName?: string;
     serviceCode?: string;
+    serviceAverageDurationMinutes?: number;
     locationName?: string;
     locationLatitude?: number;
     locationLongitude?: number;
@@ -96,7 +97,7 @@ export interface BookingRow {
     recurrence_end_date: string | null;
     parent_booking_id: string | null;
     scheduled_date: string;
-    scheduled_start_time: string;
+    scheduled_start_time: string | null;
     scheduled_end_time: string | null;
     estimated_duration_minutes: number | null;
     actual_start_time: string | null;

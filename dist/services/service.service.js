@@ -118,7 +118,7 @@ async function createService(input) {
     // Validate input
     const validationResult = validateServiceInput(input);
     if (!validationResult.success) {
-        return validationResult;
+        return { success: false, error: validationResult.error };
     }
     try {
         // Use admin client if available to bypass RLS policies

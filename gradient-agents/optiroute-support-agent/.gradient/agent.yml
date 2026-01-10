@@ -1,0 +1,3 @@
+agent_name: optiroute-support-agent
+agent_environment: optiroute-support
+entrypoint_file: main.py

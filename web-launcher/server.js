@@ -100,6 +100,7 @@ const routePlanningService = require(`${SERVICE_PATH}/route-planning.service.js`
 const vehicleLocationService = require(`${SERVICE_PATH}/vehicle-location.service.js`);
 const googleMapsService = require(`${SERVICE_PATH}/googlemaps.service.js`);
 const activityService = require(`${SERVICE_PATH}/activity.service.js`);
+const settingsService = require(`${SERVICE_PATH}/settings.service.js`);
 const supabaseService = require(`${SERVICE_PATH}/supabase.js`);
 
 // Initialize Supabase
@@ -212,6 +213,13 @@ const rpcMap = {
         getRecent: activityService.getRecentActivities,
         getAll: activityService.getActivities,
         getByEntity: activityService.getActivitiesByEntity
+    },
+    settings: {
+        getAll: settingsService.getAllSettings,
+        getRouteSettings: settingsService.getRouteSettings,
+        update: settingsService.updateSetting,
+        updateMultiple: settingsService.updateSettings,
+        getRoutePlanningParams: settingsService.getRoutePlanningParams
     }
 };
 
@@ -313,7 +321,8 @@ app.post('/api/rpc', async (req, res) => {
 
         if (result && typeof result === 'object' && 'success' in result) {
             if (result.success) {
-                return res.json(result.data);
+                // Return data, or empty object if data is undefined (e.g., delete operations)
+                return res.json(result.data !== undefined ? result.data : {});
             } else {
                 return res.status(400).json({ message: result.error?.message || 'Operation failed' });
             }

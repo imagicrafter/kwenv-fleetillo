@@ -98,7 +98,7 @@ async function createVehicle(input) {
     // Validate input
     const validationResult = validateVehicleInput(input);
     if (!validationResult.success) {
-        return validationResult;
+        return { success: false, error: validationResult.error };
     }
     try {
         const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
@@ -249,9 +249,9 @@ async function updateVehicle(input) {
     logger.debug('Updating vehicle', { id: input.id });
     // Validate input if name is being updated
     if (input.name !== undefined) {
-        const validationResult = validateVehicleInput({ name: input.name, ...input });
+        const validationResult = validateVehicleInput({ ...input, name: input.name });
         if (!validationResult.success) {
-            return validationResult;
+            return { success: false, error: validationResult.error };
         }
     }
     try {

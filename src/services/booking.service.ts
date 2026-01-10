@@ -106,16 +106,7 @@ function validateBookingInput(input: CreateBookingInput): Result<void> {
     };
   }
 
-  if (!input.scheduledStartTime) {
-    return {
-      success: false,
-      error: new BookingServiceError(
-        'Scheduled start time is required',
-        BookingErrorCodes.VALIDATION_FAILED,
-        { field: 'scheduledStartTime' }
-      ),
-    };
-  }
+  // scheduledStartTime is now optional - route planning will set it later
 
   // Validate recurring booking has recurrence pattern
   if (input.bookingType === 'recurring' && !input.recurrencePattern) {
@@ -211,7 +202,7 @@ export async function createBooking(input: CreateBookingInput): Promise<Result<B
   // Validate input
   const validationResult = validateBookingInput(input);
   if (!validationResult.success) {
-    return validationResult as Result<Booking>;
+    return { success: false, error: validationResult.error };
   }
 
   try {
@@ -219,10 +210,32 @@ export async function createBooking(input: CreateBookingInput): Promise<Result<B
     const supabase = getAdminSupabaseClient() || getSupabaseClient();
     const rowData = convertInputToRow(input);
 
+    // Auto-generate booking number if not provided
+    if (!rowData.booking_number) {
+      // Get date string either from input or fallback to today
+      let dateStr: string;
+      const scheduledDate = input.scheduledDate;
+      if (scheduledDate) {
+        const dateValue = typeof scheduledDate === 'string'
+          ? scheduledDate
+          : scheduledDate.toISOString().split('T')[0];
+        dateStr = (dateValue ?? '').replace(/-/g, '');
+      } else {
+        dateStr = new Date().toISOString().split('T')[0]!.replace(/-/g, '');
+      }
+      // Count existing bookings for this date to get sequence number
+      const { count: existingCount } = await supabase
+        .from(BOOKINGS_TABLE)
+        .select('*', { count: 'exact', head: true })
+        .like('booking_number', `BK-${dateStr}-%`);
+      const sequenceNum = (existingCount || 0) + 1;
+      rowData.booking_number = `BK-${dateStr}-${sequenceNum.toString().padStart(3, '0')}`;
+    }
+
     const { data, error } = await supabase
       .from(BOOKINGS_TABLE)
       .insert(rowData)
-      .select('*, clients(name, email), services(name, code), locations(name, latitude, longitude)')
+      .select('*, clients(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)')
       .single();
 
     if (error) {
@@ -266,7 +279,7 @@ export async function getBookingById(id: string): Promise<Result<Booking>> {
 
     const { data, error } = await supabase
       .from(BOOKINGS_TABLE)
-      .select('*, clients(name, email), services(name, code), locations(name, latitude, longitude)')
+      .select('*, clients(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)')
       .eq('id', id)
       .is('deleted_at', null)
       .single();
@@ -321,7 +334,7 @@ export async function getBookings(
     // Use admin client if available to bypass RLS policies
     const supabase = getAdminSupabaseClient() || getSupabaseClient();
 
-    let query = supabase.from(BOOKINGS_TABLE).select('*, clients(name, email), services(name, code), locations(name, latitude, longitude)', { count: 'exact' });
+    let query = supabase.from(BOOKINGS_TABLE).select('*, clients(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)', { count: 'exact' });
 
     // Apply filters
     if (!filters?.includeDeleted) {
@@ -389,7 +402,15 @@ export async function getBookings(
     // Apply sorting
     const sortBy = pagination?.sortBy ?? 'scheduled_date';
     const sortOrder = pagination?.sortOrder ?? 'asc';
-    query = query.order(sortBy, { ascending: sortOrder === 'asc' });
+
+    // When sorting by date, also sort by time to provide a meaningful chronological order
+    if (sortBy === 'scheduled_date') {
+      query = query
+        .order('scheduled_date', { ascending: sortOrder === 'asc' })
+        .order('scheduled_start_time', { ascending: sortOrder === 'asc' });
+    } else {
+      query = query.order(sortBy, { ascending: sortOrder === 'asc' });
+    }
 
     const { data, error, count } = await query;
 
@@ -458,9 +479,9 @@ export async function getBookings(
 export async function updateBooking(input: UpdateBookingInput): Promise<Result<Booking>> {
   logger.debug('Updating booking', { id: input.id });
 
-  // Only validate core required fields if they are being updated
-  // Skip full validation for simple updates like status changes
-  if (input.clientId || input.serviceId || input.bookingType || input.scheduledDate || input.scheduledStartTime) {
+  // Only validate core required fields if entity references are being changed
+  // Skip full validation for simple updates like status or schedule time changes
+  if (input.clientId || input.serviceId || input.bookingType) {
     const validationInput: CreateBookingInput = {
       clientId: input.clientId ?? '',
       serviceId: input.serviceId ?? '',
@@ -470,7 +491,7 @@ export async function updateBooking(input: UpdateBookingInput): Promise<Result<B
     };
     const validationResult = validateBookingInput(validationInput);
     if (!validationResult.success) {
-      return validationResult as Result<Booking>;
+      return { success: false, error: validationResult.error };
     }
   }
 

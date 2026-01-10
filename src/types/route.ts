@@ -88,6 +88,8 @@ export interface Route extends Timestamps {
   // Route metrics
   totalDistanceKm?: number;
   totalDurationMinutes?: number;
+  totalServiceTimeMinutes?: number;
+  totalTravelTimeMinutes?: number;
   totalStops: number;
 
   // Optimization
@@ -149,6 +151,8 @@ export interface RouteRow {
   actual_end_time: string | null; // TIMESTAMPTZ
   total_distance_km: number | null;
   total_duration_minutes: number | null;
+  total_service_time_minutes: number | null;
+  total_travel_time_minutes: number | null;
   total_stops: number;
   optimization_type: OptimizationType;
   optimization_score: number | null;
@@ -189,6 +193,8 @@ export interface CreateRouteInput {
   plannedEndTime?: string;
   totalDistanceKm?: number;
   totalDurationMinutes?: number;
+  totalServiceTimeMinutes?: number;
+  totalTravelTimeMinutes?: number;
   totalStops?: number;
   optimizationType?: OptimizationType;
   optimizationScore?: number;
@@ -269,6 +275,8 @@ export function rowToRoute(row: RouteRow): Route {
     actualEndTime: row.actual_end_time ? new Date(row.actual_end_time) : undefined,
     totalDistanceKm: row.total_distance_km ?? undefined,
     totalDurationMinutes: row.total_duration_minutes ?? undefined,
+    totalServiceTimeMinutes: row.total_service_time_minutes ?? undefined,
+    totalTravelTimeMinutes: row.total_travel_time_minutes ?? undefined,
     totalStops: row.total_stops,
     optimizationType: row.optimization_type,
     optimizationScore: row.optimization_score ?? undefined,
@@ -311,6 +319,8 @@ export function routeInputToRow(input: CreateRouteInput): Partial<RouteRow> {
     planned_end_time: input.plannedEndTime ?? null,
     total_distance_km: input.totalDistanceKm ?? null,
     total_duration_minutes: input.totalDurationMinutes ?? null,
+    // total_service_time_minutes: input.totalServiceTimeMinutes ?? null,
+    // total_travel_time_minutes: input.totalTravelTimeMinutes ?? null,
     total_stops: input.totalStops ?? 0,
     optimization_type: input.optimizationType ?? 'balanced',
     optimization_score: input.optimizationScore ?? null,

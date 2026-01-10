@@ -1,0 +1,11 @@
+query,expected_response
+"{""messages"":[{""role"":""user"",""content"":""How many active customers?""}]}","There are 4 active customers in the system."
+"{""messages"":[{""role"":""user"",""content"":""Contact info for Perkins?""}]}","Perkins can be reached at perkins@mail.com or by phone at 888-222-3333."
+"{""messages"":[{""role"":""user"",""content"":""Show available vehicles""}]}","Here are the available vehicles: Unit 103 - Hydro Jetter, Unit 102 - Route Pumper"
+"{""messages"":[{""role"":""user"",""content"":""Contact info for mcburgers?""}]}","I couldn't find a customer named mcburgers in the database. Could you check the spelling or try a different name?"
+"{""messages"":[{""role"":""user"",""content"":""Phone number for XYZ Corp""}]}","I couldn't find a customer named XYZ Corp in the database. Could you check the spelling or try a different name?"
+"{""messages"":[{""role"":""user"",""content"":""Perkins contact?""}]}","Perkins can be reached at perkins@mail.com or 888-222-3333."
+"{""messages"":[{""role"":""user"",""content"":""List customers""}]}","Here are the customers in the system: XYZ Corp, McBurgers, Green Landscaping, Perkins Manor"
+"{""messages"":[{""role"":""user"",""content"":""Contact info for Perkins?""}]}","Perkins can be reached at perkins@mail.com or phone 888-222-3333."
+"{""messages"":[{""role"":""user"",""content"":""How many vehicles?""}]}","There are 2 vehicles in the system."
+"{""messages"":[{""role"":""user"",""content"":""What's Perkins' phone number?""}]}","Perkins' phone number is 888-222-3333."

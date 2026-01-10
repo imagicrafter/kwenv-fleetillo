@@ -16,11 +16,13 @@ import type { Booking, BookingFilters } from '../types/booking.js';
 import type { Route, CreateRouteInput } from '../types/route.js';
 import { getBookings, updateBooking } from './booking.service.js';
 import { getVehicles } from './vehicle.service.js';
+import { getServices } from './service.service.js';
 import type { Vehicle } from '../types/vehicle.js';
 import { createRoute } from './route.service.js';
 import { getLocationById } from './location.service.js';
 import { getVehiclePrimaryLocation } from './vehicle-location.service.js';
 import { getAdminSupabaseClient, getSupabaseClient } from './supabase.js';
+import { getRoutePlanningParams } from './settings.service.js';
 import { computeRoutes } from './google-routes.service.js';
 import {
     TravelMode,
@@ -211,68 +213,202 @@ function haversineDistance(
 }
 
 /**
- * Simple geographic clustering that splits bookings into batches
- * Uses a greedy approach: start with first booking, add nearest until max reached
+ * Calculates estimated travel time in minutes between two coordinates
+ * Uses dynamic settings for speed and traffic buffer
  */
-function clusterBookingsGeographically(
+function estimateTravelTimeMinutes(
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number,
+    avgSpeedKmph: number,
+    trafficBufferMultiplier: number
+): number {
+    const distKm = haversineDistance(lat1, lon1, lat2, lon2);
+    // Time = Distance / Speed * 60 minutes * traffic buffer
+    return (distKm / avgSpeedKmph) * 60 * trafficBufferMultiplier;
+}
+
+/**
+ * Allocates bookings to vehicles based on geographic proximity and time constraints.
+ * Returns reordered bookings (to match allocation) and the allocation counts.
+ * 
+ * Algorithm:
+ * 1. Initialize all vehicles with empty routes
+ * 2. Unassigned bookings pool
+ * 3. While unassigned bookings exist:
+ *    - For each vehicle:
+ *      - Find nearest unassigned booking to vehicle's last location
+ *      - Check if adding it violates max daily time (default 9 hours = 540 mins)
+ *      - If fits, assign and update vehicle state
+ */
+async function createTimeAwareAllocation(
     bookings: Booking[],
-    maxPerBatch: number
-): Booking[][] {
-    if (bookings.length === 0) return [];
-    if (bookings.length <= maxPerBatch) return [bookings];
-
-    const batches: Booking[][] = [];
-    const remaining = [...bookings];
-
-    while (remaining.length > 0) {
-        const batch: Booking[] = [];
-
-        // Start with the first remaining booking
-        const seed = remaining.shift()!;
-        batch.push(seed);
-
-        // Add nearest bookings until batch is full
-        while (batch.length < maxPerBatch && remaining.length > 0) {
-            // Find the booking nearest to the centroid of current batch
-            let sumLat = 0;
-            let sumLon = 0;
-            for (const b of batch) {
-                const coords = getBookingCoordinates(b);
-                if (coords) {
-                    sumLat += coords.latitude;
-                    sumLon += coords.longitude;
-                }
-            }
-            const centroidLat = sumLat / batch.length;
-            const centroidLon = sumLon / batch.length;
-
-            let nearestIdx = 0;
-            let nearestDist = Infinity;
-
-            for (let i = 0; i < remaining.length; i++) {
-                const booking = remaining[i]!;
-                const coords = getBookingCoordinates(booking);
-                if (coords) {
-                    const dist = haversineDistance(
-                        centroidLat,
-                        centroidLon,
-                        coords.latitude,
-                        coords.longitude
-                    );
-                    if (dist < nearestDist) {
-                        nearestDist = dist;
-                        nearestIdx = i;
-                    }
-                }
-            }
-
-            batch.push(remaining.splice(nearestIdx, 1)[0]!);
-        }
-
-        batches.push(batch);
+    vehicles: Vehicle[],
+    locationMap: Map<string, { latitude: number; longitude: number; name: string }>,
+    servicesMap: Map<string, number> // serviceId -> averageDurationMinutes
+): Promise<{
+    allocations: { vehicleId: string; bookingCount: number; startLocationId?: string }[];
+    orderedBookings: Booking[];
+    warnings: string[];
+}> {
+    if (bookings.length === 0 || vehicles.length === 0) {
+        return { allocations: [], orderedBookings: [], warnings: [] };
     }
 
-    return batches;
+    // Load dynamic settings
+    const params = await getRoutePlanningParams();
+    const MAX_DAILY_MINUTES = params.maxDailyMinutes;
+    const warnings: string[] = [];
+
+    // State for each vehicle
+    const vehicleStates = vehicles.map(v => {
+        // Determine start location
+        let currentLat = 0;
+        let currentLon = 0;
+        let hasLocation = false;
+
+        // Try to find vehicle home/primary location coordinates
+        if (v.homeLocationId && locationMap.has(v.homeLocationId)) {
+            const loc = locationMap.get(v.homeLocationId)!;
+            currentLat = loc.latitude;
+            currentLon = loc.longitude;
+            hasLocation = true;
+        }
+
+        return {
+            vehicle: v,
+            currentLat,
+            currentLon,
+            hasLocation,
+            usedMinutes: 0,
+            assignedBookings: [] as Booking[],
+        };
+    });
+
+    // Work with a copy of bookings to track assignment
+    const unassigned = [...bookings];
+
+    // Helper to get booking duration
+    const getServiceDuration = (b: Booking) => {
+        // Use estimatedDuration if overridden on booking, else service average, else default 30
+        return b.estimatedDurationMinutes || servicesMap.get(b.serviceId) || 30;
+    };
+
+    // Greedy allocation loop
+    // In each round, each vehicle tries to pick its nearest neighbor
+    let assignedSomething = true;
+
+    while (unassigned.length > 0 && assignedSomething) {
+        assignedSomething = false;
+
+        for (const state of vehicleStates) {
+            if (unassigned.length === 0) break;
+
+            // Simple heuristic: can this vehicle support more work?
+            if (state.usedMinutes >= MAX_DAILY_MINUTES) continue;
+
+            // Find nearest booking
+            let nearestIdx = -1;
+            let nearestDist = Infinity;
+            let nearestCoords: { latitude: number, longitude: number } | null = null;
+
+            for (let i = 0; i < unassigned.length; i++) {
+                const booking = unassigned[i]!;
+
+                // Check service compatibility first
+                const vehicleServiceSet = new Set(state.vehicle.serviceTypes || []);
+                // If vehicle has no service types, assume it can do anything? Or nothing?
+                // Using existing logic: if set exists, must contain serviceId
+                if (state.vehicle.serviceTypes && state.vehicle.serviceTypes.length > 0) {
+                    if (!vehicleServiceSet.has(booking.serviceId)) continue;
+                }
+
+                const coords = getBookingCoordinates(booking);
+                if (!coords) continue;
+
+                // Distance from vehicle's current position (last stop or depot)
+                // If vehicle has no location, pick any (first) as seed relative to 0,0?
+                // Better: if no location, maybe just pick first available to initialize
+                let dist = 0;
+                if (state.hasLocation) {
+                    dist = haversineDistance(state.currentLat, state.currentLon, coords.latitude, coords.longitude);
+                } else {
+                    // Vehicle has no start location, so distance is 0 (first pick is free effectively)
+                    dist = 0;
+                }
+
+                if (dist < nearestDist) {
+                    nearestDist = dist;
+                    nearestIdx = i;
+                    nearestCoords = coords;
+                }
+            }
+
+            if (nearestIdx !== -1 && nearestCoords) {
+                const candidate = unassigned[nearestIdx]!;
+                const travelTime = state.hasLocation
+                    ? estimateTravelTimeMinutes(
+                        state.currentLat, state.currentLon,
+                        nearestCoords.latitude, nearestCoords.longitude,
+                        params.avgTravelSpeedKmph, params.trafficBufferMultiplier
+                    )
+                    : 0;
+                const serviceTime = getServiceDuration(candidate);
+
+                // Check if adding this fits in day
+                // Note: We should ideally account for return trip to depot, but for greedy packing we check that later or assume buffer
+                if (state.usedMinutes + travelTime + serviceTime <= MAX_DAILY_MINUTES) {
+                    // Assign
+                    state.assignedBookings.push(candidate);
+                    state.usedMinutes += travelTime + serviceTime;
+                    state.currentLat = nearestCoords.latitude;
+                    state.currentLon = nearestCoords.longitude;
+                    state.hasLocation = true; // Now it has a location (the stop)
+
+                    unassigned.splice(nearestIdx, 1);
+                    assignedSomething = true;
+                }
+            }
+        }
+    }
+
+    // Capture unassigned as warnings
+    if (unassigned.length > 0) {
+        warnings.push(`${unassigned.length} bookings could not be fit into vehicle time windows`);
+    }
+
+    // Construct result
+    const orderedBookings: Booking[] = [];
+    const allocations: { vehicleId: string; bookingCount: number; startLocationId?: string }[] = [];
+
+    for (const state of vehicleStates) {
+        if (state.assignedBookings.length > 0) {
+            orderedBookings.push(...state.assignedBookings);
+            allocations.push({
+                vehicleId: state.vehicle.id,
+                bookingCount: state.assignedBookings.length,
+                startLocationId: state.vehicle.homeLocationId // preserve home loc preference
+            });
+        }
+    }
+
+    // Add any remaining bookings that fit nowhere to unassigned list in caller? 
+    // The caller (planRoutes) expects 'allocations' to sum up to compatibleBookings used.
+    // We implicitly dropped bookings that didn't fit time.
+    // To handle this, we should append them to specific list or just return what fits.
+    // The calling function splits 'compatibleBookings' based on allocation counts.
+    // ISSUE: The calling function uses `options.vehicleAllocations` or `defaultAllocation`.
+    // And it iterates `allocations` and slices `compatibleBookings`.
+    // So `compatibleBookings` MUST remain the source of truth for the slice.
+    // This function returns `orderedBookings` which implies we MUST replace `compatibleBookings` with this list in the caller
+    // Or ensures `allocations` matches EXACTLY the order in `orderedBookings`.
+
+    return {
+        allocations,
+        orderedBookings, // This MUST replace the 'compatibleBookings' list in usage
+        warnings
+    };
 }
 
 /**
@@ -535,72 +671,15 @@ async function findCompatibleVehicleBookings(
  * Creates default allocation plan: evenly distribute bookings across vehicles
  * that support the required service types.
  */
-function createDefaultAllocation(
-    bookings: Booking[],
-    vehicles: Vehicle[],
-    maxStopsPerRoute: number,
-    locationMap: Map<string, { name: string; city: string; state: string }> = new Map()
-): { vehicleId: string; vehicleName: string; bookingCount: number; homeLocationId?: string; homeLocationName?: string }[] {
-    if (bookings.length === 0 || vehicles.length === 0) {
-        return [];
+/**
+ * Simple clusterer for breaking large routes into smaller batches (stops limit)
+ */
+function chunkBookings(bookings: Booking[], size: number): Booking[][] {
+    const chunks: Booking[][] = [];
+    for (let i = 0; i < bookings.length; i += size) {
+        chunks.push(bookings.slice(i, i + size));
     }
-
-    // Collect all unique service IDs from bookings
-    const requiredServiceIds = new Set(bookings.map(b => b.serviceId));
-
-    // Filter vehicles to only those that support ALL required service types
-    // Actually, we want vehicles that support ANY of the service types (OR logic)
-    // But for allocation, we want vehicles that can handle the bookings assigned to them
-    // For simplicity: find vehicles that support at least one of the required services
-    const compatibleVehicles = vehicles.filter(v => {
-        const vehicleServiceSet = new Set(v.serviceTypes || []);
-        return Array.from(requiredServiceIds).some(sId => vehicleServiceSet.has(sId));
-    });
-
-    if (compatibleVehicles.length === 0) {
-        return [];
-    }
-
-    // For now, with one vehicle: assign all bookings to it (up to max)
-    // With multiple vehicles: split evenly
-    const allocation: { vehicleId: string; vehicleName: string; bookingCount: number; homeLocationId?: string; homeLocationName?: string }[] = [];
-
-    let remainingBookings = bookings.length;
-    const vehicleCount = compatibleVehicles.length;
-
-    // Calculate how many bookings each vehicle gets (evenly split, respecting max)
-    const maxTotalCapacity = vehicleCount * maxStopsPerRoute;
-    const bookingsToAssign = Math.min(remainingBookings, maxTotalCapacity);
-    const baseCount = Math.floor(bookingsToAssign / vehicleCount);
-    let extraBookings = bookingsToAssign % vehicleCount;
-
-    for (const vehicle of compatibleVehicles) {
-        let count = baseCount;
-        if (extraBookings > 0) {
-            count++;
-            extraBookings--;
-        }
-
-        // Enforce max stops per route
-        count = Math.min(count, maxStopsPerRoute);
-
-        // Get home location info
-        let homeLocationName: string | undefined;
-        if (vehicle.homeLocationId && locationMap.has(vehicle.homeLocationId)) {
-            const loc = locationMap.get(vehicle.homeLocationId)!;
-            homeLocationName = `${loc.name} - ${loc.city}, ${loc.state}`;
-        }
-
-        allocation.push({
-            vehicleId: vehicle.id,
-            vehicleName: vehicle.name,
-            bookingCount: count,
-            homeLocationId: vehicle.homeLocationId,
-            homeLocationName,
-        });
-    }
-
-    return allocation;
+    return chunks;
 }
 
 /**
@@ -621,7 +700,6 @@ export async function previewRoutePlan(
             ? new Date(input.routeDate)
             : input.routeDate;
 
-    const maxStops = input.maxStopsPerRoute ?? DEFAULT_MAX_STOPS_PER_ROUTE;
     const warnings: string[] = [];
 
     // Build booking filters
@@ -666,28 +744,6 @@ export async function previewRoutePlan(
 
     warnings.push(...compatWarnings);
 
-    // Collect and fetch home locations for vehicles
-    const homeLocationIds = vehicles
-        .map(v => v.homeLocationId)
-        .filter((id): id is string => !!id);
-
-    const locationMap = new Map<string, { name: string; city: string; state: string }>();
-
-    for (const locId of homeLocationIds) {
-        const locResult = await getLocationById(locId);
-        if (locResult.success && locResult.data) {
-            const loc = locResult.data;
-            locationMap.set(locId, {
-                name: loc.name,
-                city: loc.city,
-                state: loc.state,
-            });
-        }
-    }
-
-    // Create default allocation with home location info
-    const defaultAllocation = createDefaultAllocation(compatibleBookings, vehicles, maxStops, locationMap);
-
     // Fetch all depot/home type locations as available base locations
     // Import getAllLocations from location service if needed - using admin supabase directly
     const supabase = getAdminSupabaseClient() || getSupabaseClient();
@@ -697,17 +753,64 @@ export async function previewRoutePlan(
         .in('location_type', ['depot', 'home', 'other'])
         .is('deleted_at', null);
 
-    const availableBaseLocations = (baseLocationsData || []).map((loc: any) => ({
-        id: loc.id,
-        name: loc.name,
-        city: loc.city,
-        state: loc.state,
-    }));
+    // Fetch services to get durations
+    const servicesResult = await getServices({}, { page: 1, limit: 1000 });
+    const servicesMap = new Map<string, number>();
+    if (servicesResult.success && servicesResult.data) {
+        for (const service of servicesResult.data.data) {
+            servicesMap.set(service.id, service.averageDurationMinutes);
+        }
+    }
 
-    // Fetch vehicle locations from junction table for each vehicle in allocation
+    // Collect and fetch home locations for vehicles properly with coordinates
+    const locationCoordsMap = new Map<string, { latitude: number; longitude: number; name: string }>();
+    const homeLocationIds = vehicles.map(v => v.homeLocationId).filter((id): id is string => !!id);
+
+    for (const locId of homeLocationIds) {
+        const locResult = await getLocationById(locId);
+        if (locResult.success && locResult.data) {
+            const loc = locResult.data;
+            if (loc.latitude && loc.longitude) {
+                locationCoordsMap.set(locId, {
+                    latitude: loc.latitude,
+                    longitude: loc.longitude,
+                    name: loc.name
+                });
+            }
+        }
+    }
+
+    // Create time-aware allocation
+    const { allocations, orderedBookings, warnings: allocWarnings } = await createTimeAwareAllocation(
+        compatibleBookings,
+        vehicles,
+        locationCoordsMap,
+        servicesMap
+    );
+    warnings.push(...allocWarnings);
+
+    // Identify which bookings from compat list were NOT allocated (due to constraints)
+    // We need to move them to unassignable
+    const allocatedBookingIds = new Set(orderedBookings.map(b => b.id));
+    const unallocatedCompatible = compatibleBookings.filter(b => !allocatedBookingIds.has(b.id));
+
+    // Enhance allocation for UI preview (similar to existing logic but using our new buckets)
     const enhancedAllocation = await Promise.all(
-        defaultAllocation.map(async (alloc) => {
+        allocations.map(async (alloc) => {
+            const vehicle = vehicles.find(v => v.id === alloc.vehicleId)!;
+
             // Query vehicle_locations junction table for this vehicle
+            // Reuse existing location logic...
+            const locationMap = new Map<string, { name: string; city: string; state: string }>();
+            if (vehicle.homeLocationId && locationCoordsMap.has(vehicle.homeLocationId)) {
+                // simple mock as we only need simple info here
+                locationMap.set(vehicle.homeLocationId, {
+                    name: locationCoordsMap.get(vehicle.homeLocationId)!.name,
+                    city: "", state: ""
+                });
+            }
+
+            const supabase = getAdminSupabaseClient() || getSupabaseClient();
             const { data: vehicleLocsData } = await supabase
                 .from('vehicle_locations')
                 .select(`
@@ -726,11 +829,17 @@ export async function previewRoutePlan(
             }));
 
             // If no vehicle locations, fall back to all base locations
+            const finalLocations = availableLocations.length > 0
+                ? availableLocations
+                : baseLocationsData?.map((loc: any) => ({ ...loc, isPrimary: false })) || [];
+
             return {
-                ...alloc,
-                availableLocations: availableLocations.length > 0
-                    ? availableLocations
-                    : availableBaseLocations.map(loc => ({ ...loc, isPrimary: false })),
+                vehicleId: alloc.vehicleId,
+                vehicleName: vehicle.name,
+                bookingCount: alloc.bookingCount,
+                homeLocationId: vehicle.homeLocationId,
+                homeLocationName: vehicle.homeLocationId ? locationCoordsMap.get(vehicle.homeLocationId)?.name : undefined,
+                availableLocations: finalLocations
             };
         })
     );
@@ -739,12 +848,17 @@ export async function previewRoutePlan(
         success: true,
         data: {
             routeDate,
-            bookings: compatibleBookings,
+            bookings: orderedBookings, // Return the SORTED/FILTERED list that matches the allocation order
             vehicles,
             defaultAllocation: enhancedAllocation,
-            unassignableBookings: [...invalidBookings, ...incompatibleBookings],
+            unassignableBookings: [...invalidBookings, ...incompatibleBookings, ...unallocatedCompatible],
             warnings,
-            availableBaseLocations,
+            availableBaseLocations: (baseLocationsData || []).map((loc: any) => ({
+                id: loc.id,
+                name: loc.name,
+                city: loc.city,
+                state: loc.state,
+            })),
         },
     };
 }
@@ -893,26 +1007,66 @@ export async function planRoutes(
         };
     }
 
-    // Determine allocation: use user-provided or generate default
+    // Determine allocation: use user-provided or generate default (Time Aware)
     let allocations = input.vehicleAllocations;
+
+    // We need to reorganize 'compatibleBookings' to match the allocation strategy if we are generating it
+    let orderedBookings = compatibleBookings;
+
     if (!allocations || allocations.length === 0) {
-        // Generate default allocation (all to first compatible vehicle, or split evenly)
-        const defaultAlloc = createDefaultAllocation(compatibleBookings, vehicles, maxStops);
-        allocations = defaultAlloc.map(a => ({
-            vehicleId: a.vehicleId,
-            bookingCount: a.bookingCount,
-        }));
+        // Fetch services to get durations
+        const servicesResult = await getServices({}, { page: 1, limit: 1000 });
+        const servicesMap = new Map<string, number>();
+        if (servicesResult.success && servicesResult.data) {
+            for (const service of servicesResult.data.data) {
+                servicesMap.set(service.id, service.averageDurationMinutes);
+            }
+        }
+
+        const locationCoordsMap = new Map<string, { latitude: number; longitude: number; name: string }>();
+        const homeLocationIds = vehicles.map(v => v.homeLocationId).filter((id): id is string => !!id);
+
+        for (const locId of homeLocationIds) {
+            const locResult = await getLocationById(locId);
+            if (locResult.success && locResult.data) {
+                // We know locResult.data has lat/long but we need to check values
+                const loc = locResult.data;
+                if (loc.latitude && loc.longitude) {
+                    locationCoordsMap.set(locId, {
+                        latitude: loc.latitude,
+                        longitude: loc.longitude,
+                        name: loc.name
+                    });
+                }
+            }
+        }
+
+        // Generate Time Aware Allocation
+        const result = await createTimeAwareAllocation(compatibleBookings, vehicles, locationCoordsMap, servicesMap);
+
+        allocations = result.allocations;
+        orderedBookings = result.orderedBookings; // IMPORTANT: Use the ordered list!
+
+        // Add warnings for those that didn't fit
+        warnings.push(...result.warnings);
+
+        // Update incompatible list (or just log it, since existing response struct treats unassigned as a separate bucket)
+        // We need to separate the ordered (assigned) from the original compatible list to find dropouts
+        const assignedIds = new Set(orderedBookings.map(b => b.id));
+        const droppedBookings = compatibleBookings.filter(b => !assignedIds.has(b.id));
+        unassignedBookings.push(...droppedBookings);
+    } else {
+        // If user provided manual allocation, we trust their counts but we don't have the order guarantees 
+        // that our allocator provides. This is tricky. Manual allocation usually implies 
+        // "Give Vehicle 1 X bookings from the pool".
+        // For now, we keep the existing behavior for manual overrides (greedy take from pool)
+        // but arguably we should respect time there too.
+        // Given complexity, let's assume manual overrides bypass time checks (User knows best).
     }
 
     // Validate allocation total matches booking count
-    const totalAllocated = allocations.reduce((sum, a) => sum + a.bookingCount, 0);
-    if (totalAllocated !== compatibleBookings.length) {
-        logger.warn('Allocation count mismatch, adjusting', {
-            totalAllocated,
-            bookingCount: compatibleBookings.length,
-        });
-        // Adjust: cap allocation to available bookings
-    }
+    // Validate allocation total matches booking count
+    // Note: orderedBookings.length should equal totalAllocated if we used our generator
 
     // Build vehicle map for quick lookup
     const vehicleMap = new Map(vehicles.map(v => [v.id, v]));
@@ -932,8 +1086,8 @@ export async function planRoutes(
             continue;
         }
 
-        // Get the bookings for this allocation
-        const bookingsForVehicle = compatibleBookings.slice(
+        // Get the bookings for this allocation from our ORDERED list
+        const bookingsForVehicle = orderedBookings.slice(
             bookingOffset,
             bookingOffset + allocation.bookingCount
         );
@@ -941,8 +1095,10 @@ export async function planRoutes(
 
         if (bookingsForVehicle.length === 0) continue;
 
-        // Cluster bookings geographically if exceeding max stops
-        const batches = clusterBookingsGeographically(bookingsForVehicle, maxStops);
+
+        // Cluster bookings simply by chunking since we already did smart allocation
+        // Geographic clustering was already effectively done during allocation
+        const batches = chunkBookings(bookingsForVehicle, maxStops);
 
         for (const batch of batches) {
             // Determine start location: priority is override > vehicle home > input departure > first booking
@@ -1069,10 +1225,85 @@ export async function planRoutes(
                 orderedBookings.push(...batch);
             }
 
+            // Calculate detailed timing and create formatted constraints
+            const routeStartTime = new Date(routeDate);
+            routeStartTime.setHours(8, 0, 0, 0); // Hardcoded start time 08:00 AM
+
+            let currentRouteTime = new Date(routeStartTime);
+            const bookingUpdates: { id: string, start: string, end: string }[] = [];
+
+            let calculatedTotalServiceMinutes = 0;
+            let calculatedTotalTravelMinutes = 0;
+
+            // Logic to iterate through ordered bookings and apply legacy timing
+            let legIndex = 0;
+
+            for (let i = 0; i < orderedBookings.length; i++) {
+                const booking = orderedBookings[i];
+                if (!booking) continue; // Safety check
+
+                let travelTimeSeconds = 0;
+
+                // Determine travel time to this booking
+                if (!hasCustomDeparture && i === 0) {
+                    // First booking is the origin, no travel time
+                    travelTimeSeconds = 0;
+                } else {
+                    const leg = googleRoute.legs ? googleRoute.legs[legIndex] : undefined;
+                    if (leg) {
+                        const durationStr = leg.duration;
+                        const match = durationStr ? durationStr.match(/^(\d+)s$/) : null;
+                        travelTimeSeconds = (match && match[1]) ? parseInt(match[1], 10) : 0;
+                        legIndex++;
+                    }
+                }
+
+                // Update current time with travel time
+                currentRouteTime = new Date(currentRouteTime.getTime() + travelTimeSeconds * 1000);
+                calculatedTotalTravelMinutes += Math.round(travelTimeSeconds / 60);
+
+                // Round UP to next 15-minute interval for scheduled start
+                const minutes = currentRouteTime.getMinutes();
+                const remainder = minutes % 15;
+                if (remainder > 0) {
+                    currentRouteTime = new Date(currentRouteTime.getTime() + (15 - remainder) * 60 * 1000);
+                }
+                // Zero out seconds
+                currentRouteTime.setSeconds(0, 0);
+
+                // Capture Trip Arrival Time as Scheduled Start
+                // Format: HH:mm (no seconds since we use quarter hours)
+                const scheduledStartTime = currentRouteTime.toTimeString().substring(0, 5);
+
+                // Add Service Duration
+                const serviceDurationMinutes = booking.serviceAverageDurationMinutes || 30; // Default 30 mins
+                calculatedTotalServiceMinutes += serviceDurationMinutes;
+
+                currentRouteTime = new Date(currentRouteTime.getTime() + serviceDurationMinutes * 60 * 1000);
+
+                // Round UP end time to next 15-minute interval
+                const endMinutes = currentRouteTime.getMinutes();
+                const endRemainder = endMinutes % 15;
+                if (endRemainder > 0) {
+                    currentRouteTime = new Date(currentRouteTime.getTime() + (15 - endRemainder) * 60 * 1000);
+                }
+                currentRouteTime.setSeconds(0, 0);
+
+                // Capture Trip Departure Time as Scheduled End
+                const scheduledEndTime = currentRouteTime.toTimeString().substring(0, 5);
+
+                bookingUpdates.push({
+                    id: booking.id,
+                    start: scheduledStartTime,
+                    end: scheduledEndTime
+                });
+            }
+
             // Calculate route metrics
             const totalDistanceMeters = googleRoute.distanceMeters || 0;
-            const durationMatch = googleRoute.duration?.match(/^(\d+)s$/);
-            const totalDurationSeconds = durationMatch ? parseInt(durationMatch[1]!, 10) : 0;
+            const durationMatch = googleRoute.duration?.match(/^(\d+)s$/) || null;
+            const totalTravelSeconds = durationMatch && durationMatch[1] ? parseInt(durationMatch[1], 10) : (calculatedTotalTravelMinutes * 60);
+            const finalTotalTravelMinutes = Math.ceil(totalTravelSeconds / 60);
 
             // Create route input
             const routeInput: CreateRouteInput = {
@@ -1081,7 +1312,10 @@ export async function planRoutes(
                 vehicleId: vehicle.id,
                 routeDate,
                 totalDistanceKm: totalDistanceMeters / 1000,
-                totalDurationMinutes: Math.ceil(totalDurationSeconds / 60),
+                // Total duration = Travel (from Google) + Service (Calculated)
+                totalDurationMinutes: finalTotalTravelMinutes + calculatedTotalServiceMinutes,
+                totalServiceTimeMinutes: calculatedTotalServiceMinutes,
+                totalTravelTimeMinutes: finalTotalTravelMinutes,
                 totalStops: orderedBookings.length,
                 optimizationType: 'balanced',
                 optimizationScore: 85,
@@ -1099,30 +1333,32 @@ export async function planRoutes(
             };
 
             // Create the route
-            const createResult = await createRoute(routeInput);
+            const createRouteResult = await createRoute(routeInput);
 
-            if (!createResult.success) {
-                warnings.push(`Failed to create route: ${createResult.error?.message}`);
+            if (!createRouteResult.success) {
+                logger.error('Failed to create route', { error: JSON.stringify(createRouteResult.error, Object.getOwnPropertyNames(createRouteResult.error)) });
                 unassignedBookings.push(...orderedBookings);
                 continue;
             }
 
-            const createdRoute = createResult.data!;
+            const createdRoute = createRouteResult.data!;
             createdRoutes.push(createdRoute);
             vehiclesUsed.add(vehicle.id);
             routeIndex++;
 
-            // Update bookings with vehicle ID
-            for (const booking of orderedBookings) {
+            // Update bookings with vehicle ID AND new timestamps
+            for (const update of bookingUpdates) {
                 const updateResult = await updateBooking({
-                    id: booking.id,
+                    id: update.id,
                     vehicleId: vehicle.id,
                     status: 'scheduled',
+                    scheduledStartTime: update.start,
+                    scheduledEndTime: update.end
                 });
 
                 if (!updateResult.success) {
                     warnings.push(
-                        `Failed to update booking ${booking.id}: ${updateResult.error?.message}`
+                        `Failed to update booking ${update.id}: ${updateResult.error?.message}`
                     );
                 }
             }

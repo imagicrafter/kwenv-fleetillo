@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OptiRoute Settings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .settings-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .settings-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .settings-section h3 {
+            margin: 0 0 20px 0;
+            color: var(--text-primary);
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .settings-section h3 .icon {
+            opacity: 0.7;
+        }
+
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+
+        .setting-info {
+            flex: 1;
+        }
+
+        .setting-label {
+            font-weight: 500;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .setting-description {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .setting-control {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .setting-control input[type="time"],
+        .setting-control input[type="number"],
+        .setting-control select {
+            background: var(--surface-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            min-width: 120px;
+        }
+
+        .setting-control input:focus,
+        .setting-control select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .unit-toggle {
+            display: flex;
+            gap: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .unit-toggle button {
+            padding: 10px 20px;
+            background: var(--surface-bg);
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .unit-toggle button.active {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .unit-toggle button:hover:not(.active) {
+            background: var(--hover-bg);
+        }
+
+        .computed-value {
+            background: var(--surface-bg);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.95rem;
+            color: var(--accent-color);
+        }
+
+        .algorithm-section {
+            background: linear-gradient(135deg, var(--card-bg), var(--surface-bg));
+        }
+
+        .algorithm-content {
+            display: none;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .algorithm-content.expanded {
+            display: block;
+        }
+
+        .algorithm-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            color: var(--accent-color);
+            font-size: 0.9rem;
+        }
+
+        .algorithm-toggle:hover {
+            text-decoration: underline;
+        }
+
+        .algorithm-step {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            align-items: flex-start;
+        }
+
+        .step-number {
+            width: 28px;
+            height: 28px;
+            background: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+        }
+
+        .step-content h4 {
+            margin: 0 0 4px 0;
+            color: var(--text-primary);
+        }
+
+        .step-content p {
+            margin: 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .save-btn {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 12px 24px;
+            background: var(--success-color);
+            color: white;
+            border-radius: 8px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.error {
+            background: var(--error-color);
+        }
+    </style>
+</head>
+
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo-icon">OR</div>
+                <h1>OptiRoute</h1>
+            </div>
+
+            <nav class="nav-menu">
+                <!-- Dashboard -->
+                <a href="index.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </span>
+                    Dashboard
+                </a>
+
+                <!-- Planning Group -->
+                <div class="nav-group">
+                    <div class="nav-item nav-header" onclick="toggleGroup(this)">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span class="icon">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
+                            </span>
+                            Planning
+                        </div>
+                        <span class="nav-chevron">▶</span>
+                    </div>
+                    <div class="nav-children">
+                        <a href="customers.html" class="nav-child-item">Customers</a>
+                        <a href="services.html" class="nav-child-item">Services</a>
+                        <a href="bookings.html" class="nav-child-item">Bookings</a>
+                        <a href="calendar.html" class="nav-child-item">Calendar</a>
+                        <a href="locations.html" class="nav-child-item">Locations</a>
+                    </div>
+                </div>
+
+                <!-- Fleet Group -->
+                <div class="nav-group">
+                    <div class="nav-item nav-header" onclick="toggleGroup(this)">
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span class="icon">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                </svg>
+                            </span>
+                            Fleet
+                        </div>
+                        <span class="nav-chevron">▶</span>
+                    </div>
+                    <div class="nav-children">
+                        <a href="vehicles.html" class="nav-child-item">Vehicles</a>
+                        <a href="#" class="nav-child-item">Drivers</a>
+                    </div>
+                </div>
+
+                <!-- Routes -->
+                <a href="routes.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                        </svg>
+                    </span>
+                    Routes
+                </a>
+
+                <!-- Settings -->
+                <a href="settings.html" class="nav-item active">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </span>
+                    Settings
+                </a>
+            </nav>
+
+            <script>
+                function toggleGroup(header) {
+                    const group = header.parentElement;
+                    group.classList.toggle('expanded');
+                }
+            </script>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="avatar">JM</div>
+                    <div class="details">
+                        <span class="name">Admin User</span>
+                        <span class="role">Administrator</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="page-title">
+                    <h2>Settings</h2>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="settings-container">
+                    <!-- Work Schedule Section -->
+                    <div class="settings-section">
+                        <h3>
+                            <span class="icon">🕐</span>
+                            Work Schedule
+                        </h3>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Day Start Time</div>
+                                <div class="setting-description">When the work day begins for route planning</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="time" id="day-start-time" value="08:00" step="900">
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Day End Time</div>
+                                <div class="setting-description">When the work day ends for route planning</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="time" id="day-end-time" value="17:00" step="900">
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Max Daily Work Time</div>
+                                <div class="setting-description">Calculated from schedule above</div>
+                            </div>
+                            <div class="setting-control">
+                                <span class="computed-value" id="max-daily-minutes">540 minutes (9 hours)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Route Planning Section -->
+                    <div class="settings-section">
+                        <h3>
+                            <span class="icon">🛣️</span>
+                            Route Planning
+                        </h3>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Unit System</div>
+                                <div class="setting-description">Choose your preferred measurement units</div>
+                            </div>
+                            <div class="setting-control">
+                                <div class="unit-toggle">
+                                    <button id="unit-imperial" class="active" onclick="setUnitSystem('imperial')">Miles
+                                        (mph)</button>
+                                    <button id="unit-metric" onclick="setUnitSystem('metric')">Kilometers
+                                        (km/h)</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Average Travel Speed</div>
+                                <div class="setting-description">Used to estimate travel time between stops</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="number" id="avg-travel-speed" min="5" max="100" value="30">
+                                <span id="speed-unit">km/h</span>
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Traffic Buffer</div>
+                                <div class="setting-description">Extra time added for traffic and parking</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="number" id="traffic-buffer" min="0" max="50" value="20">
+                                <span>%</span>
+                            </div>
+                        </div>
+
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <div class="setting-label">Default Service Duration</div>
+                                <div class="setting-description">Used when service has no duration set</div>
+                            </div>
+                            <div class="setting-control">
+                                <input type="number" id="default-service-duration" min="5" max="240" value="30">
+                                <span>minutes</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Algorithm Explanation -->
+                    <div class="settings-section algorithm-section">
+                        <h3>
+                            <span class="icon">🧮</span>
+                            How Route Planning Works
+                        </h3>
+
+                        <div class="algorithm-toggle" onclick="toggleAlgorithm()">
+                            <span id="algo-toggle-icon">▶</span>
+                            <span id="algo-toggle-text">Show algorithm details</span>
+                        </div>
+
+                        <div class="algorithm-content" id="algorithm-content">
+                            <div class="algorithm-step">
+                                <div class="step-number">1</div>
+                                <div class="step-content">
+                                    <h4>Calculate Time Budget</h4>
+                                    <p>Each vehicle has a maximum daily capacity based on your work schedule settings
+                                        (Day End - Day Start).</p>
+                                </div>
+                            </div>
+
+                            <div class="algorithm-step">
+                                <div class="step-number">2</div>
+                                <div class="step-content">
+                                    <h4>Estimate Travel Time</h4>
+                                    <p>The system calculates straight-line distance using the Haversine formula, then
+                                        estimates travel time using your Average Travel Speed setting, plus the Traffic
+                                        Buffer percentage.</p>
+                                </div>
+                            </div>
+
+                            <div class="algorithm-step">
+                                <div class="step-number">3</div>
+                                <div class="step-content">
+                                    <h4>Greedy Nearest-Neighbor Assignment</h4>
+                                    <p>For each vehicle, the algorithm finds the nearest unassigned booking, calculates
+                                        if it fits within the time budget (travel + service time), and assigns it. This
+                                        repeats until all vehicles are at capacity or all bookings are assigned.</p>
+                                </div>
+                            </div>
+
+                            <div class="algorithm-step">
+                                <div class="step-number">4</div>
+                                <div class="step-content">
+                                    <h4>Optimize with Google Routes</h4>
+                                    <p>Once bookings are assigned to vehicles, the Google Routes API optimizes the stop
+                                        order for each route to minimize total travel time.</p>
+                                </div>
+                            </div>
+
+                            <div class="algorithm-step">
+                                <div class="step-number">5</div>
+                                <div class="step-content">
+                                    <h4>Unassigned Bookings</h4>
+                                    <p>If a booking cannot fit into any vehicle's time window, it will be flagged as
+                                        "could not be fit". Try adjusting your schedule times or travel speed settings.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Save Button -->
+                    <button class="btn-primary save-btn" onclick="saveSettings()">
+                        💾 Save Settings
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
+    <script src="preload.js"></script>
+    <script>
+        // State
+        let currentUnitSystem = 'imperial';
+        let originalSettings = {};
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadSettings);
+
+        // Load settings from server
+        async function loadSettings() {
+            try {
+                const settings = await window.electronAPI.settings.getRouteSettings();
+                if (settings) {
+                    originalSettings = settings;
+
+                    // Schedule
+                    if (settings.schedule) {
+                        document.getElementById('day-start-time').value = settings.schedule.dayStartTime || '08:00';
+                        document.getElementById('day-end-time').value = settings.schedule.dayEndTime || '17:00';
+                    }
+
+                    // Routing
+                    if (settings.routing) {
+                        currentUnitSystem = settings.routing.unitSystem || 'imperial';
+                        updateUnitToggle();
+
+                        // Convert speed if imperial
+                        let displaySpeed = settings.routing.avgTravelSpeed || 30;
+                        if (currentUnitSystem === 'imperial') {
+                            displaySpeed = Math.round(displaySpeed * 0.621371);
+                        }
+                        document.getElementById('avg-travel-speed').value = displaySpeed;
+
+                        document.getElementById('traffic-buffer').value = settings.routing.trafficBufferPercent || 20;
+                        document.getElementById('default-service-duration').value = settings.routing.defaultServiceDurationMinutes || 30;
+                    }
+
+                    updateComputedValues();
+                }
+            } catch (error) {
+                console.error('Failed to load settings:', error);
+                showToast('Failed to load settings', true);
+            }
+        }
+
+        // Update computed values
+        function updateComputedValues() {
+            const startTime = document.getElementById('day-start-time').value;
+            const endTime = document.getElementById('day-end-time').value;
+
+            const [startH, startM] = startTime.split(':').map(Number);
+            const [endH, endM] = endTime.split(':').map(Number);
+
+            const startMinutes = startH * 60 + startM;
+            const endMinutes = endH * 60 + endM;
+            const totalMinutes = Math.max(0, endMinutes - startMinutes);
+            const hours = Math.floor(totalMinutes / 60);
+            const mins = totalMinutes % 60;
+
+            let display = `${totalMinutes} minutes`;
+            if (hours > 0) {
+                display += ` (${hours}h ${mins > 0 ? mins + 'm' : ''})`;
+            }
+
+            document.getElementById('max-daily-minutes').textContent = display;
+        }
+
+        // Listen for time changes
+        document.getElementById('day-start-time').addEventListener('change', updateComputedValues);
+        document.getElementById('day-end-time').addEventListener('change', updateComputedValues);
+
+        // Unit system toggle
+        function setUnitSystem(system) {
+            const oldSystem = currentUnitSystem;
+            currentUnitSystem = system;
+            updateUnitToggle();
+
+            // Convert speed value
+            const speedInput = document.getElementById('avg-travel-speed');
+            let currentSpeed = parseFloat(speedInput.value);
+
+            if (oldSystem === 'metric' && system === 'imperial') {
+                // km/h to mph
+                speedInput.value = Math.round(currentSpeed * 0.621371);
+            } else if (oldSystem === 'imperial' && system === 'metric') {
+                // mph to km/h
+                speedInput.value = Math.round(currentSpeed * 1.60934);
+            }
+        }
+
+        function updateUnitToggle() {
+            document.getElementById('unit-imperial').classList.toggle('active', currentUnitSystem === 'imperial');
+            document.getElementById('unit-metric').classList.toggle('active', currentUnitSystem === 'metric');
+            document.getElementById('speed-unit').textContent = currentUnitSystem === 'imperial' ? 'mph' : 'km/h';
+        }
+
+        // Toggle algorithm section
+        function toggleAlgorithm() {
+            const content = document.getElementById('algorithm-content');
+            const icon = document.getElementById('algo-toggle-icon');
+            const text = document.getElementById('algo-toggle-text');
+
+            const expanded = content.classList.toggle('expanded');
+            icon.textContent = expanded ? '▼' : '▶';
+            text.textContent = expanded ? 'Hide algorithm details' : 'Show algorithm details';
+        }
+
+        // Save settings
+        async function saveSettings() {
+            try {
+                // Get values
+                let avgSpeed = parseFloat(document.getElementById('avg-travel-speed').value);
+
+                // Convert to km/h if imperial
+                if (currentUnitSystem === 'imperial') {
+                    avgSpeed = avgSpeed * 1.60934;
+                }
+
+                const settings = {
+                    'schedule.dayStartTime': document.getElementById('day-start-time').value,
+                    'schedule.dayEndTime': document.getElementById('day-end-time').value,
+                    'routing.unitSystem': currentUnitSystem,
+                    'routing.avgTravelSpeed': Math.round(avgSpeed),
+                    'routing.trafficBufferPercent': parseInt(document.getElementById('traffic-buffer').value),
+                    'routing.defaultServiceDurationMinutes': parseInt(document.getElementById('default-service-duration').value)
+                };
+
+                await window.electronAPI.settings.updateMultiple(settings);
+                showToast('Settings saved successfully!');
+            } catch (error) {
+                console.error('Failed to save settings:', error);
+                showToast(error.message || 'Failed to save settings', true);
+            }
+        }
+
+        // Toast notification
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.toggle('error', isError);
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+
+</html>

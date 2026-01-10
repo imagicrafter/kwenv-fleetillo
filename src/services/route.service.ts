@@ -144,7 +144,8 @@ export async function createRoute(input: CreateRouteInput): Promise<Result<Route
       .single();
 
     if (error) {
-      logger.error('Failed to create route', error);
+      const errStr = JSON.stringify(error, Object.getOwnPropertyNames(error));
+      logger.error(`Failed to create route: ${errStr}`);
       return {
         success: false,
         error: new RouteServiceError(

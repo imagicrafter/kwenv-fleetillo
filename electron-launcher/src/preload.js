@@ -4,14 +4,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Add any API methods here
     sendMessage: (message) => ipcRenderer.send('message', message),
     clients: {
-        getAll: (filters) => ipcRenderer.invoke('clients:getAll', filters),
+        getAll: (filters, pagination) => ipcRenderer.invoke('clients:getAll', filters, pagination),
         create: (client, options) => ipcRenderer.invoke('clients:create', client, options),
         update: (client) => ipcRenderer.invoke('clients:update', client),
         delete: (id) => ipcRenderer.invoke('clients:delete', id),
         getById: (id) => ipcRenderer.invoke('clients:getById', id)
     },
     services: {
-        getAll: (filters) => ipcRenderer.invoke('services:getAll', filters),
+        getAll: (filters, pagination) => ipcRenderer.invoke('services:getAll', filters, pagination),
         create: (service) => ipcRenderer.invoke('services:create', service),
         update: (service) => ipcRenderer.invoke('services:update', service),
         delete: (id) => ipcRenderer.invoke('services:delete', id),
@@ -25,14 +25,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
         getById: (id) => ipcRenderer.invoke('bookings:getById', id)
     },
     locations: {
-        getAll: (filters) => ipcRenderer.invoke('locations:getAll', filters),
+        getAll: (filters, pagination) => ipcRenderer.invoke('locations:getAll', filters, pagination),
         create: (location) => ipcRenderer.invoke('locations:create', location),
         update: (location) => ipcRenderer.invoke('locations:update', location),
         delete: (id) => ipcRenderer.invoke('locations:delete', id),
         getById: (id) => ipcRenderer.invoke('locations:getById', id)
     },
     vehicles: {
-        getAll: (filters) => ipcRenderer.invoke('vehicles:getAll', filters),
+        getAll: (filters, pagination) => ipcRenderer.invoke('vehicles:getAll', filters, pagination),
         create: (vehicle) => ipcRenderer.invoke('vehicles:create', vehicle),
         update: (vehicle) => ipcRenderer.invoke('vehicles:update', vehicle),
         delete: (id) => ipcRenderer.invoke('vehicles:delete', id),

@@ -153,7 +153,7 @@ export async function createService(input: CreateServiceInput): Promise<Result<S
   // Validate input
   const validationResult = validateServiceInput(input);
   if (!validationResult.success) {
-    return validationResult as Result<Service>;
+    return { success: false, error: validationResult.error };
   }
 
   try {

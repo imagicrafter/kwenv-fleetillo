@@ -80,12 +80,7 @@ function validateBookingInput(input) {
             error: new BookingServiceError('Scheduled date is required', exports.BookingErrorCodes.VALIDATION_FAILED, { field: 'scheduledDate' }),
         };
     }
-    if (!input.scheduledStartTime) {
-        return {
-            success: false,
-            error: new BookingServiceError('Scheduled start time is required', exports.BookingErrorCodes.VALIDATION_FAILED, { field: 'scheduledStartTime' }),
-        };
-    }
+    // scheduledStartTime is now optional - route planning will set it later
     // Validate recurring booking has recurrence pattern
     if (input.bookingType === 'recurring' && !input.recurrencePattern) {
         return {
@@ -143,16 +138,38 @@ async function createBooking(input) {
     // Validate input
     const validationResult = validateBookingInput(input);
     if (!validationResult.success) {
-        return validationResult;
+        return { success: false, error: validationResult.error };
     }
     try {
         // Use admin client if available to bypass RLS policies
         const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
         const rowData = (0, booking_js_1.bookingInputToRow)(input);
+        // Auto-generate booking number if not provided
+        if (!rowData.booking_number) {
+            // Get date string either from input or fallback to today
+            let dateStr;
+            const scheduledDate = input.scheduledDate;
+            if (scheduledDate) {
+                const dateValue = typeof scheduledDate === 'string'
+                    ? scheduledDate
+                    : scheduledDate.toISOString().split('T')[0];
+                dateStr = (dateValue ?? '').replace(/-/g, '');
+            }
+            else {
+                dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+            }
+            // Count existing bookings for this date to get sequence number
+            const { count: existingCount } = await supabase
+                .from(BOOKINGS_TABLE)
+                .select('*', { count: 'exact', head: true })
+                .like('booking_number', `BK-${dateStr}-%`);
+            const sequenceNum = (existingCount || 0) + 1;
+            rowData.booking_number = `BK-${dateStr}-${sequenceNum.toString().padStart(3, '0')}`;
+        }
         const { data, error } = await supabase
             .from(BOOKINGS_TABLE)
             .insert(rowData)
-            .select('*, clients(name, email), services(name, code), locations(name, latitude, longitude)')
+            .select('*, clients(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)')
             .single();
         if (error) {
             logger.error('Failed to create booking', error);
@@ -183,7 +200,7 @@ async function getBookingById(id) {
         const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(BOOKINGS_TABLE)
-            .select('*, clients(name, email), services(name, code), locations(name, latitude, longitude)')
+            .select('*, clients(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)')
             .eq('id', id)
             .is('deleted_at', null)
             .single();
@@ -219,7 +236,7 @@ async function getBookings(filters, pagination) {
     try {
         // Use admin client if available to bypass RLS policies
         const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
-        let query = supabase.from(BOOKINGS_TABLE).select('*, clients(name, email), services(name, code), locations(name, latitude, longitude)', { count: 'exact' });
+        let query = supabase.from(BOOKINGS_TABLE).select('*, clients(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)', { count: 'exact' });
         // Apply filters
         if (!filters?.includeDeleted) {
             query = query.is('deleted_at', null);
@@ -272,7 +289,15 @@ async function getBookings(filters, pagination) {
         // Apply sorting
         const sortBy = pagination?.sortBy ?? 'scheduled_date';
         const sortOrder = pagination?.sortOrder ?? 'asc';
-        query = query.order(sortBy, { ascending: sortOrder === 'asc' });
+        // When sorting by date, also sort by time to provide a meaningful chronological order
+        if (sortBy === 'scheduled_date') {
+            query = query
+                .order('scheduled_date', { ascending: sortOrder === 'asc' })
+                .order('scheduled_start_time', { ascending: sortOrder === 'asc' });
+        }
+        else {
+            query = query.order(sortBy, { ascending: sortOrder === 'asc' });
+        }
         const { data, error, count } = await query;
         if (error) {
             logger.error('Failed to get bookings', error);
@@ -324,9 +349,9 @@ async function getBookings(filters, pagination) {
  */
 async function updateBooking(input) {
     logger.debug('Updating booking', { id: input.id });
-    // Only validate core required fields if they are being updated
-    // Skip full validation for simple updates like status changes
-    if (input.clientId || input.serviceId || input.bookingType || input.scheduledDate || input.scheduledStartTime) {
+    // Only validate core required fields if entity references are being changed
+    // Skip full validation for simple updates like status or schedule time changes
+    if (input.clientId || input.serviceId || input.bookingType) {
         const validationInput = {
             clientId: input.clientId ?? '',
             serviceId: input.serviceId ?? '',
@@ -336,7 +361,7 @@ async function updateBooking(input) {
         };
         const validationResult = validateBookingInput(validationInput);
         if (!validationResult.success) {
-            return validationResult;
+            return { success: false, error: validationResult.error };
         }
     }
     // Validate estimatedDurationMinutes only if explicitly provided with a value

@@ -119,7 +119,7 @@ export async function createVehicle(input: CreateVehicleInput): Promise<Result<V
   // Validate input
   const validationResult = validateVehicleInput(input);
   if (!validationResult.success) {
-    return validationResult as Result<Vehicle>;
+    return { success: false, error: validationResult.error };
   }
 
   try {
@@ -329,9 +329,9 @@ export async function updateVehicle(input: UpdateVehicleInput): Promise<Result<V
 
   // Validate input if name is being updated
   if (input.name !== undefined) {
-    const validationResult = validateVehicleInput({ name: input.name, ...input });
+    const validationResult = validateVehicleInput({ ...input, name: input.name! } as CreateVehicleInput);
     if (!validationResult.success) {
-      return validationResult as Result<Vehicle>;
+      return { success: false, error: validationResult.error };
     }
   }
 

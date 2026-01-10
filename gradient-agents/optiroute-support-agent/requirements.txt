@@ -1,0 +1,10 @@
+gradient-adk>=0.1.9
+gradient>=3.10.0
+pydantic>=2.0.0
+supabase>=2.0.0
+pyjwt>=2.8.0
+
+# Evaluation dependencies
+pytest>=8.0.0
+pytest-asyncio>=0.23.0
+python-dotenv>=1.0.0

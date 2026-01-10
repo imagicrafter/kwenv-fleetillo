@@ -26,7 +26,7 @@ function rowToBooking(row) {
         parentBookingId: row.parent_booking_id ?? undefined,
         // Scheduling information
         scheduledDate: new Date(row.scheduled_date),
-        scheduledStartTime: row.scheduled_start_time,
+        scheduledStartTime: row.scheduled_start_time ?? undefined,
         scheduledEndTime: row.scheduled_end_time ?? undefined,
         estimatedDurationMinutes: row.estimated_duration_minutes ?? undefined,
         // Actual timing
@@ -66,6 +66,7 @@ function rowToBooking(row) {
         clientEmail: row.clients?.email,
         serviceName: row.services?.name,
         serviceCode: row.services?.code,
+        serviceAverageDurationMinutes: row.services?.average_duration_minutes,
         locationName: row.locations?.name,
         locationLatitude: row.locations?.latitude ?? undefined,
         locationLongitude: row.locations?.longitude ?? undefined,
@@ -94,7 +95,7 @@ function bookingInputToRow(input) {
         recurrence_end_date: recurrenceEndDate,
         parent_booking_id: input.parentBookingId ?? null,
         scheduled_date: scheduledDate,
-        scheduled_start_time: input.scheduledStartTime,
+        scheduled_start_time: input.scheduledStartTime || null,
         scheduled_end_time: input.scheduledEndTime ?? null,
         estimated_duration_minutes: input.estimatedDurationMinutes ?? null,
         status: input.status ?? 'pending',
@@ -152,7 +153,7 @@ function updateBookingInputToRow(input) {
             : null;
     }
     if (input.scheduledStartTime !== undefined)
-        row.scheduled_start_time = input.scheduledStartTime;
+        row.scheduled_start_time = input.scheduledStartTime || null;
     if (input.scheduledEndTime !== undefined)
         row.scheduled_end_time = input.scheduledEndTime ?? null;
     if (input.estimatedDurationMinutes !== undefined)

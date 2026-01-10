@@ -69,7 +69,7 @@ export interface Booking extends Timestamps {
 
   // Scheduling information
   scheduledDate: Date;
-  scheduledStartTime: string; // TIME format (HH:MM:SS)
+  scheduledStartTime?: string; // TIME format (HH:MM:SS), optional until route planning
   scheduledEndTime?: string; // TIME format (HH:MM:SS)
   estimatedDurationMinutes?: number;
 
@@ -118,6 +118,7 @@ export interface Booking extends Timestamps {
   clientEmail?: string;
   serviceName?: string;
   serviceCode?: string;
+  serviceAverageDurationMinutes?: number;
   locationName?: string;
   locationLatitude?: number;
   locationLongitude?: number;
@@ -146,7 +147,7 @@ export interface BookingRow {
 
   // Scheduling information
   scheduled_date: string; // DATE format
-  scheduled_start_time: string; // TIME format
+  scheduled_start_time: string | null; // TIME format, null when unscheduled
   scheduled_end_time: string | null; // TIME format
   estimated_duration_minutes: number | null;
 
@@ -310,7 +311,7 @@ export function rowToBooking(row: BookingRow): Booking {
 
     // Scheduling information
     scheduledDate: new Date(row.scheduled_date),
-    scheduledStartTime: row.scheduled_start_time,
+    scheduledStartTime: row.scheduled_start_time ?? undefined,
     scheduledEndTime: row.scheduled_end_time ?? undefined,
     estimatedDurationMinutes: row.estimated_duration_minutes ?? undefined,
 
@@ -357,9 +358,10 @@ export function rowToBooking(row: BookingRow): Booking {
     // Joined fields for UI
     clientName: row.clients?.name,
     clientEmail: row.clients?.email,
-    serviceName: row.services?.name,
-    serviceCode: row.services?.code,
-    locationName: row.locations?.name,
+    serviceName: (row as any).services?.name,
+    serviceCode: (row as any).services?.code,
+    serviceAverageDurationMinutes: (row as any).services?.average_duration_minutes,
+    locationName: (row as any).locations?.name,
     locationLatitude: row.locations?.latitude ?? undefined,
     locationLongitude: row.locations?.longitude ?? undefined,
   };
@@ -393,7 +395,7 @@ export function bookingInputToRow(input: CreateBookingInput): Partial<BookingRow
     parent_booking_id: input.parentBookingId ?? null,
 
     scheduled_date: scheduledDate,
-    scheduled_start_time: input.scheduledStartTime,
+    scheduled_start_time: input.scheduledStartTime || null,
     scheduled_end_time: input.scheduledEndTime ?? null,
     estimated_duration_minutes: input.estimatedDurationMinutes ?? null,
 
@@ -453,7 +455,7 @@ export function updateBookingInputToRow(input: UpdateBookingInput): Partial<Book
       : null;
   }
 
-  if (input.scheduledStartTime !== undefined) row.scheduled_start_time = input.scheduledStartTime;
+  if (input.scheduledStartTime !== undefined) row.scheduled_start_time = input.scheduledStartTime || null;
   if (input.scheduledEndTime !== undefined) row.scheduled_end_time = input.scheduledEndTime ?? null;
   if (input.estimatedDurationMinutes !== undefined) row.estimated_duration_minutes = input.estimatedDurationMinutes ?? null;
   if (input.status !== undefined) row.status = input.status;

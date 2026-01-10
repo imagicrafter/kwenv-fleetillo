@@ -360,82 +360,170 @@
             z-index: 6;
         }
 
-        /* Day View */
+        /* Day View (Resource View) */
         .day-view {
             display: none;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
         }
 
         .day-view.active {
-            display: block;
+            display: flex;
         }
 
+        /* Reusing day-schedule as the main container */
         .day-schedule {
-            display: grid;
-            grid-template-columns: 80px 1fr;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
         }
 
-        .day-time-slot {
-            display: grid;
-            grid-template-columns: 80px 1fr;
-            min-height: 60px;
+        .resource-header-container {
+            display: flex;
+            flex-shrink: 0;
             border-bottom: 1px solid var(--border-subtle);
+            background: var(--bg-card);
+            overflow: hidden;
+            /* Syncs with body scroll */
+            margin-right: 15px;
+            /* Scrollbar offset compensation */
         }
 
-        .day-time-label {
+        .resource-time-header {
+            width: 80px;
+            flex-shrink: 0;
+            border-right: 1px solid var(--border-subtle);
+            background: var(--bg-card);
+            z-index: 20;
+        }
+
+        .resource-vehicles-header {
+            display: flex;
+            flex: 1;
+        }
+
+        .resource-vehicle-col-header {
+            min-width: 200px;
+            flex: 1;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-right: 1px solid var(--border-subtle);
+            background: rgba(255, 255, 255, 0.03);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .resource-body-container {
+            flex: 1;
+            overflow: auto;
+            position: relative;
+            display: flex;
+        }
+
+        .resource-grid-body {
+            display: grid;
+            /* Column definition will be set by JS usually */
+            min-width: 100%;
+        }
+
+        .resource-time-slot-label {
+            height: 60px;
             padding: 8px 12px;
             font-size: 0.85rem;
             color: var(--text-muted);
             text-align: right;
+            border-bottom: 1px solid var(--border-subtle);
+            background: var(--bg-card);
+            position: sticky;
+            left: 0;
+            z-index: 10;
             border-right: 1px solid var(--border-subtle);
         }
 
-        .day-time-content {
-            padding: 4px 8px;
+        .resource-cell {
+            border-bottom: 1px solid var(--border-subtle);
+            border-right: 1px solid var(--border-subtle);
             position: relative;
+            height: 60px;
+            background: transparent;
         }
 
-        .day-booking {
-            background: rgba(88, 166, 255, 0.15);
-            border-left: 3px solid var(--accent-primary);
-            border-radius: 4px;
-            padding: 8px 12px;
-            margin-bottom: 4px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .day-booking:hover {
-            background: rgba(88, 166, 255, 0.25);
-        }
-
-        .day-booking-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 4px;
-        }
-
-        .day-booking-time {
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .day-booking-status {
-            font-size: 0.7rem;
-            padding: 2px 6px;
-            border-radius: 10px;
-            text-transform: capitalize;
-        }
-
-        .day-booking-client {
-            font-size: 0.9rem;
-            font-weight: 500;
-            margin-bottom: 2px;
-        }
-
-        .day-booking-service {
+        .resource-booking {
+            position: absolute;
+            left: 4px;
+            right: 4px;
+            padding: 4px 8px;
+            border-radius: 6px;
             font-size: 0.8rem;
-            color: var(--text-secondary);
+            cursor: pointer;
+            overflow: hidden;
+            border-left: 3px solid;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s, z-index 0.2s;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .resource-booking:hover {
+            transform: scale(1.02);
+            z-index: 20;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+
+        .resource-booking .title {
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 1px;
+        }
+
+        .resource-booking .subtitle {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Status Colors */
+        .status-confirmed {
+            background: rgba(63, 185, 80, 0.2);
+            border-color: var(--accent-success);
+        }
+
+        .status-scheduled {
+            background: rgba(88, 166, 255, 0.2);
+            border-color: var(--accent-primary);
+        }
+
+        .status-in_progress {
+            background: rgba(163, 113, 247, 0.2);
+            border-color: #a371f7;
+        }
+
+        .status-completed {
+            background: rgba(63, 185, 80, 0.15);
+            border-color: #3fb950;
+            opacity: 0.8;
+        }
+
+        .status-pending {
+            background: rgba(210, 153, 34, 0.2);
+            border-color: var(--accent-warning);
+        }
+
+        .status-cancelled {
+            background: rgba(248, 81, 73, 0.2);
+            border-color: var(--accent-danger);
+            opacity: 0.6;
         }
 
         /* Booking Detail Popup */
@@ -711,7 +799,7 @@
                     Routes
                 </a>
 
-                <a href="#" class="nav-item">
+                <a href="settings.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -971,8 +1059,10 @@
                             <input type="date" id="scheduled-date" required>
                         </div>
                         <div class="form-group">
-                            <label for="scheduled-start-time">Start Time *</label>
-                            <input type="time" id="scheduled-start-time" required>
+                            <label for="scheduled-start-time">Start Time</label>
+                            <select id="scheduled-start-time">
+                                <option value="">Select time...</option>
+                            </select>
                         </div>
                     </div>
 
@@ -1139,9 +1229,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             // State
             let currentDate = new Date();
-            let currentView = 'month';
+            let currentView = 'day';
             let bookings = [];
             let allClients = [];
+            let allVehicles = [];
             let selectedBookingId = null;
             let isEditing = false;
             let currentBookingId = null;
@@ -1166,6 +1257,23 @@
             const form = document.getElementById('booking-form');
             const modalTitle = document.getElementById('modal-title');
             const closeButtons = document.querySelectorAll('.close-modal, .close-modal-btn');
+
+            // Populate time select with 15-minute intervals
+            const timeSelect = document.getElementById('scheduled-start-time');
+            for (let hour = 6; hour <= 20; hour++) {
+                for (let minute = 0; minute < 60; minute += 15) {
+                    const h = hour.toString().padStart(2, '0');
+                    const m = minute.toString().padStart(2, '0');
+                    const value = `${h}:${m}`;
+                    const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                    const label = `${displayHour}:${m} ${ampm}`;
+                    const option = document.createElement('option');
+                    option.value = value;
+                    option.textContent = label;
+                    timeSelect.appendChild(option);
+                }
+            }
 
             // Utility Functions
             function formatDate(date) {
@@ -1296,9 +1404,27 @@
                 }, 300);
             });
 
+            // Load vehicles for Resource View
+            async function loadVehicles() {
+                if (allVehicles.length > 0) return;
+                try {
+                    const response = await window.electronAPI.vehicles.getAll({ limit: 100 });
+                    const vehicles = response.data || response || [];
+                    allVehicles = Array.isArray(vehicles) ? vehicles : [];
+                } catch (error) {
+                    console.error('Error loading vehicles:', error);
+                    allVehicles = [];
+                }
+            }
+
             // Load bookings from API
             async function loadBookings(searchTerm = '') {
                 try {
+                    // Pre-load vehicles if in day view, as we need them for columns
+                    if (currentView === 'day') {
+                        await loadVehicles();
+                    }
+
                     // Calculate date range based on view
                     let startDate, endDate;
                     if (currentView === 'month') {
@@ -1561,84 +1687,139 @@
                 }
             }
 
-            // Day View Rendering
+            // Day View Rendering (Resource Schedule)
             function renderDayView() {
-                const today = new Date();
-                daySchedule.innerHTML = '';
+                const dayScheduleContainer = document.getElementById('day-schedule');
+                dayScheduleContainer.innerHTML = '';
 
-                // Get bookings for this day
-                const dayBookings = bookings.filter(b => {
-                    const bookingDate = parseBookingDate(b.scheduledDate);
-                    return bookingDate && isSameDay(bookingDate, currentDate);
+                // Ensure container structure
+                dayScheduleContainer.className = 'day-schedule';
+
+                // --- 1. Header (Time + Vehicles) ---
+                const headerContainer = document.createElement('div');
+                headerContainer.className = 'resource-header-container';
+
+                const timeHeader = document.createElement('div');
+                timeHeader.className = 'resource-time-header';
+                headerContainer.appendChild(timeHeader);
+
+                const vehiclesHeader = document.createElement('div');
+                vehiclesHeader.className = 'resource-vehicles-header';
+
+                // Add Vehicle Headers
+                allVehicles.forEach(vehicle => {
+                    const vCol = document.createElement('div');
+                    vCol.className = 'resource-vehicle-col-header';
+                    vCol.textContent = vehicle.name || vehicle.licensePlate;
+                    vehiclesHeader.appendChild(vCol);
                 });
 
-                // Sort by time
-                dayBookings.sort((a, b) => {
-                    if (!a.scheduledStartTime) return 1;
-                    if (!b.scheduledStartTime) return -1;
-                    return a.scheduledStartTime.localeCompare(b.scheduledStartTime);
+                // Add Unassigned Header
+                const unassignedCol = document.createElement('div');
+                unassignedCol.className = 'resource-vehicle-col-header';
+                unassignedCol.textContent = 'Unassigned';
+                vehiclesHeader.appendChild(unassignedCol);
+
+                headerContainer.appendChild(vehiclesHeader);
+                dayScheduleContainer.appendChild(headerContainer);
+
+                // --- 2. Body (Grid) ---
+                const bodyContainer = document.createElement('div');
+                bodyContainer.className = 'resource-body-container';
+
+                // Sync scroll
+                bodyContainer.addEventListener('scroll', () => {
+                    vehiclesHeader.style.transform = `translateX(-${bodyContainer.scrollLeft}px)`;
                 });
 
-                // Render time slots
-                for (let hour = 6; hour <= 21; hour++) {
-                    const slot = document.createElement('div');
-                    slot.className = 'day-time-slot';
+                const grid = document.createElement('div');
+                grid.className = 'resource-grid-body';
+                // 80px for Time, then flexible columns
+                const gridCols = `80px repeat(${allVehicles.length + 1}, minmax(200px, 1fr))`;
+                grid.style.gridTemplateColumns = gridCols;
 
-                    const displayHour = hour > 12 ? hour - 12 : hour;
-                    const ampm = hour >= 12 ? 'PM' : 'AM';
+                // Time Range: 6 AM to 8 PM
+                const startHour = 6;
+                const endHour = 20;
 
-                    const timeLabel = document.createElement('div');
-                    timeLabel.className = 'day-time-label';
-                    timeLabel.textContent = `${displayHour}:00 ${ampm}`;
-                    slot.appendChild(timeLabel);
+                for (let h = startHour; h <= endHour; h++) {
+                    // Time Label (Sticky)
+                    const timeCell = document.createElement('div');
+                    timeCell.className = 'resource-time-slot-label';
+                    const displayHour = h > 12 ? h - 12 : h;
+                    const ampm = h >= 12 ? 'PM' : 'AM';
+                    timeCell.textContent = `${displayHour}:00 ${ampm}`;
+                    grid.appendChild(timeCell);
 
-                    const content = document.createElement('div');
-                    content.className = 'day-time-content';
+                    // Vehicle Cells
+                    for (let i = 0; i < allVehicles.length + 1; i++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'resource-cell';
 
-                    // Find bookings for this hour
-                    const hourBookings = dayBookings.filter(b => {
-                        if (!b.scheduledStartTime) return false;
-                        const startHour = parseInt(b.scheduledStartTime.split(':')[0], 10);
-                        return startHour === hour;
-                    });
+                        // Data Context
+                        const vehicle = i < allVehicles.length ? allVehicles[i] : null;
+                        const vehicleId = vehicle ? vehicle.id : 'unassigned';
 
-                    hourBookings.forEach(booking => {
-                        const event = document.createElement('div');
-                        event.className = `day-booking status-${booking.status}`;
+                        // Find Bookings
+                        const cellBookings = bookings.filter(b => {
+                            const bDate = parseBookingDate(b.scheduledDate);
+                            if (!bDate || !isSameDay(bDate, currentDate)) return false;
 
-                        const statusBadge = getStatusBadge(booking.status);
+                            // Check Vehicle
+                            if (vehicleId === 'unassigned') {
+                                if (b.vehicleId) return false;
+                            } else {
+                                if (b.vehicleId !== vehicleId) return false;
+                            }
 
-                        event.innerHTML = `
-                            <div class="day-booking-header">
-                                <span class="day-booking-time">${formatTime(booking.scheduledStartTime)}${booking.scheduledEndTime ? ` - ${formatTime(booking.scheduledEndTime)}` : ''}</span>
-                                <span class="day-booking-status" style="${statusBadge.style}">${booking.status}</span>
-                            </div>
-                            <div class="day-booking-client">${booking.clientName || 'Unknown Client'}</div>
-                            <div class="day-booking-service">${booking.serviceName || 'Unknown Service'} ${booking.quotedPrice ? '• ' + formatCurrency(booking.quotedPrice) : ''}</div>
-                        `;
+                            // Check Time (Start Hour)
+                            if (!b.scheduledStartTime) return false;
+                            const bStartH = parseInt(b.scheduledStartTime.split(':')[0], 10);
+                            return bStartH === h;
+                        });
 
-                        event.addEventListener('click', () => showBookingPopup(booking, event));
-                        content.appendChild(event);
-                    });
+                        // Render Bookings
+                        cellBookings.forEach(booking => {
+                            const duration = booking.estimatedDurationMinutes || 60;
+                            const bDiv = document.createElement('div');
+                            bDiv.className = `resource-booking status-${booking.status}`;
 
-                    // Click to add booking
-                    content.addEventListener('click', (e) => {
-                        if (e.target === content) {
-                            openModalForDate(currentDate, `${String(hour).padStart(2, '0')}:00`);
-                        }
-                    });
+                            // Height (1hr = 60px)
+                            const hPx = (duration / 60) * 60;
+                            bDiv.style.height = `${Math.max(20, hPx - 4)}px`; // Min height
 
-                    slot.appendChild(content);
-                    daySchedule.appendChild(slot);
+                            // Top Offset
+                            const startMin = parseInt(booking.scheduledStartTime.split(':')[1], 10);
+                            const topOffset = (startMin / 60) * 60;
+                            bDiv.style.top = `${topOffset + 2}px`;
+
+                            bDiv.innerHTML = `
+                                <div class="title">${booking.clientName || 'Client'}</div>
+                                <div class="subtitle">${booking.serviceName || 'Service'}</div>
+                                <div class="subtitle">${formatTime(booking.scheduledStartTime)} - ${formatTime(booking.scheduledEndTime || '??')}</div>
+                            `;
+
+                            bDiv.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                showBookingPopup(booking, e);
+                            });
+
+                            cell.appendChild(bDiv);
+                        });
+
+                        // Click to create
+                        cell.addEventListener('click', (e) => {
+                            if (e.target === cell) {
+                                openModalForDate(currentDate, `${String(h).padStart(2, '0')}:00`);
+                            }
+                        });
+
+                        grid.appendChild(cell);
+                    }
                 }
 
-                // Show empty state if no bookings
-                if (dayBookings.length === 0) {
-                    const empty = document.createElement('div');
-                    empty.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);';
-                    empty.innerHTML = '<p>No bookings scheduled for this day</p><p style="font-size: 0.8rem;">Click on a time slot to create a new booking</p>';
-                    daySchedule.appendChild(empty);
-                }
+                bodyContainer.appendChild(grid);
+                dayScheduleContainer.appendChild(bodyContainer);
             }
 
             function getStatusBadge(status) {
@@ -1997,7 +2178,31 @@
 
             // Initialize
             loadClients();
-            updateCalendar();
+
+            // Initialize calendar: default to Day view showing next scheduled route date
+            (async function initCalendar() {
+                try {
+                    // Fetch next available route date (future or current)
+                    const today = new Date().toISOString();
+                    const result = await window.electronAPI.routes.getNextAvailableDate(today);
+                    if (result && typeof result === 'string') {
+                        // Parse YYYY-MM-DD without timezone issues
+                        const [year, month, day] = result.split('-').map(Number);
+                        currentDate = new Date(year, month - 1, day);
+                    }
+                } catch (err) {
+                    console.log('No upcoming routes, defaulting to today');
+                }
+                // Set day view button as active
+                viewToggleBtns.forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.view === 'day');
+                });
+                // Show/hide correct view containers
+                monthView.style.display = 'none';
+                weekView.style.display = 'none';
+                dayView.style.display = 'block';
+                updateCalendar();
+            })();
         });
     </script>
 </body>

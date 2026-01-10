@@ -61,6 +61,8 @@ export interface Route extends Timestamps {
     actualEndTime?: Date;
     totalDistanceKm?: number;
     totalDurationMinutes?: number;
+    totalServiceTimeMinutes?: number;
+    totalTravelTimeMinutes?: number;
     totalStops: number;
     optimizationType: OptimizationType;
     optimizationScore?: number;
@@ -101,6 +103,8 @@ export interface RouteRow {
     actual_end_time: string | null;
     total_distance_km: number | null;
     total_duration_minutes: number | null;
+    total_service_time_minutes: number | null;
+    total_travel_time_minutes: number | null;
     total_stops: number;
     optimization_type: OptimizationType;
     optimization_score: number | null;
@@ -140,6 +144,8 @@ export interface CreateRouteInput {
     plannedEndTime?: string;
     totalDistanceKm?: number;
     totalDurationMinutes?: number;
+    totalServiceTimeMinutes?: number;
+    totalTravelTimeMinutes?: number;
     totalStops?: number;
     optimizationType?: OptimizationType;
     optimizationScore?: number;

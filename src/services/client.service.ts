@@ -578,7 +578,7 @@ export async function countClients(filters?: ClientFilters): Promise<Result<numb
   logger.debug('Counting clients', { filters });
 
   try {
-    const supabase = getSupabaseClient();
+    const supabase = getClient();
 
     let query = supabase.from(CLIENTS_TABLE).select('*', { count: 'exact', head: true });
 

@@ -475,7 +475,7 @@ function createWindow() {
     titleBarStyle: 'hiddenInset', // Mac-style unified title bar
   });
 
-  mainWindow.loadFile(path.join(__dirname, 'ui', 'index.html'));
+  mainWindow.loadFile(path.join(__dirname, '../../shared/public/index.html'));
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools();
