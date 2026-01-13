@@ -491,19 +491,32 @@ export async function updateBooking(input: UpdateBookingInput): Promise<Result<B
 
   // Only validate core required fields if entity references are being changed
   // Skip full validation for simple updates like status or schedule time changes
-  if (input.clientId || input.serviceId || input.serviceItems || input.bookingType) {
-    const validationInput: CreateBookingInput = {
-      clientId: input.clientId ?? '',
-      serviceId: input.serviceId,  // Let it be undefined if not provided
-      serviceItems: input.serviceItems,  // Pass through serviceItems for validation
-      bookingType: input.bookingType ?? 'one_time',
-      scheduledDate: input.scheduledDate ?? new Date(),
-      scheduledStartTime: input.scheduledStartTime ?? '00:00',
-    };
-    const validationResult = validateBookingInput(validationInput);
-    if (!validationResult.success) {
-      return { success: false, error: validationResult.error };
-    }
+  // Fetch existing booking to merge with updates for validation
+  const existingResult = await getBookingById(input.id);
+  if (!existingResult.success || !existingResult.data) {
+    return existingResult;
+  }
+  const existing = existingResult.data;
+
+  const validationInput: CreateBookingInput = {
+    clientId: input.clientId ?? existing.clientId,
+    serviceId: input.serviceId, // Deprecated, but keep if provided
+    serviceItems: input.serviceItems ?? existing.serviceItems,
+    bookingType: input.bookingType ?? existing.bookingType,
+    scheduledDate: input.scheduledDate ?? existing.scheduledDate,
+    scheduledStartTime: input.scheduledStartTime ?? existing.scheduledStartTime ?? '00:00',
+    // Map other optional fields that might be validated
+    recurrencePattern: input.recurrencePattern ?? existing.recurrencePattern,
+    estimatedDurationMinutes: input.estimatedDurationMinutes ?? existing.estimatedDurationMinutes,
+    quotedPrice: input.quotedPrice ?? existing.quotedPrice,
+    finalPrice: input.finalPrice ?? existing.finalPrice,
+    serviceLatitude: input.serviceLatitude ?? existing.serviceLatitude,
+    serviceLongitude: input.serviceLongitude ?? existing.serviceLongitude,
+  };
+
+  const validationResult = validateBookingInput(validationInput);
+  if (!validationResult.success) {
+    return { success: false, error: validationResult.error };
   }
 
   // Validate estimatedDurationMinutes only if explicitly provided with a value
