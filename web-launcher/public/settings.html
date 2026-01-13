@@ -15,6 +15,65 @@
             margin: 0 auto;
         }
 
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 32px;
+            margin-bottom: 32px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            padding: 0 0 16px 0;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            color: var(--accent-color);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--accent-color);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
         .settings-section {
             background: var(--card-bg);
             border-radius: 12px;
@@ -329,158 +388,255 @@
 
             <div class="content-wrapper">
                 <div class="settings-container">
-                    <!-- Work Schedule Section -->
-                    <div class="settings-section">
-                        <h3>
-                            <span class="icon">🕐</span>
-                            Work Schedule
-                        </h3>
+                    <!-- Tab Navigation -->
+                    <div class="tabs">
+                        <button class="tab-btn active" onclick="switchTab('planning')">Planning</button>
+                        <button class="tab-btn" onclick="switchTab('fleet')">Fleet</button>
+                        <button class="tab-btn" onclick="switchTab('routes')">Routes</button>
+                    </div>
 
-                        <div class="setting-row">
-                            <div class="setting-info">
-                                <div class="setting-label">Day Start Time</div>
-                                <div class="setting-description">When the work day begins for route planning</div>
+                    <!-- Planning Tab (Content) -->
+                    <div id="tab-planning" class="tab-content active">
+                        <!-- Work Schedule Section -->
+                        <div class="settings-section">
+                            <h3>
+                                <span class="icon">🕐</span>
+                                Work Schedule
+                            </h3>
+
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Day Start Time</div>
+                                    <div class="setting-description">When the work day begins for route planning</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input type="time" id="day-start-time" value="08:00" step="900">
+                                </div>
                             </div>
-                            <div class="setting-control">
-                                <input type="time" id="day-start-time" value="08:00" step="900">
+
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Day End Time</div>
+                                    <div class="setting-description">When the work day ends for route planning</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input type="time" id="day-end-time" value="17:00" step="900">
+                                </div>
+                            </div>
+
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Max Daily Work Time</div>
+                                    <div class="setting-description">Calculated from schedule above</div>
+                                </div>
+                                <div class="setting-control">
+                                    <span class="computed-value" id="max-daily-minutes">540 minutes (9 hours)</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="setting-row">
-                            <div class="setting-info">
-                                <div class="setting-label">Day End Time</div>
-                                <div class="setting-description">When the work day ends for route planning</div>
-                            </div>
-                            <div class="setting-control">
-                                <input type="time" id="day-end-time" value="17:00" step="900">
-                            </div>
-                        </div>
+                        <!-- Cost Calculation Section -->
+                        <div class="settings-section">
+                            <h3>
+                                <span class="icon">💰</span>
+                                Cost Calculation
+                            </h3>
 
-                        <div class="setting-row">
-                            <div class="setting-info">
-                                <div class="setting-label">Max Daily Work Time</div>
-                                <div class="setting-description">Calculated from schedule above</div>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Hourly Labor Rate</div>
+                                    <div class="setting-description">Cost per hour for labor (driving + service time)
+                                    </div>
+                                </div>
+                                <div class="setting-control">
+                                    <span style="color: var(--text-secondary);">$</span>
+                                    <input type="number" id="labor-rate" value="50" min="0" step="0.50"
+                                        style="width: 100px;">
+                                    <span style="color: var(--text-secondary);">/hr</span>
+                                </div>
                             </div>
-                            <div class="setting-control">
-                                <span class="computed-value" id="max-daily-minutes">540 minutes (9 hours)</span>
+
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Gasoline Price per Gallon</div>
+                                    <div class="setting-description">Fuel cost for gasoline vehicles</div>
+                                </div>
+                                <div class="setting-control">
+                                    <span style="color: var(--text-secondary);">$</span>
+                                    <input type="number" id="gasoline-price" value="3.50" min="0" step="0.01"
+                                        style="width: 100px;">
+                                    <span style="color: var(--text-secondary);">/gal</span>
+                                </div>
+                            </div>
+
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Diesel Price per Gallon</div>
+                                    <div class="setting-description">Fuel cost for diesel vehicles</div>
+                                </div>
+                                <div class="setting-control">
+                                    <span style="color: var(--text-secondary);">$</span>
+                                    <input type="number" id="diesel-price" value="3.80" min="0" step="0.01"
+                                        style="width: 100px;">
+                                    <span style="color: var(--text-secondary);">/gal</span>
+                                </div>
+                            </div>
+
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Include Traffic Buffer in Labor</div>
+                                    <div class="setting-description">Add traffic buffer time to labor cost calculations
+                                    </div>
+                                </div>
+                                <div class="setting-control">
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <input type="checkbox" id="include-traffic-buffer" checked
+                                            style="width: 18px; height: 18px;">
+                                        <span style="color: var(--text-secondary);">Enabled</span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Route Planning Section -->
-                    <div class="settings-section">
-                        <h3>
-                            <span class="icon">🛣️</span>
-                            Route Planning
-                        </h3>
-
-                        <div class="setting-row">
-                            <div class="setting-info">
-                                <div class="setting-label">Unit System</div>
-                                <div class="setting-description">Choose your preferred measurement units</div>
-                            </div>
-                            <div class="setting-control">
-                                <div class="unit-toggle">
-                                    <button id="unit-imperial" class="active" onclick="setUnitSystem('imperial')">Miles
-                                        (mph)</button>
-                                    <button id="unit-metric" onclick="setUnitSystem('metric')">Kilometers
-                                        (km/h)</button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="setting-row">
-                            <div class="setting-info">
-                                <div class="setting-label">Average Travel Speed</div>
-                                <div class="setting-description">Used to estimate travel time between stops</div>
-                            </div>
-                            <div class="setting-control">
-                                <input type="number" id="avg-travel-speed" min="5" max="100" value="30">
-                                <span id="speed-unit">km/h</span>
-                            </div>
-                        </div>
-
-                        <div class="setting-row">
-                            <div class="setting-info">
-                                <div class="setting-label">Traffic Buffer</div>
-                                <div class="setting-description">Extra time added for traffic and parking</div>
-                            </div>
-                            <div class="setting-control">
-                                <input type="number" id="traffic-buffer" min="0" max="50" value="20">
-                                <span>%</span>
-                            </div>
-                        </div>
-
-                        <div class="setting-row">
-                            <div class="setting-info">
-                                <div class="setting-label">Default Service Duration</div>
-                                <div class="setting-description">Used when service has no duration set</div>
-                            </div>
-                            <div class="setting-control">
-                                <input type="number" id="default-service-duration" min="5" max="240" value="30">
-                                <span>minutes</span>
+                    <!-- Fleet Tab (Content) -->
+                    <div id="tab-fleet" class="tab-content">
+                        <div class="settings-section">
+                            <h3>
+                                <span class="icon">🚚</span>
+                                Fleet Settings
+                            </h3>
+                            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                                <p>Detailed fleet configuration settings coming soon.</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Algorithm Explanation -->
-                    <div class="settings-section algorithm-section">
-                        <h3>
-                            <span class="icon">🧮</span>
-                            How Route Planning Works
-                        </h3>
+                    <!-- Routes Tab (Content) -->
+                    <div id="tab-routes" class="tab-content">
+                        <!-- Route Planning Section -->
+                        <div class="settings-section">
+                            <h3>
+                                <span class="icon">🛣️</span>
+                                Route Planning
+                            </h3>
 
-                        <div class="algorithm-toggle" onclick="toggleAlgorithm()">
-                            <span id="algo-toggle-icon">▶</span>
-                            <span id="algo-toggle-text">Show algorithm details</span>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Unit System</div>
+                                    <div class="setting-description">Choose your preferred measurement units</div>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="unit-toggle">
+                                        <button id="unit-imperial" class="active"
+                                            onclick="setUnitSystem('imperial')">Miles
+                                            (mph)</button>
+                                        <button id="unit-metric" onclick="setUnitSystem('metric')">Kilometers
+                                            (km/h)</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Average Travel Speed</div>
+                                    <div class="setting-description">Used to estimate travel time between stops</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input type="number" id="avg-travel-speed" min="5" max="100" value="30">
+                                    <span id="speed-unit">km/h</span>
+                                </div>
+                            </div>
+
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Traffic Buffer</div>
+                                    <div class="setting-description">Extra time added for traffic and parking</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input type="number" id="traffic-buffer" min="0" max="50" value="20">
+                                    <span>%</span>
+                                </div>
+                            </div>
+
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Default Service Duration</div>
+                                    <div class="setting-description">Used when service has no duration set</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input type="number" id="default-service-duration" min="5" max="240" value="30">
+                                    <span>minutes</span>
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="algorithm-content" id="algorithm-content">
-                            <div class="algorithm-step">
-                                <div class="step-number">1</div>
-                                <div class="step-content">
-                                    <h4>Calculate Time Budget</h4>
-                                    <p>Each vehicle has a maximum daily capacity based on your work schedule settings
-                                        (Day End - Day Start).</p>
-                                </div>
+                        <!-- Algorithm Explanation -->
+                        <div class="settings-section algorithm-section">
+                            <h3>
+                                <span class="icon">🧮</span>
+                                How Route Planning Works
+                            </h3>
+
+                            <div class="algorithm-toggle" onclick="toggleAlgorithm()">
+                                <span id="algo-toggle-icon">▶</span>
+                                <span id="algo-toggle-text">Show algorithm details</span>
                             </div>
 
-                            <div class="algorithm-step">
-                                <div class="step-number">2</div>
-                                <div class="step-content">
-                                    <h4>Estimate Travel Time</h4>
-                                    <p>The system calculates straight-line distance using the Haversine formula, then
-                                        estimates travel time using your Average Travel Speed setting, plus the Traffic
-                                        Buffer percentage.</p>
+                            <div class="algorithm-content" id="algorithm-content">
+                                <div class="algorithm-step">
+                                    <div class="step-number">1</div>
+                                    <div class="step-content">
+                                        <h4>Calculate Time Budget</h4>
+                                        <p>Each vehicle has a maximum daily capacity based on your work schedule
+                                            settings
+                                            (Day End - Day Start).</p>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="algorithm-step">
-                                <div class="step-number">3</div>
-                                <div class="step-content">
-                                    <h4>Greedy Nearest-Neighbor Assignment</h4>
-                                    <p>For each vehicle, the algorithm finds the nearest unassigned booking, calculates
-                                        if it fits within the time budget (travel + service time), and assigns it. This
-                                        repeats until all vehicles are at capacity or all bookings are assigned.</p>
+                                <div class="algorithm-step">
+                                    <div class="step-number">2</div>
+                                    <div class="step-content">
+                                        <h4>Estimate Travel Time</h4>
+                                        <p>The system calculates straight-line distance using the Haversine formula,
+                                            then
+                                            estimates travel time using your Average Travel Speed setting, plus the
+                                            Traffic
+                                            Buffer percentage.</p>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="algorithm-step">
-                                <div class="step-number">4</div>
-                                <div class="step-content">
-                                    <h4>Optimize with Google Routes</h4>
-                                    <p>Once bookings are assigned to vehicles, the Google Routes API optimizes the stop
-                                        order for each route to minimize total travel time.</p>
+                                <div class="algorithm-step">
+                                    <div class="step-number">3</div>
+                                    <div class="step-content">
+                                        <h4>Greedy Nearest-Neighbor Assignment</h4>
+                                        <p>For each vehicle, the algorithm finds the nearest unassigned booking,
+                                            calculates
+                                            if it fits within the time budget (travel + service time), and assigns it.
+                                            This
+                                            repeats until all vehicles are at capacity or all bookings are assigned.</p>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="algorithm-step">
-                                <div class="step-number">5</div>
-                                <div class="step-content">
-                                    <h4>Unassigned Bookings</h4>
-                                    <p>If a booking cannot fit into any vehicle's time window, it will be flagged as
-                                        "could not be fit". Try adjusting your schedule times or travel speed settings.
-                                    </p>
+                                <div class="algorithm-step">
+                                    <div class="step-number">4</div>
+                                    <div class="step-content">
+                                        <h4>Optimize with Google Routes</h4>
+                                        <p>Once bookings are assigned to vehicles, the Google Routes API optimizes the
+                                            stop
+                                            order for each route to minimize total travel time.</p>
+                                    </div>
+                                </div>
+
+                                <div class="algorithm-step">
+                                    <div class="step-number">5</div>
+                                    <div class="step-content">
+                                        <h4>Unassigned Bookings</h4>
+                                        <p>If a booking cannot fit into any vehicle's time window, it will be flagged as
+                                            "could not be fit". Try adjusting your schedule times or travel speed
+                                            settings.
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -534,6 +690,16 @@
 
                         document.getElementById('traffic-buffer').value = settings.routing.trafficBufferPercent || 20;
                         document.getElementById('default-service-duration').value = settings.routing.defaultServiceDurationMinutes || 30;
+                    }
+
+                    // Cost Settings (load from allSettings if available)
+                    const allSettings = await window.electronAPI.settings.getAll();
+                    if (allSettings) {
+                        document.getElementById('labor-rate').value = allSettings['costs.laborRatePerHour'] || 50;
+                        document.getElementById('gasoline-price').value = allSettings['costs.gasolinePricePerGallon'] || 3.50;
+                        document.getElementById('diesel-price').value = allSettings['costs.dieselPricePerGallon'] || 3.80;
+                        const includeBuffer = allSettings['costs.includeTrafficBuffer'];
+                        document.getElementById('include-traffic-buffer').checked = includeBuffer !== false;
                     }
 
                     updateComputedValues();
@@ -595,6 +761,27 @@
             document.getElementById('speed-unit').textContent = currentUnitSystem === 'imperial' ? 'mph' : 'km/h';
         }
 
+        // Tab switching
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+
+            // Deactivate all buttons
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+
+            // Activate button (finding by onclick attribute is simple enough here)
+            // Or simple iteration since there are only 3
+            const buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(btn => {
+                if (btn.getAttribute('onclick').includes(tabId)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
         // Toggle algorithm section
         function toggleAlgorithm() {
             const content = document.getElementById('algorithm-content');
@@ -623,7 +810,12 @@
                     'routing.unitSystem': currentUnitSystem,
                     'routing.avgTravelSpeed': Math.round(avgSpeed),
                     'routing.trafficBufferPercent': parseInt(document.getElementById('traffic-buffer').value),
-                    'routing.defaultServiceDurationMinutes': parseInt(document.getElementById('default-service-duration').value)
+                    'routing.defaultServiceDurationMinutes': parseInt(document.getElementById('default-service-duration').value),
+                    // Cost settings
+                    'costs.laborRatePerHour': parseFloat(document.getElementById('labor-rate').value) || 50,
+                    'costs.gasolinePricePerGallon': parseFloat(document.getElementById('gasoline-price').value) || 3.50,
+                    'costs.dieselPricePerGallon': parseFloat(document.getElementById('diesel-price').value) || 3.80,
+                    'costs.includeTrafficBuffer': document.getElementById('include-traffic-buffer').checked
                 };
 
                 await window.electronAPI.settings.updateMultiple(settings);

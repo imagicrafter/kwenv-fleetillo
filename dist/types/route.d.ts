@@ -69,6 +69,7 @@ export interface Route extends Timestamps {
     algorithmVersion?: string;
     optimizationMetadata?: Record<string, any>;
     status: RouteStatus;
+    needsRecalculation: boolean;
     plannedCapacityWeight?: number;
     plannedCapacityVolume?: number;
     actualCapacityWeight?: number;
@@ -110,6 +111,7 @@ export interface RouteRow {
     optimization_score: number | null;
     algorithm_version: string | null;
     status: RouteStatus;
+    needs_recalculation: boolean;
     planned_capacity_weight: number | null;
     planned_capacity_volume: number | null;
     actual_capacity_weight: number | null;
@@ -177,6 +179,7 @@ export interface UpdateRouteInput extends Partial<CreateRouteInput> {
     actualCapacityWeight?: number;
     actualCapacityVolume?: number;
     actualCost?: number;
+    needsRecalculation?: boolean;
 }
 /**
  * Route filter options for queries

@@ -3,7 +3,7 @@
  * Handles CRUD operations for application settings
  */
 import type { Result } from '../types/index.js';
-import { SettingKey, RouteSettings } from '../types/settings.js';
+import { SettingKey, RouteSettings, CostSettings } from '../types/settings.js';
 /**
  * Get a single setting by key
  */
@@ -33,4 +33,8 @@ export declare function getRoutePlanningParams(): Promise<{
     trafficBufferMultiplier: number;
     defaultServiceDuration: number;
 }>;
+/**
+ * Get cost settings as a typed object
+ */
+export declare function getCostSettings(): Promise<Result<CostSettings>>;
 //# sourceMappingURL=settings.service.d.ts.map

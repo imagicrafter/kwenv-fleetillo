@@ -4,7 +4,7 @@
  * Defines types for application settings
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DEFAULT_SETTINGS = exports.SettingKeys = void 0;
+exports.DEFAULT_COST_SETTINGS = exports.DEFAULT_SETTINGS = exports.SettingKeys = void 0;
 exports.calculateMaxDailyMinutes = calculateMaxDailyMinutes;
 exports.convertSpeed = convertSpeed;
 // Setting keys as constants for type safety
@@ -15,6 +15,11 @@ exports.SettingKeys = {
     ROUTING_AVG_TRAVEL_SPEED: 'routing.avgTravelSpeed',
     ROUTING_TRAFFIC_BUFFER_PERCENT: 'routing.trafficBufferPercent',
     ROUTING_DEFAULT_SERVICE_DURATION: 'routing.defaultServiceDurationMinutes',
+    // Cost settings
+    COSTS_LABOR_RATE_PER_HOUR: 'costs.laborRatePerHour',
+    COSTS_GASOLINE_PRICE_PER_GALLON: 'costs.gasolinePricePerGallon',
+    COSTS_DIESEL_PRICE_PER_GALLON: 'costs.dieselPricePerGallon',
+    COSTS_INCLUDE_TRAFFIC_BUFFER: 'costs.includeTrafficBuffer',
 };
 // Default settings
 exports.DEFAULT_SETTINGS = {
@@ -28,6 +33,13 @@ exports.DEFAULT_SETTINGS = {
         trafficBufferPercent: 20,
         defaultServiceDurationMinutes: 30,
     },
+};
+// Default cost settings
+exports.DEFAULT_COST_SETTINGS = {
+    laborRatePerHour: 50,
+    gasolinePricePerGallon: 3.50,
+    dieselPricePerGallon: 3.80,
+    includeTrafficBuffer: true,
 };
 // Utility: Calculate max daily minutes from schedule
 function calculateMaxDailyMinutes(startTime, endTime) {

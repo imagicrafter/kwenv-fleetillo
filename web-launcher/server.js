@@ -158,7 +158,7 @@ const rpcMap = {
         create: serviceService.createService,
         update: serviceService.updateService,
         delete: serviceService.deleteService,
-        getById: serviceService.getService
+        getById: serviceService.getServiceById
     },
     bookings: {
         getAll: bookingService.getBookings,
@@ -166,7 +166,8 @@ const rpcMap = {
         update: bookingService.updateBooking,
         delete: bookingService.deleteBooking,
         getById: bookingService.getBookingById,
-        count: bookingService.countBookings
+        count: bookingService.countBookings,
+        removeFromRoute: bookingService.removeBookingFromRoute
     },
     locations: {
         getAll: locationService.getAllLocations,

@@ -2,6 +2,9 @@
 -- Description: Table for tracking system-wide activity events for dashboard display
 -- Created: 2026-01-06
 
+-- Create the routeiq schema if it doesn't exist (safeguard)
+CREATE SCHEMA IF NOT EXISTS routeiq;
+
 -- Create activity_logs table in routeiq schema
 CREATE TABLE IF NOT EXISTS routeiq.activity_logs (
     -- Primary key

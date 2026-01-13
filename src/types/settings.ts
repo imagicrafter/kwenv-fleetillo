@@ -11,6 +11,11 @@ export const SettingKeys = {
     ROUTING_AVG_TRAVEL_SPEED: 'routing.avgTravelSpeed',
     ROUTING_TRAFFIC_BUFFER_PERCENT: 'routing.trafficBufferPercent',
     ROUTING_DEFAULT_SERVICE_DURATION: 'routing.defaultServiceDurationMinutes',
+    // Cost settings
+    COSTS_LABOR_RATE_PER_HOUR: 'costs.laborRatePerHour',
+    COSTS_GASOLINE_PRICE_PER_GALLON: 'costs.gasolinePricePerGallon',
+    COSTS_DIESEL_PRICE_PER_GALLON: 'costs.dieselPricePerGallon',
+    COSTS_INCLUDE_TRAFFIC_BUFFER: 'costs.includeTrafficBuffer',
 } as const;
 
 export type SettingKey = (typeof SettingKeys)[keyof typeof SettingKeys];
@@ -49,6 +54,14 @@ export interface RouteSettings {
     };
 }
 
+// Cost calculation settings
+export interface CostSettings {
+    laborRatePerHour: number;           // USD per hour
+    gasolinePricePerGallon: number;     // USD per gallon for gasoline vehicles
+    dieselPricePerGallon: number;       // USD per gallon for diesel vehicles
+    includeTrafficBuffer: boolean;      // Include traffic buffer in labor cost calculation
+}
+
 // Default settings
 export const DEFAULT_SETTINGS: RouteSettings = {
     schedule: {
@@ -61,6 +74,14 @@ export const DEFAULT_SETTINGS: RouteSettings = {
         trafficBufferPercent: 20,
         defaultServiceDurationMinutes: 30,
     },
+};
+
+// Default cost settings
+export const DEFAULT_COST_SETTINGS: CostSettings = {
+    laborRatePerHour: 50,
+    gasolinePricePerGallon: 3.50,
+    dieselPricePerGallon: 3.80,
+    includeTrafficBuffer: true,
 };
 
 // Utility: Calculate max daily minutes from schedule

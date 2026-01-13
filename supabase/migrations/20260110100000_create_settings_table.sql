@@ -16,16 +16,35 @@ CREATE INDEX IF NOT EXISTS idx_settings_key ON routeiq.settings(key);
 ALTER TABLE routeiq.settings ENABLE ROW LEVEL SECURITY;
 
 -- Allow all authenticated users to read settings
-CREATE POLICY "settings_select_policy" ON routeiq.settings
-    FOR SELECT USING (true);
+-- Allow all authenticated users to read settings
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies WHERE policyname = 'settings_select_policy' AND tablename = 'settings' AND schemaname = 'routeiq'
+    ) THEN
+        CREATE POLICY "settings_select_policy" ON routeiq.settings FOR SELECT USING (true);
+    END IF;
+END $$;
 
 -- Allow all authenticated users to update settings
-CREATE POLICY "settings_update_policy" ON routeiq.settings
-    FOR UPDATE USING (true);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies WHERE policyname = 'settings_update_policy' AND tablename = 'settings' AND schemaname = 'routeiq'
+    ) THEN
+        CREATE POLICY "settings_update_policy" ON routeiq.settings FOR UPDATE USING (true);
+    END IF;
+END $$;
 
 -- Allow all authenticated users to insert settings
-CREATE POLICY "settings_insert_policy" ON routeiq.settings
-    FOR INSERT WITH CHECK (true);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies WHERE policyname = 'settings_insert_policy' AND tablename = 'settings' AND schemaname = 'routeiq'
+    ) THEN
+        CREATE POLICY "settings_insert_policy" ON routeiq.settings FOR INSERT WITH CHECK (true);
+    END IF;
+END $$;
 
 -- Insert default settings
 INSERT INTO routeiq.settings (key, value, description) VALUES

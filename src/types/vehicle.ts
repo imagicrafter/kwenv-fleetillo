@@ -88,6 +88,7 @@ export interface Vehicle extends Timestamps {
   fuelType?: FuelType;
   fuelCapacity?: number;
   currentFuelLevel?: number;
+  fuelEfficiencyMpg?: number;  // Miles per gallon for cost calculation
 
   // Maintenance
   lastMaintenanceDate?: Date;
@@ -130,6 +131,7 @@ export interface VehicleRow {
   fuel_type: FuelType | null;
   fuel_capacity: number | null;
   current_fuel_level: number | null;
+  fuel_efficiency_mpg: number | null;
   last_maintenance_date: string | null;
   next_maintenance_date: string | null;
   odometer_reading: number | null;
@@ -164,6 +166,7 @@ export interface CreateVehicleInput {
   fuelType?: FuelType;
   fuelCapacity?: number;
   currentFuelLevel?: number;
+  fuelEfficiencyMpg?: number;
   lastMaintenanceDate?: Date;
   nextMaintenanceDate?: Date;
   odometerReading?: number;
@@ -220,6 +223,7 @@ export function rowToVehicle(row: VehicleRow): Vehicle {
     fuelType: row.fuel_type ?? undefined,
     fuelCapacity: row.fuel_capacity ?? undefined,
     currentFuelLevel: row.current_fuel_level ?? undefined,
+    fuelEfficiencyMpg: row.fuel_efficiency_mpg ?? undefined,
     lastMaintenanceDate: row.last_maintenance_date ? new Date(row.last_maintenance_date) : undefined,
     nextMaintenanceDate: row.next_maintenance_date ? new Date(row.next_maintenance_date) : undefined,
     odometerReading: row.odometer_reading ?? undefined,
@@ -256,6 +260,7 @@ export function vehicleInputToRow(input: CreateVehicleInput): Partial<VehicleRow
     fuel_type: input.fuelType ?? null,
     fuel_capacity: input.fuelCapacity ?? null,
     current_fuel_level: input.currentFuelLevel ?? null,
+    fuel_efficiency_mpg: input.fuelEfficiencyMpg ?? null,
     last_maintenance_date: input.lastMaintenanceDate?.toISOString().split('T')[0] ?? null,
     next_maintenance_date: input.nextMaintenanceDate?.toISOString().split('T')[0] ?? null,
     odometer_reading: input.odometerReading ?? null,

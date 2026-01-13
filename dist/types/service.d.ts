@@ -23,6 +23,7 @@ export interface Service extends Timestamps {
     minimumDurationMinutes?: number;
     maximumDurationMinutes?: number;
     basePrice?: number;
+    materialsCost?: number;
     priceCurrency?: string;
     requiresAppointment: boolean;
     maxPerDay?: number;
@@ -46,6 +47,7 @@ export interface ServiceRow {
     minimum_duration_minutes: number | null;
     maximum_duration_minutes: number | null;
     base_price: number | null;
+    materials_cost: number | null;
     price_currency: string | null;
     requires_appointment: boolean;
     max_per_day: number | null;
@@ -70,6 +72,7 @@ export interface CreateServiceInput {
     minimumDurationMinutes?: number;
     maximumDurationMinutes?: number;
     basePrice?: number;
+    materialsCost?: number;
     priceCurrency?: string;
     requiresAppointment?: boolean;
     maxPerDay?: number;

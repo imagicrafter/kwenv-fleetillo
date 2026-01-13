@@ -33,6 +33,7 @@ export interface Service extends Timestamps {
 
   // Pricing
   basePrice?: number;
+  materialsCost?: number;  // Average cost of materials/supplies consumed per service
   priceCurrency?: string;
 
   // Scheduling constraints
@@ -65,6 +66,7 @@ export interface ServiceRow {
   minimum_duration_minutes: number | null;
   maximum_duration_minutes: number | null;
   base_price: number | null;
+  materials_cost: number | null;
   price_currency: string | null;
   requires_appointment: boolean;
   max_per_day: number | null;
@@ -90,6 +92,7 @@ export interface CreateServiceInput {
   minimumDurationMinutes?: number;
   maximumDurationMinutes?: number;
   basePrice?: number;
+  materialsCost?: number;
   priceCurrency?: string;
   requiresAppointment?: boolean;
   maxPerDay?: number;
@@ -135,6 +138,7 @@ export function rowToService(row: ServiceRow): Service {
     minimumDurationMinutes: row.minimum_duration_minutes ?? undefined,
     maximumDurationMinutes: row.maximum_duration_minutes ?? undefined,
     basePrice: row.base_price ?? undefined,
+    materialsCost: row.materials_cost ?? undefined,
     priceCurrency: row.price_currency ?? undefined,
     requiresAppointment: row.requires_appointment,
     maxPerDay: row.max_per_day ?? undefined,
@@ -162,6 +166,7 @@ export function serviceInputToRow(input: CreateServiceInput): Partial<ServiceRow
     minimum_duration_minutes: input.minimumDurationMinutes ?? null,
     maximum_duration_minutes: input.maximumDurationMinutes ?? null,
     base_price: input.basePrice ?? null,
+    materials_cost: input.materialsCost ?? null,
     price_currency: input.priceCurrency ?? null,
     requires_appointment: input.requiresAppointment ?? true,
     max_per_day: input.maxPerDay ?? null,

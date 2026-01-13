@@ -259,9 +259,13 @@ async function updateVehicle(input) {
         // Build update object, excluding id
         const { id, ...updateData } = input;
         const rowData = (0, vehicle_js_1.vehicleInputToRow)(updateData);
+        // Remove undefined values to only update fields that are actually provided
+        // This prevents overwriting existing values with null
+        const cleanRowData = Object.fromEntries(Object.entries(rowData).filter(([, value]) => value !== undefined));
+        logger.debug('Updating vehicle with clean row data', { id, cleanRowData, hasFuelEfficiency: 'fuel_efficiency_mpg' in cleanRowData });
         const { data, error } = await supabase
             .from(VEHICLES_TABLE)
-            .update(rowData)
+            .update(cleanRowData)
             .eq('id', id)
             .is('deleted_at', null)
             .select()

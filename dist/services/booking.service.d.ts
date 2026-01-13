@@ -62,4 +62,16 @@ export declare function countBookings(filters?: BookingFilters): Promise<Result<
  * Gets bookings by booking number
  */
 export declare function getBookingByNumber(bookingNumber: string): Promise<Result<Booking>>;
+/**
+ * Removes a booking from its assigned route.
+ * This function:
+ * 1. Clears the booking's route_id and stop_order
+ * 2. Renumbers remaining bookings on the route
+ * 3. Flags the route as needing recalculation
+ * 4. Updates the route's total_stops count
+ *
+ * @param bookingId - The ID of the booking to remove from its route
+ * @returns Result indicating success or failure
+ */
+export declare function removeBookingFromRoute(bookingId: string): Promise<Result<void>>;
 //# sourceMappingURL=booking.service.d.ts.map

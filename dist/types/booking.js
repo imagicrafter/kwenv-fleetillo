@@ -10,13 +10,27 @@ exports.updateBookingInputToRow = updateBookingInputToRow;
  * Converts a database row to a Booking entity
  */
 function rowToBooking(row) {
+    // Backwards compatibility for joined service name if serviceItems is missing/empty
+    const serviceName = row.services?.name;
     return {
         id: row.id,
         // Foreign key references
         clientId: row.client_id,
-        serviceId: row.service_id,
-        vehicleId: row.vehicle_id ?? undefined,
+        serviceId: row.service_id ?? undefined, // DEPRECATED
+        serviceIds: row.service_ids ?? (row.service_id ? [row.service_id] : []),
+        serviceItems: row.service_items ?? (row.service_id && serviceName ? [{
+                serviceId: row.service_id,
+                name: serviceName,
+                quantity: 1,
+                unitPrice: row.quoted_price ?? 0,
+                total: row.quoted_price ?? 0,
+                duration: row.estimated_duration_minutes ?? 0
+            }] : []),
+        vehicleId: row.vehicle_id ?? undefined, // DEPRECATED
+        routeId: row.route_id ?? undefined,
         locationId: row.location_id ?? undefined,
+        // Route assignment
+        stopOrder: row.stop_order ?? undefined,
         // Booking identification
         bookingNumber: row.booking_number ?? undefined,
         // Booking type and recurrence
@@ -64,9 +78,9 @@ function rowToBooking(row) {
         // Joined fields for UI
         clientName: row.clients?.name,
         clientEmail: row.clients?.email,
-        serviceName: row.services?.name,
-        serviceCode: row.services?.code,
-        serviceAverageDurationMinutes: row.services?.average_duration_minutes,
+        serviceName: row.services?.name, // DEPRECATED
+        serviceCode: row.services?.code, // DEPRECATED
+        serviceAverageDurationMinutes: row.services?.average_duration_minutes, // DEPRECATED
         locationName: row.locations?.name,
         locationLatitude: row.locations?.latitude ?? undefined,
         locationLongitude: row.locations?.longitude ?? undefined,
@@ -86,7 +100,9 @@ function bookingInputToRow(input) {
         : null;
     return {
         client_id: input.clientId,
-        service_id: input.serviceId,
+        service_id: input.serviceId ?? null, // DEPRECATED: Make nullable
+        service_items: input.serviceItems ?? null,
+        service_ids: input.serviceIds ?? null,
         vehicle_id: input.vehicleId ?? null,
         location_id: input.locationId ?? null,
         booking_number: input.bookingNumber ?? null,
@@ -127,9 +143,17 @@ function updateBookingInputToRow(input) {
     if (input.clientId !== undefined)
         row.client_id = input.clientId;
     if (input.serviceId !== undefined)
-        row.service_id = input.serviceId;
+        row.service_id = input.serviceId; // DEPRECATED
+    if (input.serviceItems !== undefined)
+        row.service_items = input.serviceItems ?? null;
+    if (input.serviceIds !== undefined)
+        row.service_ids = input.serviceIds ?? null;
     if (input.vehicleId !== undefined)
-        row.vehicle_id = input.vehicleId ?? null;
+        row.vehicle_id = input.vehicleId ?? null; // DEPRECATED
+    if (input.routeId !== undefined)
+        row.route_id = input.routeId ?? null;
+    if (input.stopOrder !== undefined)
+        row.stop_order = input.stopOrder ?? null;
     if (input.locationId !== undefined)
         row.location_id = input.locationId ?? null;
     if (input.bookingNumber !== undefined)

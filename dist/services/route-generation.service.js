@@ -82,7 +82,7 @@ function batchBookingsByVehicleAndService(bookings) {
         if (!batches.has(batchKey)) {
             batches.set(batchKey, {
                 vehicleId: booking.vehicleId,
-                serviceId: booking.serviceId,
+                serviceId: booking.serviceId || booking.serviceIds?.[0] || '',
                 bookings: [],
             });
         }

@@ -125,11 +125,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-DROP TRIGGER IF EXISTS trigger_booking_activity ON routeiq.bookings;
-CREATE TRIGGER trigger_booking_activity
-    AFTER INSERT OR UPDATE ON routeiq.bookings
-    FOR EACH ROW
-    EXECUTE FUNCTION routeiq.trigger_booking_activity();
+-- Booking Trigger
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'routeiq' AND table_name = 'bookings') THEN
+        DROP TRIGGER IF EXISTS trigger_booking_activity ON routeiq.bookings;
+        CREATE TRIGGER trigger_booking_activity
+            AFTER INSERT OR UPDATE ON routeiq.bookings
+            FOR EACH ROW
+            EXECUTE FUNCTION routeiq.trigger_booking_activity();
+    END IF;
+END $$;
 
 -- ============================================
 -- ROUTE TRIGGERS
@@ -212,11 +218,16 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-DROP TRIGGER IF EXISTS trigger_route_activity ON routeiq.routes;
-CREATE TRIGGER trigger_route_activity
-    AFTER INSERT OR UPDATE ON routeiq.routes
-    FOR EACH ROW
-    EXECUTE FUNCTION routeiq.trigger_route_activity();
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'routeiq' AND table_name = 'routes') THEN
+        DROP TRIGGER IF EXISTS trigger_route_activity ON routeiq.routes;
+        CREATE TRIGGER trigger_route_activity
+            AFTER INSERT OR UPDATE ON routeiq.routes
+            FOR EACH ROW
+            EXECUTE FUNCTION routeiq.trigger_route_activity();
+    END IF;
+END $$;
 
 -- ============================================
 -- CLIENT TRIGGERS
@@ -254,11 +265,16 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-DROP TRIGGER IF EXISTS trigger_client_activity ON routeiq.clients;
-CREATE TRIGGER trigger_client_activity
-    AFTER INSERT ON routeiq.clients
-    FOR EACH ROW
-    EXECUTE FUNCTION routeiq.trigger_client_activity();
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'routeiq' AND table_name = 'clients') THEN
+        DROP TRIGGER IF EXISTS trigger_client_activity ON routeiq.clients;
+        CREATE TRIGGER trigger_client_activity
+            AFTER INSERT ON routeiq.clients
+            FOR EACH ROW
+            EXECUTE FUNCTION routeiq.trigger_client_activity();
+    END IF;
+END $$;
 
 -- ============================================
 -- VEHICLE TRIGGERS
@@ -306,11 +322,16 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
-DROP TRIGGER IF EXISTS trigger_vehicle_activity ON routeiq.vehicles;
-CREATE TRIGGER trigger_vehicle_activity
-    AFTER UPDATE ON routeiq.vehicles
-    FOR EACH ROW
-    EXECUTE FUNCTION routeiq.trigger_vehicle_activity();
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'routeiq' AND table_name = 'vehicles') THEN
+        DROP TRIGGER IF EXISTS trigger_vehicle_activity ON routeiq.vehicles;
+        CREATE TRIGGER trigger_vehicle_activity
+            AFTER UPDATE ON routeiq.vehicles
+            FOR EACH ROW
+            EXECUTE FUNCTION routeiq.trigger_vehicle_activity();
+    END IF;
+END $$;
 
 -- Add comments
 COMMENT ON FUNCTION routeiq.log_activity IS 'Helper function to insert activity log entries';

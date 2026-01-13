@@ -100,6 +100,7 @@ export interface Route extends Timestamps {
 
   // Status
   status: RouteStatus;
+  needsRecalculation: boolean; // True if route metrics are stale after booking changes
 
   // Capacity
   plannedCapacityWeight?: number;
@@ -158,6 +159,7 @@ export interface RouteRow {
   optimization_score: number | null;
   algorithm_version: string | null;
   status: RouteStatus;
+  needs_recalculation: boolean;
   planned_capacity_weight: number | null;
   planned_capacity_volume: number | null;
   actual_capacity_weight: number | null;
@@ -227,6 +229,7 @@ export interface UpdateRouteInput extends Partial<CreateRouteInput> {
   actualCapacityWeight?: number;
   actualCapacityVolume?: number;
   actualCost?: number;
+  needsRecalculation?: boolean;
 }
 
 /**
@@ -283,6 +286,7 @@ export function rowToRoute(row: RouteRow): Route {
     algorithmVersion: row.algorithm_version ?? undefined,
     optimizationMetadata: row.optimization_metadata ?? undefined,
     status: row.status,
+    needsRecalculation: row.needs_recalculation ?? false,
     plannedCapacityWeight: row.planned_capacity_weight ?? undefined,
     plannedCapacityVolume: row.planned_capacity_volume ?? undefined,
     actualCapacityWeight: row.actual_capacity_weight ?? undefined,
@@ -357,5 +361,6 @@ export function updateRouteInputToRow(input: UpdateRouteInput): Partial<RouteRow
     actual_capacity_weight: input.actualCapacityWeight ?? undefined,
     actual_capacity_volume: input.actualCapacityVolume ?? undefined,
     actual_cost: input.actualCost ?? undefined,
+    needs_recalculation: input.needsRecalculation ?? undefined,
   };
 }

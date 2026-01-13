@@ -33,6 +33,7 @@ function rowToRoute(row) {
         algorithmVersion: row.algorithm_version ?? undefined,
         optimizationMetadata: row.optimization_metadata ?? undefined,
         status: row.status,
+        needsRecalculation: row.needs_recalculation ?? false,
         plannedCapacityWeight: row.planned_capacity_weight ?? undefined,
         plannedCapacityVolume: row.planned_capacity_volume ?? undefined,
         actualCapacityWeight: row.actual_capacity_weight ?? undefined,
@@ -104,6 +105,7 @@ function updateRouteInputToRow(input) {
         actual_capacity_weight: input.actualCapacityWeight ?? undefined,
         actual_capacity_volume: input.actualCapacityVolume ?? undefined,
         actual_cost: input.actualCost ?? undefined,
+        needs_recalculation: input.needsRecalculation ?? undefined,
     };
 }
 //# sourceMappingURL=route.js.map

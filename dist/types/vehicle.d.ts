@@ -66,6 +66,7 @@ export interface Vehicle extends Timestamps {
     fuelType?: FuelType;
     fuelCapacity?: number;
     currentFuelLevel?: number;
+    fuelEfficiencyMpg?: number;
     lastMaintenanceDate?: Date;
     nextMaintenanceDate?: Date;
     odometerReading?: number;
@@ -99,6 +100,7 @@ export interface VehicleRow {
     fuel_type: FuelType | null;
     fuel_capacity: number | null;
     current_fuel_level: number | null;
+    fuel_efficiency_mpg: number | null;
     last_maintenance_date: string | null;
     next_maintenance_date: string | null;
     odometer_reading: number | null;
@@ -132,6 +134,7 @@ export interface CreateVehicleInput {
     fuelType?: FuelType;
     fuelCapacity?: number;
     currentFuelLevel?: number;
+    fuelEfficiencyMpg?: number;
     lastMaintenanceDate?: Date;
     nextMaintenanceDate?: Date;
     odometerReading?: number;

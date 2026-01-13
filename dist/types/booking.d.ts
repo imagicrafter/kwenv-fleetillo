@@ -32,14 +32,29 @@ export interface ServiceLocation {
     longitude?: number;
 }
 /**
+ * Individual service item within a booking
+ */
+export interface BookingServiceItem {
+    serviceId: ID;
+    name: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+    duration: number;
+}
+/**
  * Booking entity representing a service booking in the system
  */
 export interface Booking extends Timestamps {
     id: ID;
     clientId: ID;
-    serviceId: ID;
+    serviceId?: ID;
+    serviceIds: ID[];
+    serviceItems: BookingServiceItem[];
     vehicleId?: ID;
+    routeId?: ID;
     locationId?: ID;
+    stopOrder?: number;
     bookingNumber?: string;
     bookingType: BookingType;
     recurrencePattern?: RecurrencePattern;
@@ -88,9 +103,13 @@ export interface Booking extends Timestamps {
 export interface BookingRow {
     id: string;
     client_id: string;
-    service_id: string;
+    service_id: string | null;
+    service_ids: string[] | null;
+    service_items: BookingServiceItem[] | null;
     vehicle_id: string | null;
+    route_id: string | null;
     location_id: string | null;
+    stop_order: number | null;
     booking_number: string | null;
     booking_type: BookingType;
     recurrence_pattern: RecurrencePattern | null;
@@ -131,6 +150,7 @@ export interface BookingRow {
     services?: {
         name: string;
         code?: string;
+        average_duration_minutes?: number;
     } | null;
     locations?: {
         name: string;
@@ -143,12 +163,16 @@ export interface BookingRow {
  */
 export interface CreateBookingInput {
     clientId: ID;
-    serviceId: ID;
+    serviceId?: ID;
+    serviceItems?: BookingServiceItem[];
+    serviceIds?: ID[];
     bookingType: BookingType;
     scheduledDate: Date | string;
     scheduledStartTime: string;
     vehicleId?: ID;
+    routeId?: ID;
     locationId?: ID;
+    stopOrder?: number;
     bookingNumber?: string;
     recurrencePattern?: RecurrencePattern;
     recurrenceEndDate?: Date | string;
@@ -192,6 +216,8 @@ export interface BookingFilters {
     clientId?: ID;
     serviceId?: ID;
     vehicleId?: ID;
+    routeId?: ID;
+    routeIdIsNull?: boolean;
     bookingType?: BookingType;
     status?: BookingStatus;
     priority?: BookingPriority;

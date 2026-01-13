@@ -11,7 +11,9 @@ import {
     SettingKey,
     SettingKeys,
     RouteSettings,
+    CostSettings,
     DEFAULT_SETTINGS,
+    DEFAULT_COST_SETTINGS,
     calculateMaxDailyMinutes,
 } from '../types/settings.js';
 
@@ -197,6 +199,31 @@ export async function getRoutePlanningParams(): Promise<{
 }
 
 /**
+ * Get cost settings as a typed object
+ */
+export async function getCostSettings(): Promise<Result<CostSettings>> {
+    logger.debug('Getting cost settings');
+
+    const result = await getAllSettings();
+    if (!result.success) {
+        return { success: false, error: result.error };
+    }
+
+    const raw = result.data ?? {};
+
+    const settings: CostSettings = {
+        laborRatePerHour: Number(raw[SettingKeys.COSTS_LABOR_RATE_PER_HOUR]) || DEFAULT_COST_SETTINGS.laborRatePerHour,
+        gasolinePricePerGallon: Number(raw[SettingKeys.COSTS_GASOLINE_PRICE_PER_GALLON]) || DEFAULT_COST_SETTINGS.gasolinePricePerGallon,
+        dieselPricePerGallon: Number(raw[SettingKeys.COSTS_DIESEL_PRICE_PER_GALLON]) || DEFAULT_COST_SETTINGS.dieselPricePerGallon,
+        includeTrafficBuffer: raw[SettingKeys.COSTS_INCLUDE_TRAFFIC_BUFFER] !== undefined
+            ? Boolean(raw[SettingKeys.COSTS_INCLUDE_TRAFFIC_BUFFER])
+            : DEFAULT_COST_SETTINGS.includeTrafficBuffer,
+    };
+
+    return { success: true, data: settings };
+}
+
+/**
  * Get default value for a setting key
  */
 function getDefaultValue(key: SettingKey): unknown {
@@ -213,7 +240,16 @@ function getDefaultValue(key: SettingKey): unknown {
             return DEFAULT_SETTINGS.routing.trafficBufferPercent;
         case SettingKeys.ROUTING_DEFAULT_SERVICE_DURATION:
             return DEFAULT_SETTINGS.routing.defaultServiceDurationMinutes;
+        case SettingKeys.COSTS_LABOR_RATE_PER_HOUR:
+            return DEFAULT_COST_SETTINGS.laborRatePerHour;
+        case SettingKeys.COSTS_GASOLINE_PRICE_PER_GALLON:
+            return DEFAULT_COST_SETTINGS.gasolinePricePerGallon;
+        case SettingKeys.COSTS_DIESEL_PRICE_PER_GALLON:
+            return DEFAULT_COST_SETTINGS.dieselPricePerGallon;
+        case SettingKeys.COSTS_INCLUDE_TRAFFIC_BUFFER:
+            return DEFAULT_COST_SETTINGS.includeTrafficBuffer;
         default:
             return null;
     }
 }
+

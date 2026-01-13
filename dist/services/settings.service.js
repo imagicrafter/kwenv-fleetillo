@@ -10,6 +10,7 @@ exports.getRouteSettings = getRouteSettings;
 exports.updateSetting = updateSetting;
 exports.updateSettings = updateSettings;
 exports.getRoutePlanningParams = getRoutePlanningParams;
+exports.getCostSettings = getCostSettings;
 const supabase_js_1 = require("./supabase.js");
 const logger_js_1 = require("../utils/logger.js");
 const settings_js_1 = require("../types/settings.js");
@@ -161,6 +162,26 @@ async function getRoutePlanningParams() {
     };
 }
 /**
+ * Get cost settings as a typed object
+ */
+async function getCostSettings() {
+    logger.debug('Getting cost settings');
+    const result = await getAllSettings();
+    if (!result.success) {
+        return { success: false, error: result.error };
+    }
+    const raw = result.data ?? {};
+    const settings = {
+        laborRatePerHour: Number(raw[settings_js_1.SettingKeys.COSTS_LABOR_RATE_PER_HOUR]) || settings_js_1.DEFAULT_COST_SETTINGS.laborRatePerHour,
+        gasolinePricePerGallon: Number(raw[settings_js_1.SettingKeys.COSTS_GASOLINE_PRICE_PER_GALLON]) || settings_js_1.DEFAULT_COST_SETTINGS.gasolinePricePerGallon,
+        dieselPricePerGallon: Number(raw[settings_js_1.SettingKeys.COSTS_DIESEL_PRICE_PER_GALLON]) || settings_js_1.DEFAULT_COST_SETTINGS.dieselPricePerGallon,
+        includeTrafficBuffer: raw[settings_js_1.SettingKeys.COSTS_INCLUDE_TRAFFIC_BUFFER] !== undefined
+            ? Boolean(raw[settings_js_1.SettingKeys.COSTS_INCLUDE_TRAFFIC_BUFFER])
+            : settings_js_1.DEFAULT_COST_SETTINGS.includeTrafficBuffer,
+    };
+    return { success: true, data: settings };
+}
+/**
  * Get default value for a setting key
  */
 function getDefaultValue(key) {
@@ -177,6 +198,14 @@ function getDefaultValue(key) {
             return settings_js_1.DEFAULT_SETTINGS.routing.trafficBufferPercent;
         case settings_js_1.SettingKeys.ROUTING_DEFAULT_SERVICE_DURATION:
             return settings_js_1.DEFAULT_SETTINGS.routing.defaultServiceDurationMinutes;
+        case settings_js_1.SettingKeys.COSTS_LABOR_RATE_PER_HOUR:
+            return settings_js_1.DEFAULT_COST_SETTINGS.laborRatePerHour;
+        case settings_js_1.SettingKeys.COSTS_GASOLINE_PRICE_PER_GALLON:
+            return settings_js_1.DEFAULT_COST_SETTINGS.gasolinePricePerGallon;
+        case settings_js_1.SettingKeys.COSTS_DIESEL_PRICE_PER_GALLON:
+            return settings_js_1.DEFAULT_COST_SETTINGS.dieselPricePerGallon;
+        case settings_js_1.SettingKeys.COSTS_INCLUDE_TRAFFIC_BUFFER:
+            return settings_js_1.DEFAULT_COST_SETTINGS.includeTrafficBuffer;
         default:
             return null;
     }

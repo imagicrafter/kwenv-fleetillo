@@ -40,7 +40,8 @@ const {
   createBooking,
   updateBooking,
   deleteBooking,
-  getBookingById
+  getBookingById,
+  removeBookingFromRoute
 } = require('../../dist/services/booking.service.js');
 const {
   getAllLocations,
@@ -214,6 +215,14 @@ function setupIpcHandlers() {
       throw new Error(result.error?.message || 'Failed to fetch booking');
     }
     return result.data;
+  });
+
+  ipcMain.handle('bookings:removeFromRoute', async (event, id) => {
+    const result = await removeBookingFromRoute(id);
+    if (!result.success) {
+      throw new Error(result.error?.message || 'Failed to remove booking from route');
+    }
+    return result.success;
   });
 
   // Locations IPC Handlers

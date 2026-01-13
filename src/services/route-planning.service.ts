@@ -292,7 +292,7 @@ async function createTimeAwareAllocation(
     // Helper to get booking duration
     const getServiceDuration = (b: Booking) => {
         // Use estimatedDuration if overridden on booking, else service average, else default 30
-        return b.estimatedDurationMinutes || servicesMap.get(b.serviceId) || 30;
+        return b.estimatedDurationMinutes || servicesMap.get(b.serviceId || b.serviceIds?.[0] || '') || 30;
     };
 
     // Greedy allocation loop
@@ -321,7 +321,7 @@ async function createTimeAwareAllocation(
                 // If vehicle has no service types, assume it can do anything? Or nothing?
                 // Using existing logic: if set exists, must contain serviceId
                 if (state.vehicle.serviceTypes && state.vehicle.serviceTypes.length > 0) {
-                    if (!vehicleServiceSet.has(booking.serviceId)) continue;
+                    if (!vehicleServiceSet.has(booking.serviceId || booking.serviceIds?.[0] || '')) continue;
                 }
 
                 const coords = getBookingCoordinates(booking);
@@ -646,7 +646,7 @@ async function findCompatibleVehicleBookings(
             continue;
         }
 
-        if (supportedServiceIds.has(booking.serviceId)) {
+        if (supportedServiceIds.has(booking.serviceId || booking.serviceIds?.[0] || '')) {
             compatibleBookings.push(booking);
         } else {
             incompatibleBookings.push(booking);
@@ -729,10 +729,10 @@ export async function previewRoutePlan(
 
     const allBookings = bookingsResult.data!.data;
 
-    // Filter to unscheduled bookings with valid coordinates
+    // Filter to unscheduled bookings (no route assigned) with valid coordinates
     const validBookings = allBookings.filter(hasValidCoordinates);
     const invalidBookings = allBookings.filter(b => !hasValidCoordinates(b));
-    const unscheduledBookings = validBookings.filter(b => !b.vehicleId);
+    const unscheduledBookings = validBookings.filter(b => !b.routeId); // Use routeId instead of vehicleId
 
     if (invalidBookings.length > 0) {
         warnings.push(`${invalidBookings.length} booking(s) missing coordinates`);
@@ -937,8 +937,8 @@ export async function planRoutes(
         logger.warn('Bookings missing coordinates', { count: invalidBookings.length });
     }
 
-    // Filter bookings that don't already have a vehicle assigned (unscheduled)
-    const unscheduledBookings = validBookings.filter((b) => !b.vehicleId);
+    // Filter bookings that don't already have a route assigned (unscheduled)
+    const unscheduledBookings = validBookings.filter((b) => !b.routeId); // Use routeId instead of vehicleId
 
     if (unscheduledBookings.length === 0) {
         return {
@@ -1276,7 +1276,12 @@ export async function planRoutes(
                 const scheduledStartTime = currentRouteTime.toTimeString().substring(0, 5);
 
                 // Add Service Duration
-                const serviceDurationMinutes = booking.serviceAverageDurationMinutes || 30; // Default 30 mins
+                let serviceDurationMinutes = 0;
+                if (booking.serviceItems && booking.serviceItems.length > 0) {
+                    serviceDurationMinutes = booking.serviceItems.reduce((total, item) => total + (item.duration || 0), 0);
+                } else {
+                    serviceDurationMinutes = booking.serviceAverageDurationMinutes || 30; // Default 30 mins
+                }
                 calculatedTotalServiceMinutes += serviceDurationMinutes;
 
                 currentRouteTime = new Date(currentRouteTime.getTime() + serviceDurationMinutes * 60 * 1000);
@@ -1346,11 +1351,15 @@ export async function planRoutes(
             vehiclesUsed.add(vehicle.id);
             routeIndex++;
 
-            // Update bookings with vehicle ID AND new timestamps
+            // Update bookings with route ID, stop order, and timestamps
+            // Also set vehicleId for backward compatibility during transition
+            let stopOrderIdx = 1;
             for (const update of bookingUpdates) {
                 const updateResult = await updateBooking({
                     id: update.id,
-                    vehicleId: vehicle.id,
+                    routeId: createdRoute.id, // NEW: Assign to route
+                    stopOrder: stopOrderIdx,  // NEW: Set stop order within route
+                    vehicleId: vehicle.id,    // DEPRECATED: Keep for backward compatibility
                     status: 'scheduled',
                     scheduledStartTime: update.start,
                     scheduledEndTime: update.end
@@ -1361,6 +1370,7 @@ export async function planRoutes(
                         `Failed to update booking ${update.id}: ${updateResult.error?.message}`
                     );
                 }
+                stopOrderIdx++;
             }
 
             logger.info('Created route', {

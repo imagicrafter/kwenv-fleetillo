@@ -22,7 +22,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
         create: (booking) => ipcRenderer.invoke('bookings:create', booking),
         update: (booking) => ipcRenderer.invoke('bookings:update', booking),
         delete: (id) => ipcRenderer.invoke('bookings:delete', id),
-        getById: (id) => ipcRenderer.invoke('bookings:getById', id)
+        getById: (id) => ipcRenderer.invoke('bookings:getById', id),
+        removeFromRoute: (id) => ipcRenderer.invoke('bookings:removeFromRoute', id)
     },
     locations: {
         getAll: (filters, pagination) => ipcRenderer.invoke('locations:getAll', filters, pagination),

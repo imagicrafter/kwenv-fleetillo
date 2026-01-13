@@ -259,7 +259,13 @@
     <div id="add-booking-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modal-title">Add New Booking</h2>
+                <div>
+                    <h2 id="modal-title">Add New Booking</h2>
+                    <div id="booking-id-display"
+                        style="display: none; font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">
+                        Booking #: <span id="booking-id-text"></span>
+                    </div>
+                </div>
                 <span class="close-modal">&times;</span>
             </div>
             <div class="modal-body">
@@ -282,22 +288,43 @@
                     </div>
 
                     <div class="form-group" style="position: relative;">
-                        <label>Service *</label>
-                        <input type="text" id="service-search" placeholder="Search service by name..."
+                        <label>Services</label>
+                        <input type="text" id="service-search" placeholder="Search to add service..."
                             autocomplete="off">
-                        <input type="hidden" id="service-id">
                         <div id="service-search-results"
                             style="display: none; position: absolute; width: 100%; top: 100%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; z-index: 10; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
                         </div>
-                        <div id="selected-service-display"
-                            style="display: none; margin-top: 8px; padding: 8px; background: rgba(88, 166, 255, 0.1); border-radius: 4px; align-items: center; justify-content: space-between;">
-                            <div style="display:flex; flex-direction:column;">
-                                <span id="selected-service-name" style="font-weight: 500;"></span>
-                                <span id="selected-service-details"
-                                    style="font-size: 0.8rem; color: var(--text-secondary);"></span>
+
+                        <!-- Selected Services List -->
+                        <div class="table-container"
+                            style="margin-top: 10px; border: 1px solid var(--border-subtle); border-radius: 6px; max-height: 200px; overflow-y: auto;">
+                            <table class="data-table" id="selected-services-table" style="margin: 0;">
+                                <thead style="position: sticky; top: 0; background: var(--bg-card); z-index: 1;">
+                                    <tr>
+                                        <th style="padding: 8px;">Service</th>
+                                        <th style="width: 60px; padding: 8px;">Qty</th>
+                                        <th style="width: 80px; padding: 8px;">Price</th>
+                                        <th style="width: 80px; padding: 8px;">Total</th>
+                                        <th style="width: 40px; padding: 8px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="selected-services-tbody">
+                                    <tr id="no-services-row">
+                                        <td colspan="5"
+                                            style="text-align: center; color: var(--text-secondary); padding: 12px;">No
+                                            services added</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Service Totals -->
+                        <div
+                            style="display: flex; justify-content: flex-end; margin-top: 8px; gap: 16px; font-size: 0.9rem;">
+                            <div>Est. Time: <span id="total-estimated-time-display" style="font-weight: 600;">0
+                                    min</span></div>
+                            <div>List Price: <span id="total-list-price-display" style="font-weight: 600;">$0.00</span>
                             </div>
-                            <button type="button" id="clear-service-btn"
-                                style="background: none; border: none; color: var(--text-secondary); cursor: pointer;">✕</button>
                         </div>
                     </div>
 
@@ -337,7 +364,7 @@
                             <select id="status">
                                 <option value="pending">Pending</option>
                                 <option value="confirmed">Confirmed</option>
-                                <option value="scheduled">Scheduled</option>
+                                <!-- 'scheduled' is set automatically when assigned to a route -->
                                 <option value="in_progress">In Progress</option>
                                 <option value="completed">Completed</option>
                                 <option value="cancelled">Cancelled</option>
@@ -540,6 +567,7 @@
 
             let isEditing = false;
             let currentBookingId = null;
+            let currentBookingNumber = null;
             let currentPage = 1;
             let limit = 10;
             let totalItems = 0;
@@ -572,6 +600,55 @@
                     option.textContent = label;
                     timeSelect.appendChild(option);
                 }
+            }
+
+            // --- Helper: Update Status Options Based on Current Status ---
+            // Allowed status transitions:
+            // - pending: confirmed, cancelled
+            // - confirmed: cancelled, no_show
+            // - scheduled: cancelled, no_show (with confirmation warning - handled in form submit)
+            // - in_progress: completed, cancelled
+            // - completed: (no changes allowed - final state)
+            // - cancelled: (no changes allowed - final state)
+            let originalBookingStatus = null; // Store original status for comparison
+
+            function updateStatusOptions(selectElement, currentStatus) {
+                const allStatuses = {
+                    pending: 'Pending',
+                    confirmed: 'Confirmed',
+                    scheduled: 'Scheduled',
+                    in_progress: 'In Progress',
+                    completed: 'Completed',
+                    cancelled: 'Cancelled',
+                    no_show: 'No Show'
+                };
+
+                // Define allowed transitions from each status
+                const allowedTransitions = {
+                    pending: ['pending', 'confirmed', 'cancelled'],
+                    confirmed: ['confirmed', 'cancelled', 'no_show'],
+                    scheduled: ['scheduled', 'cancelled', 'no_show'], // Warning shown on cancel
+                    in_progress: ['in_progress', 'completed', 'cancelled'],
+                    completed: ['completed'], // Final state
+                    cancelled: ['cancelled'], // Final state
+                    no_show: ['no_show'], // Final state
+                };
+
+                const allowed = allowedTransitions[currentStatus] || [currentStatus];
+
+                // Clear existing options
+                selectElement.innerHTML = '';
+
+                // Add allowed options
+                allowed.forEach(status => {
+                    const option = document.createElement('option');
+                    option.value = status;
+                    option.textContent = allStatuses[status] || status;
+                    selectElement.appendChild(option);
+                });
+
+                // Store original status for form submit comparison
+                originalBookingStatus = currentStatus;
             }
 
             // --- Initialization ---
@@ -857,12 +934,192 @@
             const clearClientBtn = document.getElementById('clear-client-btn');
 
             const serviceSearchInput = document.getElementById('service-search');
-            const serviceIdInput = document.getElementById('service-id');
             const serviceSearchResults = document.getElementById('service-search-results');
-            const selectedServiceDisplay = document.getElementById('selected-service-display');
-            const selectedServiceName = document.getElementById('selected-service-name');
-            const selectedServiceDetails = document.getElementById('selected-service-details');
-            const clearServiceBtn = document.getElementById('clear-service-btn');
+            // Multi-Service State
+            let selectedServices = []; // Array of { id, name, quantity, unitPrice, total, duration }
+
+            // Elements for totals
+            const totalEstimatedTimeDisplay = document.getElementById('total-estimated-time-display');
+            const totalListPriceDisplay = document.getElementById('total-list-price-display');
+            const selectedServicesTbody = document.getElementById('selected-services-tbody');
+
+            const locationSearchInput = document.getElementById('location-search');
+            const locationIdInput = document.getElementById('location-id');
+            const locationSearchResults = document.getElementById('location-search-results');
+            const selectedLocationDisplay = document.getElementById('selected-location-display');
+            const selectedLocationName = document.getElementById('selected-location-name');
+            const selectedLocationAddress = document.getElementById('selected-location-address');
+            const clearLocationBtn = document.getElementById('clear-location-btn');
+            const locationClientHint = document.getElementById('location-client-hint');
+
+            // --- Service Search Logic ---
+            let serviceSearchTimeout;
+            serviceSearchInput.addEventListener('input', (e) => {
+                clearTimeout(serviceSearchTimeout);
+                const term = e.target.value.trim();
+
+                if (term.length < 2) {
+                    serviceSearchResults.style.display = 'none';
+                    return;
+                }
+
+                serviceSearchTimeout = setTimeout(async () => {
+                    try {
+                        const result = await window.electronAPI.services.getAll({ searchTerm: term, limit: 10 });
+                        const services = result.data.data || result.data || [];
+                        renderServiceResults(services);
+                    } catch (err) {
+                        console.error('Service search failed', err);
+                    }
+                }, 300);
+            });
+
+            function renderServiceResults(services) {
+                serviceSearchResults.innerHTML = '';
+                if (services.length === 0) {
+                    const div = document.createElement('div');
+                    div.style.padding = '8px 12px';
+                    div.style.color = 'var(--text-secondary)';
+                    div.textContent = 'No services found';
+                    serviceSearchResults.appendChild(div);
+                } else {
+                    services.forEach(service => {
+                        const div = document.createElement('div');
+                        div.style.padding = '8px 12px';
+                        div.style.cursor = 'pointer';
+                        div.style.borderBottom = '1px solid var(--border-subtle)';
+                        div.innerHTML = `<div style="font-weight:500">${service.name}</div><div style="font-size:0.8rem; color:var(--text-secondary)">$${Number(service.price || service.basePrice || 0).toFixed(2)} | ${service.durationMinutes || service.avgDurationMinutes || 0} min</div>`;
+                        div.addEventListener('mouseover', () => div.style.backgroundColor = 'rgba(255,255,255,0.05)');
+                        div.addEventListener('mouseout', () => div.style.backgroundColor = 'transparent');
+                        div.addEventListener('click', () => {
+                            addService(service);
+                        });
+                        serviceSearchResults.appendChild(div);
+                    });
+                }
+                serviceSearchResults.style.display = 'block';
+            }
+
+            function addService(service) {
+                // Check if already added
+                const existing = selectedServices.find(s => s.id === service.id);
+                if (existing) {
+                    existing.quantity++;
+                } else {
+                    selectedServices.push({
+                        id: service.id,
+                        name: service.name,
+                        quantity: 1,
+                        unitPrice: Number(service.price || service.basePrice || 0),
+                        duration: Number(service.averageDurationMinutes || service.durationMinutes || service.avgDurationMinutes || 0),
+                    });
+                }
+
+                renderServicesTable();
+                calculateTotals(true);
+
+                // Clear search
+                serviceSearchInput.value = '';
+                serviceSearchResults.style.display = 'none';
+            }
+
+            function removeService(index) {
+                selectedServices.splice(index, 1);
+                renderServicesTable();
+                calculateTotals(true);
+            }
+
+            function updateServiceQuantity(index, newQty) {
+                const qty = parseInt(newQty);
+                if (qty > 0) {
+                    selectedServices[index].quantity = qty;
+                    renderServicesTable(); // Re-render to update totals in row
+                    calculateTotals(true);
+                }
+            }
+
+            function updateServicePrice(index, newPrice) {
+                const price = parseFloat(newPrice);
+                if (!isNaN(price) && price >= 0) {
+                    selectedServices[index].unitPrice = price;
+                    renderServicesTable(); // Re-render to update totals in row
+                    calculateTotals(true);
+                }
+            }
+
+            function renderServicesTable() {
+                selectedServicesTbody.innerHTML = '';
+
+                if (selectedServices.length === 0) {
+                    selectedServicesTbody.innerHTML = `
+                        <tr id="no-services-row">
+                            <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 12px;">No services added</td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                selectedServices.forEach((item, index) => {
+                    const row = document.createElement('tr');
+                    const rowTotal = item.quantity * item.unitPrice;
+
+                    row.innerHTML = `
+                        <td style="padding: 8px;">${item.name}</td>
+                        <td style="padding: 8px;">
+                            <input type="number" class="form-input qty-input" value="${item.quantity}" min="1" 
+                                style="width: 50px; padding: 4px;" data-index="${index}">
+                        </td>
+                        <td style="padding: 8px;">
+                            <input type="number" class="form-input price-input" value="${item.unitPrice.toFixed(2)}" min="0" step="0.01" 
+                                style="width: 70px; padding: 4px;" data-index="${index}">
+                        </td>
+                        <td style="padding: 8px;">$${rowTotal.toFixed(2)}</td>
+                        <td style="padding: 8px; text-align: right;">
+                            <button type="button" class="btn-icon remove-service-btn" data-index="${index}" style="color: var(--text-danger); background: none; border: none; cursor: pointer;">✕</button>
+                        </td>
+                    `;
+                    selectedServicesTbody.appendChild(row);
+                });
+
+                // Attach listeners
+                document.querySelectorAll('.qty-input').forEach(input => {
+                    input.addEventListener('change', (e) => updateServiceQuantity(e.target.dataset.index, e.target.value));
+                });
+                document.querySelectorAll('.price-input').forEach(input => {
+                    input.addEventListener('change', (e) => updateServicePrice(e.target.dataset.index, e.target.value));
+                });
+                document.querySelectorAll('.remove-service-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => removeService(e.target.dataset.index));
+                });
+            }
+
+            function calculateTotals(updateQuotedPrice = false) {
+                let totalTime = 0;
+                let totalPrice = 0;
+
+                selectedServices.forEach(item => {
+                    totalTime += (item.quantity * item.duration);
+                    totalPrice += (item.quantity * item.unitPrice);
+                });
+
+                totalEstimatedTimeDisplay.textContent = `${totalTime} min`;
+                totalListPriceDisplay.textContent = `$${totalPrice.toFixed(2)}`;
+
+                // Auto-update form fields
+                const durationInput = document.getElementById('estimated-duration');
+                const priceInput = document.getElementById('quoted-price');
+
+                // Always auto-update duration as it's purely calculated (unless user wants to pad it manually? let's stick to auto for now or only if empty)
+                // For better UX, let's update it if the user hasn't manually edited it away from the previous calculation.
+                // Simpler: Just update it. User can edit it *after* adding services if they want padding.
+                durationInput.value = totalTime;
+
+                // For quoted price, update if it is empty, 0, OR if we are explicitly updating (user added/removed service)
+                if (updateQuotedPrice || !priceInput.value || parseFloat(priceInput.value) === 0) {
+                    priceInput.value = totalPrice.toFixed(2);
+                }
+            }
+
 
             // --- Client Search Logic ---
             let clientSearchTimeout;
@@ -900,7 +1157,7 @@
                         div.style.padding = '8px 12px';
                         div.style.cursor = 'pointer';
                         div.style.borderBottom = '1px solid var(--border-subtle)';
-                        div.innerHTML = `<div style="font-weight:500">${client.name}</div><div style="font-size:0.8rem; color:var(--text-secondary)">${client.email || 'No email'}</div>`;
+                        div.innerHTML = `<div style="font-weight:500">${client.name}</div><div style="font-size:0.8rem; color:var(--text-secondary)">${client.email || ''}</div>`;
                         div.addEventListener('mouseover', () => div.style.backgroundColor = 'rgba(255,255,255,0.05)');
                         div.addEventListener('mouseout', () => div.style.backgroundColor = 'transparent');
                         div.addEventListener('click', () => {
@@ -912,54 +1169,57 @@
                 clientSearchResults.style.display = 'block';
             }
 
-            // --- Location Search Logic ---
-            const locationSearchInput = document.getElementById('location-search');
-            const locationIdInput = document.getElementById('location-id');
-            const locationSearchResults = document.getElementById('location-search-results');
-            const selectedLocationDisplay = document.getElementById('selected-location-display');
-            const selectedLocationName = document.getElementById('selected-location-name');
-            const selectedLocationAddress = document.getElementById('selected-location-address');
-            const clearLocationBtn = document.getElementById('clear-location-btn');
-            const locationClientHint = document.getElementById('location-client-hint');
+            function selectClient(client) {
+                clientIdInput.value = client.id;
+                selectedClientName.textContent = client.name;
+                clientSearchInput.style.display = 'none';
+                clientSearchResults.style.display = 'none';
+                selectedClientDisplay.style.display = 'flex';
 
-            let locationSearchTimeout;
-
-            async function performLocationSearch(term) {
-                const selectedClientId = clientIdInput.value;
-
-                // Show hint if no client selected
-                if (!selectedClientId) {
+                // Show hint for location if no location selected yet
+                if (!locationIdInput.value) {
                     locationClientHint.style.display = 'block';
-                    locationSearchResults.style.display = 'none';
-                    return;
-                }
-                locationClientHint.style.display = 'none';
-
-                try {
-                    // Search locations filtered by client
-                    // If term is empty, this fetches all locations for the client
-                    const result = await window.electronAPI.locations.getAll({ clientId: selectedClientId, searchTerm: term });
-                    const locations = result.data || result || [];
-                    renderLocationResults(locations);
-                } catch (err) {
-                    console.error('Location search failed', err);
                 }
             }
 
+            clearClientBtn.addEventListener('click', () => {
+                clientIdInput.value = '';
+                selectedClientDisplay.style.display = 'none';
+                clientSearchInput.style.display = 'block';
+                clientSearchInput.value = '';
+                clientSearchInput.focus();
+
+                // Clear location as well since it might be client-specific
+                // Or at least hide the hint
+                locationClientHint.style.display = 'none';
+            });
+
+            // --- Location Search Logic ---
+            let locationSearchTimeout;
             locationSearchInput.addEventListener('input', (e) => {
                 clearTimeout(locationSearchTimeout);
                 const term = e.target.value.trim();
-                locationSearchTimeout = setTimeout(() => performLocationSearch(term), 300);
-            });
 
-            locationSearchInput.addEventListener('focus', (e) => {
-                const term = e.target.value.trim();
-                // Find immediately on focus if client is selected
-                if (clientIdInput.value) {
-                    performLocationSearch(term);
-                } else {
-                    locationClientHint.style.display = 'block';
+                if (term.length < 2) {
+                    locationSearchResults.style.display = 'none';
+                    return;
                 }
+
+                locationSearchTimeout = setTimeout(async () => {
+                    try {
+                        // Filter locations by client if selected
+                        const filters = { searchTerm: term, limit: 5 };
+                        if (clientIdInput.value) {
+                            filters.clientId = clientIdInput.value;
+                        }
+
+                        const result = await window.electronAPI.locations.getAll(filters);
+                        const locations = result.data.data || result.data || [];
+                        renderLocationResults(locations);
+                    } catch (err) {
+                        console.error('Location search failed', err);
+                    }
+                }, 300);
             });
 
             function renderLocationResults(locations) {
@@ -968,20 +1228,22 @@
                     const div = document.createElement('div');
                     div.style.padding = '8px 12px';
                     div.style.color = 'var(--text-secondary)';
-                    div.textContent = 'No locations found for this client';
+                    div.textContent = 'No locations found';
                     locationSearchResults.appendChild(div);
                 } else {
-                    locations.forEach(loc => {
+                    locations.forEach(location => {
                         const div = document.createElement('div');
                         div.style.padding = '8px 12px';
                         div.style.cursor = 'pointer';
                         div.style.borderBottom = '1px solid var(--border-subtle)';
-                        const addressParts = [loc.city, loc.state].filter(Boolean).join(', ');
-                        div.innerHTML = `<div style="font-weight:500">${loc.name}</div><div style="font-size:0.8rem; color:var(--text-secondary)">${addressParts || loc.addressLine1 || 'No address'}</div>`;
+                        div.innerHTML = `
+                            <div style="font-weight:500">${location.name}</div>
+                            <div style="font-size:0.8rem; color:var(--text-secondary)">${location.addressLine1}, ${location.city}</div>
+                        `;
                         div.addEventListener('mouseover', () => div.style.backgroundColor = 'rgba(255,255,255,0.05)');
                         div.addEventListener('mouseout', () => div.style.backgroundColor = 'transparent');
                         div.addEventListener('click', () => {
-                            selectLocation(loc);
+                            selectLocation(location);
                         });
                         locationSearchResults.appendChild(div);
                     });
@@ -992,43 +1254,24 @@
             function selectLocation(location) {
                 locationIdInput.value = location.id;
                 selectedLocationName.textContent = location.name;
-                const addressParts = [location.addressLine1, location.city, location.state].filter(Boolean).join(', ');
-                selectedLocationAddress.textContent = addressParts || '';
-                selectedLocationDisplay.style.display = 'flex';
+                selectedLocationAddress.textContent = `${location.addressLine1}, ${location.city}`;
                 locationSearchInput.style.display = 'none';
                 locationSearchResults.style.display = 'none';
+                selectedLocationDisplay.style.display = 'flex';
                 locationClientHint.style.display = 'none';
             }
 
             clearLocationBtn.addEventListener('click', () => {
                 locationIdInput.value = '';
-                selectedLocationName.textContent = '';
-                selectedLocationAddress.textContent = '';
                 selectedLocationDisplay.style.display = 'none';
                 locationSearchInput.style.display = 'block';
                 locationSearchInput.value = '';
+                locationSearchInput.focus();
+                if (clientIdInput.value) {
+                    locationClientHint.style.display = 'block';
+                }
             });
 
-            // When client changes, clear location selection
-            clientIdInput.addEventListener('change', () => {
-                clearLocationBtn.click();
-            });
-            // Modal Functions
-            async function openModal(editMode = false) {
-                isEditing = editMode;
-                modalTitle.textContent = editMode ? 'Edit Booking' : 'New Booking';
-
-                if (!editMode) {
-                    // Clear logic handled by closeModal/reset, but ensure search fields valid state
-                    if (!clientIdInput.value) clearClientBtn.click();
-                    if (!serviceIdInput.value) clearServiceBtn.click();
-                    if (!locationIdInput.value) clearLocationBtn.click();
-                }
-
-                if (modal) {
-                    modal.style.display = 'block';
-                }
-            }
 
             async function openEditModal(id) {
                 try {
@@ -1037,24 +1280,27 @@
 
                     if (!booking) throw new Error('Booking not found');
                     currentBookingId = booking.id;
+                    currentBookingNumber = booking.bookingNumber || null;
 
                     // Populate simple fields
-                    // Populate simple fields
-                    // Convert scheduledDate to YYYY-MM-DD format for the date input
                     let dateValue = '';
                     if (booking.scheduledDate) {
                         if (typeof booking.scheduledDate === 'string') {
-                            // Already a string, use first 10 chars (YYYY-MM-DD)
                             dateValue = booking.scheduledDate.substring(0, 10);
                         } else if (booking.scheduledDate instanceof Date) {
-                            // Date object - convert to ISO and take date part
                             dateValue = booking.scheduledDate.toISOString().split('T')[0];
                         }
                     }
                     document.getElementById('scheduled-date').value = dateValue;
                     document.getElementById('scheduled-start-time').value = booking.scheduledStartTime || '';
                     document.getElementById('booking-type').value = booking.bookingType || 'one_time';
-                    document.getElementById('status').value = booking.status || 'pending';
+
+                    // Update status dropdown based on current status
+                    const statusSelect = document.getElementById('status');
+                    const currentStatus = booking.status || 'pending';
+                    updateStatusOptions(statusSelect, currentStatus);
+                    statusSelect.value = currentStatus;
+
                     document.getElementById('quoted-price').value = booking.quotedPrice || '';
                     document.getElementById('estimated-duration').value = booking.estimatedDurationMinutes || '';
                     const notesField = document.getElementById('special-instructions');
@@ -1071,49 +1317,57 @@
                                 selectClient({ id: booking.clientId, name: client.name || 'Unknown Client' });
                             } catch (e) {
                                 console.error('Failed to fetch client details', e);
-                                selectClient({ id: booking.clientId, name: 'Unknown Client (ID: ' + booking.clientId.substring(0, 6) + ')' });
+                                selectClient({ id: booking.clientId, name: 'Unknown Client' });
                             }
                         }
                     } else {
                         clearClientBtn.click();
                     }
 
-                    // Populate Service
-                    if (booking.serviceId) {
-                        if (booking.serviceName) {
-                            selectService({
-                                id: booking.serviceId,
-                                name: booking.serviceName,
-                                code: booking.serviceCode, // Optional display
-                                basePrice: booking.quotedPrice, // Use quoted as base if fallback
+                    // Populate Services (Multi-service)
+                    selectedServices = []; // Clear existing
+                    if (booking.serviceItems && booking.serviceItems.length > 0) {
+                        // Use stored service items
+                        // We need names for display. serviceItems might have normalized data.
+                        // Assuming booking.serviceItems has structure from updated backend query
+                        booking.serviceItems.forEach(item => {
+                            selectedServices.push({
+                                id: item.serviceId,
+                                name: item.name || item.serviceName || item.service?.name || 'Unknown Service',
+                                quantity: item.quantity,
+                                unitPrice: item.unitPrice,
+                                duration: Number(item.duration || 0)
+                                // Actually, for calculation, we need duration. 
+                                // If duration is not in item, we might need to fetch service details?
+                                // Optimization: If backend returns joined service details in items.
                             });
-                            // selectService expects service object with basePrice usually?
-                            // Let's check selectService impl. It uses service.name, priceCurrency, basePrice.
-                            // We can construct a mock service object from booking data if needed, or just partial.
-                        } else {
-                            try {
-                                const serviceData = await window.electronAPI.services.getById(booking.serviceId);
-                                const service = serviceData.data || serviceData;
-                                selectService({
-                                    id: booking.serviceId,
-                                    name: service.name || 'Unknown Service',
-                                    defaultPrice: service.basePrice,
-                                    duration: service.avgDurationMinutes,
-                                    priceCurrency: service.priceCurrency
-                                });
-                            } catch (e) {
-                                console.error('Failed to fetch service details', e);
-                                selectService({ id: booking.serviceId, name: 'Unknown Service', defaultPrice: 0, duration: 0 });
-                            }
+                        });
+                        // Fetch missing details (names/durations) if needed?
+                        // For MVP, if names are missing, we might need to fetch. 
+                        // But let's assume getById returns joined data or we accept basic display.
+                    } else if (booking.serviceId) {
+                        // Legacy single service fallback
+                        try {
+                            const serviceData = await window.electronAPI.services.getById(booking.serviceId);
+                            const service = serviceData.data || serviceData;
+                            addService({
+                                ...service,
+                                price: booking.quotedPrice // Treat quoted as unit price for legacy? Or just base.
+                            });
+                            // Reset quantity to 1 if addService incremented it (it shouldn't have since array was empty)
+                        } catch (e) {
+                            console.error('Failed to fetch legacy service details', e);
                         }
                     } else {
-                        clearServiceBtn.click();
+                        // No services
                     }
+                    renderServicesTable();
+                    calculateTotals();
+
 
                     // Populate Location
                     if (booking.locationId) {
                         try {
-                            // If location name/address already in booking view (from join), use it
                             if (booking.locationName) {
                                 selectLocation({
                                     id: booking.locationId,
@@ -1123,7 +1377,6 @@
                                     state: booking.locationState || ''
                                 });
                             } else {
-                                // Fetch fresh
                                 const locData = await window.electronAPI.locations.getById(booking.locationId);
                                 const loc = locData.data || locData;
                                 selectLocation(loc);
@@ -1143,13 +1396,62 @@
                 }
             }
 
+            function openModal(isEdit = false) {
+                modal.style.display = 'block';
+                modalTitle.textContent = isEdit ? 'Edit Booking' : 'Add New Booking';
+                isEditing = isEdit;
+
+                // Show/hide booking ID display
+                const bookingIdDisplay = document.getElementById('booking-id-display');
+                const bookingIdText = document.getElementById('booking-id-text');
+                if (isEdit && currentBookingNumber) {
+                    bookingIdDisplay.style.display = 'block';
+                    bookingIdText.textContent = currentBookingNumber;
+                } else {
+                    bookingIdDisplay.style.display = 'none';
+                    bookingIdText.textContent = '';
+                }
+
+                if (!isEdit) {
+                    // Reset for new booking
+                    form.reset();
+                    currentBookingId = null;
+                    originalBookingStatus = null;
+
+                    // Clear custom inputs
+                    clientIdInput.value = '';
+                    selectedClientDisplay.style.display = 'none';
+                    clientSearchInput.style.display = 'block';
+
+                    locationIdInput.value = '';
+                    selectedLocationDisplay.style.display = 'none';
+                    locationSearchInput.style.display = 'block';
+                    locationClientHint.style.display = 'none'; // Re-hide hint
+
+                    selectedServices = [];
+                    renderServicesTable();
+                    calculateTotals();
+
+                    // Set default date
+                    const today = new Date().toISOString().split('T')[0];
+                    document.getElementById('scheduled-date').value = today;
+
+                    // Update status options for new booking (default: pending)
+                    const statusSelect = document.getElementById('status');
+                    updateStatusOptions(statusSelect, 'pending');
+                    statusSelect.value = 'pending';
+                }
+            }
+
             function closeModal() {
                 if (modal) modal.style.display = 'none';
                 if (form && !isEditing) {
                     form.reset();
-                    // Reset custom search components
                     clearClientBtn.click();
-                    clearServiceBtn.click();
+                    // clearServiceBtn.click(); // Function removed
+                    selectedServices = [];
+                    renderServicesTable();
+                    calculateTotals();
                     clearLocationBtn.click();
                 }
                 isEditing = false;
@@ -1159,14 +1461,39 @@
             async function handleFormSubmit(e) {
                 e.preventDefault();
 
+                const newStatus = document.getElementById('status').value;
+
+                // Check if cancelling a scheduled booking
+                if (isEditing && originalBookingStatus === 'scheduled' &&
+                    (newStatus === 'cancelled' || newStatus === 'no_show')) {
+                    const confirmed = confirm(
+                        '⚠️ This booking is currently assigned to a route.\n\n' +
+                        'Changing the status will remove it from the route. ' +
+                        'The route will be flagged for recalculation.\n\n' +
+                        'Do you want to continue?'
+                    );
+                    if (!confirmed) {
+                        return;
+                    }
+                }
+
                 const bookingData = {
                     clientId: clientIdInput.value,
                     locationId: locationIdInput.value,
-                    serviceId: serviceIdInput.value,
+                    // serviceId: serviceIdInput.value, // Removed single service ID
+                    serviceIds: selectedServices.map(s => s.id),
+                    serviceItems: selectedServices.map(s => ({
+                        serviceId: s.id,
+                        quantity: s.quantity,
+                        unitPrice: s.unitPrice,
+                        name: s.name,
+                        duration: s.duration,
+                        total: s.quantity * s.unitPrice
+                    })),
                     scheduledDate: document.getElementById('scheduled-date').value,
                     scheduledStartTime: document.getElementById('scheduled-start-time').value,
                     bookingType: document.getElementById('booking-type').value,
-                    status: document.getElementById('status').value,
+                    status: newStatus,
                     quotedPrice: parseFloat(document.getElementById('quoted-price').value) || 0,
                     estimatedDurationMinutes: parseInt(document.getElementById('estimated-duration').value) || undefined,
                     specialInstructions: document.getElementById('special-instructions').value
@@ -1175,6 +1502,17 @@
                 try {
                     if (isEditing && currentBookingId) {
                         bookingData.id = currentBookingId;
+
+                        // If cancelling a scheduled booking, remove it from route
+                        if (originalBookingStatus === 'scheduled' &&
+                            (newStatus === 'cancelled' || newStatus === 'no_show')) {
+                            try {
+                                await window.electronAPI.bookings.removeFromRoute(currentBookingId);
+                            } catch (routeErr) {
+                                console.warn('Could not remove from route:', routeErr);
+                            }
+                        }
+
                         await window.electronAPI.bookings.update(bookingData);
                     } else {
                         await window.electronAPI.bookings.create(bookingData);
@@ -1187,103 +1525,6 @@
                 }
             }
 
-            function selectClient(client) {
-                clientIdInput.value = client.id;
-                selectedClientName.textContent = client.name;
-                clientSearchInput.style.display = 'none';
-                clientSearchResults.style.display = 'none';
-                selectedClientDisplay.style.display = 'flex';
-            }
-
-            clearClientBtn.addEventListener('click', () => {
-                clientIdInput.value = '';
-                selectedClientDisplay.style.display = 'none';
-                clientSearchInput.style.display = 'block';
-                clientSearchInput.value = '';
-                clientSearchInput.focus();
-            });
-
-            // --- Service Search Logic ---
-            let serviceSearchTimeout;
-            serviceSearchInput.addEventListener('input', (e) => {
-                clearTimeout(serviceSearchTimeout);
-                const term = e.target.value.trim();
-
-                if (term.length < 2) {
-                    serviceSearchResults.style.display = 'none';
-                    return;
-                }
-
-                serviceSearchTimeout = setTimeout(async () => {
-                    try {
-                        const result = await window.electronAPI.services.getAll({ searchTerm: term, limit: 5 });
-                        const services = result.data.data || result.data || [];
-                        renderServiceResults(services);
-                    } catch (err) {
-                        console.error('Service search failed', err);
-                    }
-                }, 300);
-            });
-
-            function renderServiceResults(services) {
-                serviceSearchResults.innerHTML = '';
-                if (services.length === 0) {
-                    const div = document.createElement('div');
-                    div.style.padding = '8px 12px';
-                    div.style.color = 'var(--text-secondary)';
-                    div.textContent = 'No services found';
-                    serviceSearchResults.appendChild(div);
-                } else {
-                    services.forEach(service => {
-                        const div = document.createElement('div');
-                        div.style.padding = '8px 12px';
-                        div.style.cursor = 'pointer';
-                        div.style.borderBottom = '1px solid var(--border-subtle)';
-                        const price = new Intl.NumberFormat('en-US', { style: 'currency', currency: service.priceCurrency || 'USD' }).format(service.basePrice || 0);
-                        div.innerHTML = `
-                            <div style="font-weight:500">${service.name}</div>
-                            <div style="font-size:0.8rem; color:var(--text-secondary); display:flex; justify-content:space-between;">
-                                <span>${service.code}</span>
-                                <span>${price}</span>
-                            </div>`;
-                        div.addEventListener('mouseover', () => div.style.backgroundColor = 'rgba(255,255,255,0.05)');
-                        div.addEventListener('mouseout', () => div.style.backgroundColor = 'transparent');
-                        div.addEventListener('click', () => {
-                            selectService(service);
-                        });
-                        serviceSearchResults.appendChild(div);
-                    });
-                }
-                serviceSearchResults.style.display = 'block';
-            }
-
-            function selectService(service) {
-                serviceIdInput.value = service.id;
-                selectedServiceName.textContent = service.name;
-                const price = new Intl.NumberFormat('en-US', { style: 'currency', currency: service.priceCurrency || 'USD' }).format(service.basePrice || 0);
-                selectedServiceDetails.textContent = `${service.code} • ${price}`;
-                serviceSearchInput.style.display = 'none';
-                serviceSearchResults.style.display = 'none';
-                selectedServiceDisplay.style.display = 'flex';
-
-                // Auto-fill price and duration if empty
-                if (!document.getElementById('quoted-price').value) {
-                    document.getElementById('quoted-price').value = service.basePrice;
-                }
-                if (!document.getElementById('estimated-duration').value) {
-                    document.getElementById('estimated-duration').value = service.averageDurationMinutes;
-                }
-            }
-
-            clearServiceBtn.addEventListener('click', () => {
-                serviceIdInput.value = '';
-                selectedServiceDisplay.style.display = 'none';
-                serviceSearchInput.style.display = 'block';
-                serviceSearchInput.value = '';
-                serviceSearchInput.focus();
-            });
-
-            // Close search dropdowns on click outside
             // Close search dropdowns on click outside
             document.addEventListener('click', (e) => {
                 if (!e.target.closest('#client-search-results') && e.target !== clientSearchInput) {
@@ -1292,7 +1533,12 @@
                 if (!e.target.closest('#service-search-results') && e.target !== serviceSearchInput) {
                     serviceSearchResults.style.display = 'none';
                 }
+                if (!e.target.closest('#location-search-results') && e.target !== locationSearchInput) {
+                    locationSearchResults.style.display = 'none';
+                }
             });
+
+
         });
     </script>
 </body>
