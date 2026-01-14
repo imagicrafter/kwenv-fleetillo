@@ -1689,17 +1689,25 @@
                 }
             });
 
+            // Validate CSV file before selection
+            function validateCSVFile(file) {
+                // Check file extension
+                if (!file.name.toLowerCase().endsWith('.csv')) {
+                    return { valid: false, error: 'Please select a CSV file (.csv)' };
+                }
+                // Check file size (10MB max)
+                if (file.size > 10 * 1024 * 1024) {
+                    return { valid: false, error: 'File size must be less than 10MB' };
+                }
+                return { valid: true };
+            }
+
             // Handle file selection and validation
             function handleCSVFile(file) {
-                // Validate file type
-                if (!file.name.toLowerCase().endsWith('.csv')) {
-                    alert('Please select a CSV file (.csv)');
-                    return;
-                }
+                const validation = validateCSVFile(file);
 
-                // Validate file size (10MB max)
-                if (file.size > 10 * 1024 * 1024) {
-                    alert('File size must be less than 10MB');
+                if (!validation.valid) {
+                    showValidationError(validation.error);
                     return;
                 }
 
@@ -1711,8 +1719,27 @@
                 document.querySelector('.drop-zone-content').style.display = 'none';
                 csvFilePreview.style.display = 'flex';
 
+                // Hide any previous errors
+                document.getElementById('csv-upload-results').style.display = 'none';
+
                 // Enable upload button
                 csvUploadSubmitBtn.disabled = false;
+            }
+
+            // Show validation error immediately
+            function showValidationError(errorMessage) {
+                const resultsDiv = document.getElementById('csv-upload-results');
+                const successMsg = document.getElementById('csv-success-message');
+                const errorList = document.getElementById('csv-error-list');
+
+                successMsg.style.display = 'none';
+                errorList.style.display = 'block';
+                errorList.innerHTML = `<div class="error-item"><strong>Validation Error:</strong> ${errorMessage}</div>`;
+                resultsDiv.style.display = 'block';
+
+                // Clear file selection
+                selectedCSVFile = null;
+                csvFileInput.value = '';
             }
 
             // Clear file selection
@@ -1722,6 +1749,187 @@
                 csvFilePreview.style.display = 'none';
                 document.querySelector('.drop-zone-content').style.display = 'block';
                 csvUploadSubmitBtn.disabled = true;
+            });
+
+            // Upload CSV file
+            async function uploadCSVFile() {
+                if (!selectedCSVFile) return;
+
+                const progressDiv = document.getElementById('csv-upload-progress');
+                const resultsDiv = document.getElementById('csv-upload-results');
+                const successMsg = document.getElementById('csv-success-message');
+                const errorList = document.getElementById('csv-error-list');
+                const progressFill = document.querySelector('.progress-fill');
+
+                // Show progress, hide results
+                progressDiv.style.display = 'block';
+                resultsDiv.style.display = 'none';
+                csvUploadSubmitBtn.disabled = true;
+                progressFill.style.width = '30%';
+
+                try {
+                    const formData = new FormData();
+                    formData.append('file', selectedCSVFile);
+
+                    progressFill.style.width = '60%';
+
+                    const response = await fetch('/api/bookings/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    progressFill.style.width = '100%';
+                    const result = await response.json();
+
+                    // Hide progress, show results
+                    setTimeout(() => {
+                        progressDiv.style.display = 'none';
+                        resultsDiv.style.display = 'block';
+
+                        if (result.success) {
+                            successMsg.innerHTML = `
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span>Successfully created ${result.data.created} booking(s)!</span>
+                                </div>
+                            `;
+                            successMsg.style.display = 'block';
+                            errorList.style.display = 'none';
+                            // Refresh bookings table
+                            loadBookings();
+
+                            // Auto-close modal after 2 seconds on success
+                            setTimeout(() => {
+                                closeCSVUploadModal();
+                            }, 2000);
+                        } else {
+                            successMsg.style.display = 'none';
+                            errorList.style.display = 'block';
+
+                            // Enhanced error display with summary and try again button
+                            let errorHTML = '';
+
+                            // Handle different error response formats
+                            if (result.errors && Array.isArray(result.errors)) {
+                                const errorCount = result.errors.length;
+                                errorHTML = `
+                                    <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(248, 81, 73, 0.2);">
+                                        <strong>Found ${errorCount} error${errorCount > 1 ? 's' : ''} in your CSV file:</strong>
+                                    </div>
+                                `;
+                                errorHTML += result.errors.map(err => {
+                                    const rowNum = err.rowNumber ? `<strong>Row ${err.rowNumber}:</strong> ` : '';
+                                    return `<div class="error-item" style="margin: 8px 0;">${rowNum}${err.message}</div>`;
+                                }).join('');
+
+                                errorHTML += `
+                                    <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(248, 81, 73, 0.2); font-size: 0.875rem; color: rgba(248, 81, 73, 0.8);">
+                                        <strong>Helpful hints:</strong><br>
+                                        • Date format: YYYY-MM-DD (e.g., 2026-02-15)<br>
+                                        • Time format: HH:MM (e.g., 14:30)<br>
+                                        • Required columns: clientId, bookingType, scheduledDate<br>
+                                        • Valid booking types: one_time, recurring
+                                    </div>
+                                `;
+                            } else if (result.error) {
+                                errorHTML = `<div class="error-item"><strong>Error:</strong> ${result.error}</div>`;
+                            } else if (result.message) {
+                                errorHTML = `<div class="error-item"><strong>Error:</strong> ${result.message}</div>`;
+                            } else {
+                                errorHTML = `<div class="error-item"><strong>Error:</strong> Upload failed</div>`;
+                            }
+
+                            // Add "Try Again" button
+                            errorHTML += `
+                                <div style="margin-top: 16px; text-align: center;">
+                                    <button type="button" id="csv-try-again-btn" class="btn-primary" style="background: rgba(248, 81, 73, 0.8);">
+                                        Try Again
+                                    </button>
+                                </div>
+                            `;
+
+                            errorList.innerHTML = errorHTML;
+
+                            // Attach try again handler
+                            document.getElementById('csv-try-again-btn').addEventListener('click', () => {
+                                resetCSVUploadModal();
+                            });
+                        }
+                    }, 500);
+                } catch (error) {
+                    progressDiv.style.display = 'none';
+                    resultsDiv.style.display = 'block';
+                    successMsg.style.display = 'none';
+                    errorList.style.display = 'block';
+                    errorList.innerHTML = `<div class="error-item">Upload failed: ${error.message}</div>`;
+                } finally {
+                    csvUploadSubmitBtn.disabled = false;
+                }
+            }
+
+            // Attach upload handler to submit button
+            csvUploadSubmitBtn.addEventListener('click', uploadCSVFile);
+
+            // --- Template Download and Modal Management ---
+
+            // Download template button
+            document.getElementById('download-template-btn').addEventListener('click', async () => {
+                try {
+                    const response = await fetch('/api/bookings/template');
+                    if (!response.ok) throw new Error('Failed to download template');
+
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'bookings_template.csv';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                } catch (error) {
+                    console.error('Template download failed:', error);
+                    alert('Failed to download template: ' + error.message);
+                }
+            });
+
+            // Open CSV upload modal
+            document.getElementById('upload-csv-btn').addEventListener('click', () => {
+                openCSVUploadModal();
+            });
+
+            // Modal open/close functions
+            function openCSVUploadModal() {
+                csvUploadModal.style.display = 'block';
+                resetCSVUploadModal();
+            }
+
+            function closeCSVUploadModal() {
+                csvUploadModal.style.display = 'none';
+                resetCSVUploadModal();
+            }
+
+            function resetCSVUploadModal() {
+                selectedCSVFile = null;
+                csvFileInput.value = '';
+                csvFilePreview.style.display = 'none';
+                document.querySelector('.drop-zone-content').style.display = 'block';
+                document.getElementById('csv-upload-progress').style.display = 'none';
+                document.getElementById('csv-upload-results').style.display = 'none';
+                csvUploadSubmitBtn.disabled = true;
+            }
+
+            // Close modal event listeners
+            closeCsvModal.addEventListener('click', closeCSVUploadModal);
+            csvCancelBtn.addEventListener('click', closeCSVUploadModal);
+
+            // Close modal when clicking outside
+            csvUploadModal.addEventListener('click', (e) => {
+                if (e.target === csvUploadModal) {
+                    closeCSVUploadModal();
+                }
             });
 
 

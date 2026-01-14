@@ -1,0 +1,2 @@
+clientName,serviceName,locationName,scheduledDate,scheduledStartTime,bookingType,status,quotedPrice,estimatedDurationMinutes,specialInstructions
+Test Client A,Basic Service,Test Location,2026-02-01,09:00,one_time,pending,150.00,60,Test booking from CSV
