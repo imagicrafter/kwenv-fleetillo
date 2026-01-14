@@ -142,6 +142,18 @@
                     <input type="text" id="search-input" placeholder="Search bookings...">
                 </div>
                 <div class="actions">
+                    <button class="btn-secondary" id="download-template-btn" style="margin-right: 8px;">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 4px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Download Template
+                    </button>
+                    <button class="btn-secondary" id="upload-csv-btn" style="margin-right: 8px;">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 4px;">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                        </svg>
+                        Upload CSV
+                    </button>
                     <button class="btn-primary" id="add-booking-btn">+ New Booking</button>
                 </div>
             </header>
@@ -419,6 +431,50 @@
         </div>
     </div>
 
+    <!-- CSV Upload Modal -->
+    <div id="csv-upload-modal" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Upload Bookings from CSV</h2>
+                <span class="close-csv-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <!-- Drop zone -->
+                <div id="csv-drop-zone" class="csv-drop-zone">
+                    <div class="drop-zone-content">
+                        <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto; color: var(--text-secondary);">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                        </svg>
+                        <p style="margin: 16px 0 8px; font-size: 1rem; color: var(--text-primary);">Drag and drop your CSV file here</p>
+                        <p class="drop-zone-hint" style="margin: 0 0 16px; font-size: 0.875rem; color: var(--text-secondary);">or</p>
+                        <button type="button" id="csv-file-select-btn" class="btn-secondary">Select File</button>
+                        <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
+                    </div>
+                    <div id="csv-file-preview" class="file-preview" style="display: none;">
+                        <span id="csv-file-name" style="font-weight: 500;"></span>
+                        <button type="button" id="csv-clear-file" class="btn-icon" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.2rem;">✕</button>
+                    </div>
+                </div>
+                <!-- Progress indicator -->
+                <div id="csv-upload-progress" style="display: none; margin-top: 16px;">
+                    <div class="progress-bar" style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
+                        <div class="progress-fill" style="height: 100%; background: var(--accent-primary); width: 0%; transition: width 0.3s;"></div>
+                    </div>
+                    <p id="csv-progress-text" style="margin-top: 8px; font-size: 0.875rem; color: var(--text-secondary); text-align: center;">Uploading...</p>
+                </div>
+                <!-- Results area -->
+                <div id="csv-upload-results" style="display: none; margin-top: 16px;">
+                    <div id="csv-success-message" class="success-message" style="padding: 12px; background: rgba(46, 160, 67, 0.1); border: 1px solid rgba(46, 160, 67, 0.3); border-radius: 6px; color: #2ea043; margin-bottom: 12px;"></div>
+                    <div id="csv-error-list" class="error-list" style="padding: 12px; background: rgba(248, 81, 73, 0.1); border: 1px solid rgba(248, 81, 73, 0.3); border-radius: 6px; color: #f85149; font-size: 0.875rem; max-height: 200px; overflow-y: auto;"></div>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px;">
+                <button type="button" id="csv-cancel-btn" class="btn-secondary">Cancel</button>
+                <button type="button" id="csv-upload-submit-btn" class="btn-primary" disabled>Upload</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Styles -->
     <style>
         .modal {
@@ -532,6 +588,37 @@
             justify-content: flex-end;
             gap: 12px;
             margin-top: 32px;
+        }
+
+        /* CSV Upload Modal Styles */
+        .csv-drop-zone {
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 32px;
+            text-align: center;
+            transition: all 0.2s;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .csv-drop-zone.drag-over {
+            border-color: var(--accent-primary);
+            background: rgba(88, 166, 255, 0.05);
+        }
+
+        .drop-zone-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .file-preview {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(88, 166, 255, 0.1);
+            border-radius: 6px;
+            margin-top: 16px;
         }
     </style>
 

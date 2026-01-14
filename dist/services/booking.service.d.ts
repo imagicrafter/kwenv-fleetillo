@@ -74,4 +74,24 @@ export declare function getBookingByNumber(bookingNumber: string): Promise<Resul
  * @returns Result indicating success or failure
  */
 export declare function removeBookingFromRoute(bookingId: string): Promise<Result<void>>;
+/**
+ * Bulk insert error details
+ */
+export interface BulkInsertError {
+    rowNumber: number;
+    field?: string;
+    message: string;
+}
+/**
+ * Result of bulk booking creation
+ */
+export interface BulkInsertResult {
+    created: number;
+    errors: BulkInsertError[];
+}
+/**
+ * Creates multiple bookings in a single transaction
+ * All bookings are created or none are created (all-or-nothing)
+ */
+export declare function bulkCreateBookings(inputs: CreateBookingInput[]): Promise<Result<BulkInsertResult>>;
 //# sourceMappingURL=booking.service.d.ts.map

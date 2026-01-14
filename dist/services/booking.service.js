@@ -17,6 +17,7 @@ exports.restoreBooking = restoreBooking;
 exports.countBookings = countBookings;
 exports.getBookingByNumber = getBookingByNumber;
 exports.removeBookingFromRoute = removeBookingFromRoute;
+exports.bulkCreateBookings = bulkCreateBookings;
 const supabase_js_1 = require("./supabase.js");
 const logger_js_1 = require("../utils/logger.js");
 const booking_js_1 = require("../types/booking.js");
@@ -721,6 +722,118 @@ async function removeBookingFromRoute(bookingId) {
         return {
             success: false,
             error: new BookingServiceError('Unexpected error removing booking from route', exports.BookingErrorCodes.UPDATE_FAILED, error),
+        };
+    }
+}
+/**
+ * Creates multiple bookings in a single transaction
+ * All bookings are created or none are created (all-or-nothing)
+ */
+async function bulkCreateBookings(inputs) {
+    logger.info('Bulk creating bookings', { count: inputs.length });
+    // Handle empty input
+    if (inputs.length === 0) {
+        return {
+            success: true,
+            data: {
+                created: 0,
+                errors: [],
+            },
+        };
+    }
+    try {
+        // Validate all inputs first
+        const validationErrors = [];
+        const validInputs = [];
+        for (let i = 0; i < inputs.length; i++) {
+            const input = inputs[i];
+            if (!input)
+                continue; // Skip undefined/null entries
+            const rowNumber = i + 1; // 1-indexed for user-friendly error messages
+            const validation = validateBookingInput(input);
+            if (!validation.success) {
+                const error = validation.error;
+                const details = error.details;
+                validationErrors.push({
+                    rowNumber,
+                    field: details?.field,
+                    message: error.message,
+                });
+            }
+            else {
+                validInputs.push(input);
+            }
+        }
+        // If there are validation errors, return them without creating anything
+        if (validationErrors.length > 0) {
+            logger.warn('Bulk booking validation failed', {
+                totalInputs: inputs.length,
+                validationErrors: validationErrors.length,
+            });
+            return {
+                success: true,
+                data: {
+                    created: 0,
+                    errors: validationErrors,
+                },
+            };
+        }
+        // Use admin client if available to bypass RLS policies
+        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        // Convert all inputs to row format
+        const rowsData = validInputs.map(input => {
+            const rowData = (0, booking_js_1.bookingInputToRow)(input);
+            // Note: We're not auto-generating booking numbers for bulk inserts
+            // This should be handled by the database or provided in the input
+            return rowData;
+        });
+        // Insert all bookings in a single batch operation
+        const { data, error } = await supabase
+            .from(BOOKINGS_TABLE)
+            .insert(rowsData)
+            .select('*, clients(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)');
+        if (error) {
+            logger.error('Failed to bulk create bookings', error);
+            // Try to extract row-specific error information if available
+            const errorDetails = [];
+            // Check if it's a foreign key violation
+            if (error.code === '23503') {
+                // Foreign key violation - likely a clientId or serviceId doesn't exist
+                errorDetails.push({
+                    rowNumber: 1, // Can't determine specific row from batch insert
+                    message: `Foreign key violation: ${error.message}. Check that all clientId and serviceId values exist.`,
+                });
+            }
+            else {
+                errorDetails.push({
+                    rowNumber: 1,
+                    message: `Database error: ${error.message}`,
+                });
+            }
+            return {
+                success: true,
+                data: {
+                    created: 0,
+                    errors: errorDetails,
+                },
+            };
+        }
+        logger.info('Successfully bulk created bookings', {
+            count: data?.length || 0,
+        });
+        return {
+            success: true,
+            data: {
+                created: data?.length || 0,
+                errors: [],
+            },
+        };
+    }
+    catch (error) {
+        logger.error('Unexpected error in bulk create bookings', error);
+        return {
+            success: false,
+            error: new BookingServiceError('Unexpected error during bulk booking creation', exports.BookingErrorCodes.CREATE_FAILED, error),
         };
     }
 }

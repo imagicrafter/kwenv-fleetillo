@@ -17,4 +17,5 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./error-handler.js"), exports);
 __exportStar(require("./request-logger.js"), exports);
 __exportStar(require("./validation.js"), exports);
+__exportStar(require("./fileUpload.js"), exports);
 //# sourceMappingURL=index.js.map

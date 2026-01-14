@@ -43,4 +43,14 @@ export declare const restore: (req: Request, res: Response, next: NextFunction) 
  * GET /api/v1/bookings/count
  */
 export declare const count: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+/**
+ * Upload CSV file with bookings
+ * POST /api/v1/bookings/upload
+ */
+export declare const uploadCSV: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+/**
+ * Download CSV template for booking uploads
+ * GET /api/v1/bookings/template
+ */
+export declare const downloadTemplate: (_req: Request, res: Response, next: NextFunction) => Promise<void>;
 //# sourceMappingURL=booking.controller.d.ts.map

@@ -36,7 +36,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const bookingController = __importStar(require("../controllers/booking.controller.js"));
 const validation_js_1 = require("../middleware/validation.js");
+const fileUpload_js_1 = require("../middleware/fileUpload.js");
 const router = (0, express_1.Router)();
+/**
+ * GET /api/v1/bookings/template
+ * Download CSV template for booking uploads
+ */
+router.get('/template', bookingController.downloadTemplate);
 /**
  * GET /api/v1/bookings/count
  * Get total count of bookings
@@ -57,6 +63,11 @@ router.get('/', bookingController.getAll);
  * Get booking by ID
  */
 router.get('/:id', (0, validation_js_1.validateIdParam)('id'), bookingController.getById);
+/**
+ * POST /api/v1/bookings/upload
+ * Upload CSV file with bookings
+ */
+router.post('/upload', fileUpload_js_1.uploadCSV, fileUpload_js_1.requireFile, fileUpload_js_1.handleUploadError, bookingController.uploadCSV);
 /**
  * POST /api/v1/bookings
  * Create a new booking

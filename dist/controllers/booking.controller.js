@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.count = exports.restore = exports.remove = exports.update = exports.getAll = exports.getByNumber = exports.getById = exports.create = void 0;
+exports.downloadTemplate = exports.uploadCSV = exports.count = exports.restore = exports.remove = exports.update = exports.getAll = exports.getByNumber = exports.getById = exports.create = void 0;
 const booking_service_js_1 = require("../services/booking.service.js");
+const csv_service_js_1 = require("../services/csv.service.js");
 /**
  * Booking Controller
  * Handles HTTP requests for booking operations
@@ -272,4 +273,166 @@ const count = async (req, res, next) => {
     }
 };
 exports.count = count;
+/**
+ * Upload CSV file with bookings
+ * POST /api/v1/bookings/upload
+ */
+const uploadCSV = async (req, res, next) => {
+    try {
+        // Check if file was uploaded
+        if (!req.file) {
+            res.status(400).json({
+                success: false,
+                error: {
+                    message: 'No file uploaded. Please upload a CSV file.',
+                },
+            });
+            return;
+        }
+        // Parse and validate CSV
+        const parseResult = await (0, csv_service_js_1.parseAndValidateCSV)(req.file.buffer);
+        if (!parseResult.success || !parseResult.data) {
+            res.status(400).json({
+                success: false,
+                error: {
+                    message: parseResult.error?.message || 'Failed to parse CSV file',
+                },
+            });
+            return;
+        }
+        const { validBookings, errors: csvErrors, totalRows, validRows, invalidRows } = parseResult.data;
+        // If there are CSV validation errors, return them
+        if (csvErrors.length > 0) {
+            res.status(400).json({
+                success: false,
+                error: {
+                    message: `CSV validation failed. ${invalidRows} of ${totalRows} rows have errors.`,
+                    details: csvErrors,
+                    summary: {
+                        totalRows,
+                        validRows,
+                        invalidRows,
+                    },
+                },
+            });
+            return;
+        }
+        // If no valid bookings, return error
+        if (validBookings.length === 0) {
+            res.status(400).json({
+                success: false,
+                error: {
+                    message: 'No valid bookings found in CSV file.',
+                },
+            });
+            return;
+        }
+        // Bulk insert bookings
+        const bulkResult = await (0, booking_service_js_1.bulkCreateBookings)(validBookings);
+        if (!bulkResult.success || !bulkResult.data) {
+            res.status(500).json({
+                success: false,
+                error: {
+                    message: bulkResult.error?.message || 'Failed to create bookings',
+                },
+            });
+            return;
+        }
+        const { created, errors: insertErrors } = bulkResult.data;
+        // If there are insert errors, return partial success
+        if (insertErrors.length > 0) {
+            res.status(207).json({
+                success: true,
+                data: {
+                    created,
+                    total: validBookings.length,
+                    errors: insertErrors,
+                },
+                message: `Partially successful. ${created} of ${validBookings.length} bookings created.`,
+            });
+            return;
+        }
+        // Full success
+        res.status(201).json({
+            success: true,
+            data: {
+                created,
+                total: totalRows,
+            },
+            message: `Successfully created ${created} bookings from CSV file.`,
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.uploadCSV = uploadCSV;
+/**
+ * Download CSV template for booking uploads
+ * GET /api/v1/bookings/template
+ */
+const downloadTemplate = async (_req, res, next) => {
+    try {
+        // CSV header row with all supported columns
+        const headers = [
+            'clientId',
+            'bookingType',
+            'scheduledDate',
+            'scheduledStartTime',
+            'serviceIds',
+            'locationId',
+            'status',
+            'priority',
+            'quotedPrice',
+            'estimatedDurationMinutes',
+            'specialInstructions',
+            'serviceAddressLine1',
+            'serviceAddressLine2',
+            'serviceCity',
+            'serviceState',
+            'servicePostalCode',
+            'serviceCountry',
+            'recurrencePattern',
+            'recurrenceEndDate',
+            'tags',
+        ];
+        // Example row showing expected formats
+        const exampleRow = [
+            'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', // clientId (UUID)
+            'one_time', // bookingType (one_time or recurring)
+            '2026-01-15', // scheduledDate (YYYY-MM-DD)
+            '09:00', // scheduledStartTime (HH:MM or HH:MM:SS)
+            'service-id-1,service-id-2', // serviceIds (comma-separated UUIDs)
+            'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', // locationId (UUID, optional)
+            'pending', // status (pending, confirmed, scheduled, etc.)
+            'normal', // priority (low, normal, high, urgent)
+            '150.00', // quotedPrice (decimal number)
+            '60', // estimatedDurationMinutes (integer)
+            'Please call before arrival', // specialInstructions (text)
+            '123 Main Street', // serviceAddressLine1 (text)
+            'Suite 100', // serviceAddressLine2 (text, optional)
+            'San Francisco', // serviceCity (text)
+            'CA', // serviceState (text)
+            '94102', // servicePostalCode (text)
+            'USA', // serviceCountry (text)
+            'weekly', // recurrencePattern (daily, weekly, monthly, etc. - only for recurring bookings)
+            '2026-12-31', // recurrenceEndDate (YYYY-MM-DD, optional)
+            'urgent,priority', // tags (comma-separated)
+        ];
+        // Build CSV content
+        const csvLines = [
+            headers.join(','),
+            exampleRow.join(','),
+        ];
+        const csvContent = csvLines.join('\n');
+        // Set response headers for CSV download
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="bookings_template.csv"');
+        res.status(200).send(csvContent);
+    }
+    catch (error) {
+        next(error);
+    }
+};
+exports.downloadTemplate = downloadTemplate;
 //# sourceMappingURL=booking.controller.js.map

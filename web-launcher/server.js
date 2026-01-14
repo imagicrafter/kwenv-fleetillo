@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const dotenv = require('dotenv');
+const multer = require('multer');
 
 const session = require('express-session');
 const cookieParser = require('cookie-parser');
@@ -86,6 +87,21 @@ app.post('/api/logout', (req, res) => {
     res.json({ success: true });
 });
 
+// Configure multer for CSV file uploads
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 10 * 1024 * 1024, // 10MB limit
+    },
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype === 'text/csv' || file.originalname.endsWith('.csv')) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only CSV files are allowed'));
+        }
+    },
+});
+
 // Import Services
 // We assume web-launcher is at routeIQ-typescript/web-launcher and dist is at routeIQ-typescript/dist
 const SERVICE_PATH = path.resolve(__dirname, '../dist/services');
@@ -102,6 +118,7 @@ const googleMapsService = require(`${SERVICE_PATH}/googlemaps.service.js`);
 const activityService = require(`${SERVICE_PATH}/activity.service.js`);
 const settingsService = require(`${SERVICE_PATH}/settings.service.js`);
 const supabaseService = require(`${SERVICE_PATH}/supabase.js`);
+const csvService = require(`${SERVICE_PATH}/csv.service.js`);
 
 // Initialize Supabase
 supabaseService.initializeSupabase({
@@ -278,6 +295,164 @@ app.post('/api/chat', async (req, res) => {
     } catch (err) {
         console.error('[DEBUG] Chat Proxy Exception:', err);
         res.status(500).json({ error: err.message });
+    }
+});
+
+// CSV Upload Endpoint
+app.post('/api/bookings/upload', upload.single('file'), async (req, res) => {
+    try {
+        console.log('CSV Upload Request Received');
+
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                error: 'No file uploaded'
+            });
+        }
+
+        // Parse and validate the CSV file
+        const parseResult = await csvService.parseAndValidateCSV(req.file.buffer);
+
+        if (!parseResult.success || !parseResult.data) {
+            return res.status(400).json({
+                success: false,
+                error: parseResult.error?.message || 'Failed to parse CSV file'
+            });
+        }
+
+        const { validBookings, errors, totalRows, validRows, invalidRows } = parseResult.data;
+
+        // If there are no valid bookings, return error
+        if (validBookings.length === 0) {
+            return res.status(400).json({
+                success: false,
+                error: 'No valid bookings found in CSV file',
+                details: {
+                    totalRows,
+                    validRows: 0,
+                    invalidRows,
+                    errors: errors.map(e => ({
+                        row: e.row,
+                        message: e.message
+                    }))
+                }
+            });
+        }
+
+        // Attempt to bulk create bookings
+        const createResult = await bookingService.bulkCreateBookings(validBookings);
+
+        if (!createResult.success) {
+            return res.status(500).json({
+                success: false,
+                error: createResult.error?.message || 'Failed to create bookings',
+                details: {
+                    totalRows,
+                    validRows,
+                    invalidRows,
+                    parseErrors: errors
+                }
+            });
+        }
+
+        // Determine response status based on errors
+        const hasParseErrors = errors.length > 0;
+        const statusCode = hasParseErrors ? 207 : 201; // 207 = Multi-Status (partial success)
+
+        return res.status(statusCode).json({
+            success: true,
+            data: {
+                totalRows,
+                validRows,
+                invalidRows,
+                created: validBookings.length,
+                bookings: createResult.data,
+                errors: hasParseErrors ? errors.map(e => ({
+                    row: e.row,
+                    message: e.message
+                })) : []
+            }
+        });
+
+    } catch (err) {
+        console.error('CSV Upload Error:', err);
+        return res.status(500).json({
+            success: false,
+            error: err.message || 'Internal server error during CSV upload'
+        });
+    }
+});
+
+// CSV Template Download Endpoint
+app.get('/api/bookings/template', (req, res) => {
+    try {
+        console.log('CSV Template Download Request');
+
+        // Generate CSV template with headers and example row
+        const headers = [
+            'clientId',
+            'bookingType',
+            'scheduledDate',
+            'serviceIds',
+            'scheduledStartTime',
+            'locationId',
+            'status',
+            'priority',
+            'quotedPrice',
+            'estimatedDurationMinutes',
+            'specialInstructions',
+            'serviceAddressLine1',
+            'serviceAddressLine2',
+            'serviceCity',
+            'serviceState',
+            'servicePostalCode',
+            'serviceCountry',
+            'recurrencePattern',
+            'recurrenceEndDate',
+            'tags'
+        ];
+
+        const exampleRow = [
+            '00000000-0000-0000-0000-000000000000', // clientId (UUID)
+            'one_time', // bookingType (one_time or recurring)
+            '2026-01-20', // scheduledDate (YYYY-MM-DD)
+            '00000000-0000-0000-0000-000000000001,00000000-0000-0000-0000-000000000002', // serviceIds (comma-separated UUIDs)
+            '09:00:00', // scheduledStartTime (HH:MM:SS)
+            '00000000-0000-0000-0000-000000000003', // locationId (UUID)
+            'pending', // status
+            'normal', // priority
+            '150.00', // quotedPrice
+            '60', // estimatedDurationMinutes
+            'Please call before arrival', // specialInstructions
+            '123 Main St', // serviceAddressLine1
+            'Apt 4B', // serviceAddressLine2
+            'Springfield', // serviceCity
+            'IL', // serviceState
+            '62701', // servicePostalCode
+            'USA', // serviceCountry
+            'weekly', // recurrencePattern (for recurring bookings)
+            '2026-12-31', // recurrenceEndDate (for recurring bookings)
+            'urgent,vip' // tags (comma-separated)
+        ];
+
+        // Create CSV content
+        const csvContent = [
+            headers.join(','),
+            exampleRow.map(field => `"${field}"`).join(',')
+        ].join('\n');
+
+        // Set headers for file download
+        res.setHeader('Content-Type', 'text/csv');
+        res.setHeader('Content-Disposition', 'attachment; filename="bookings_template.csv"');
+
+        return res.send(csvContent);
+
+    } catch (err) {
+        console.error('CSV Template Error:', err);
+        return res.status(500).json({
+            success: false,
+            error: err.message || 'Failed to generate CSV template'
+        });
     }
 });
 
