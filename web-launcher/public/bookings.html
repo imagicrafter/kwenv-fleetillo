@@ -671,6 +671,19 @@
             const nextPageBtn = document.getElementById('next-page-btn');
             const paginationInfo = document.getElementById('pagination-info');
 
+            // --- CSV Upload Elements ---
+            const csvUploadModal = document.getElementById('csv-upload-modal');
+            const csvDropZone = document.getElementById('csv-drop-zone');
+            const csvFileInput = document.getElementById('csv-file-input');
+            const csvFileSelectBtn = document.getElementById('csv-file-select-btn');
+            const csvFilePreview = document.getElementById('csv-file-preview');
+            const csvFileName = document.getElementById('csv-file-name');
+            const csvClearFileBtn = document.getElementById('csv-clear-file');
+            const csvUploadSubmitBtn = document.getElementById('csv-upload-submit-btn');
+            const csvCancelBtn = document.getElementById('csv-cancel-btn');
+            const closeCsvModal = document.querySelector('.close-csv-modal');
+            let selectedCSVFile = null;
+
             // --- Filter UI Elements ---
             const filterDateFrom = document.getElementById('filter-date-from');
             const filterDateTo = document.getElementById('filter-date-to');
@@ -1630,6 +1643,85 @@
                 if (!e.target.closest('#location-search-results') && e.target !== locationSearchInput) {
                     locationSearchResults.style.display = 'none';
                 }
+            });
+
+            // --- CSV Upload Drag and Drop Handlers ---
+
+            // Prevent default drag behaviors
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                csvDropZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            // Highlight drop zone when dragging over it
+            ['dragenter', 'dragover'].forEach(eventName => {
+                csvDropZone.addEventListener(eventName, () => {
+                    csvDropZone.classList.add('drag-over');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                csvDropZone.addEventListener(eventName, () => {
+                    csvDropZone.classList.remove('drag-over');
+                }, false);
+            });
+
+            // Handle dropped files
+            csvDropZone.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    handleCSVFile(files[0]);
+                }
+            }, false);
+
+            // Handle file selection via button click
+            csvFileSelectBtn.addEventListener('click', () => {
+                csvFileInput.click();
+            });
+
+            csvFileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    handleCSVFile(e.target.files[0]);
+                }
+            });
+
+            // Handle file selection and validation
+            function handleCSVFile(file) {
+                // Validate file type
+                if (!file.name.toLowerCase().endsWith('.csv')) {
+                    alert('Please select a CSV file (.csv)');
+                    return;
+                }
+
+                // Validate file size (10MB max)
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('File size must be less than 10MB');
+                    return;
+                }
+
+                // Store selected file
+                selectedCSVFile = file;
+
+                // Show file preview
+                csvFileName.textContent = file.name;
+                document.querySelector('.drop-zone-content').style.display = 'none';
+                csvFilePreview.style.display = 'flex';
+
+                // Enable upload button
+                csvUploadSubmitBtn.disabled = false;
+            }
+
+            // Clear file selection
+            csvClearFileBtn.addEventListener('click', () => {
+                selectedCSVFile = null;
+                csvFileInput.value = '';
+                csvFilePreview.style.display = 'none';
+                document.querySelector('.drop-zone-content').style.display = 'block';
+                csvUploadSubmitBtn.disabled = true;
             });
 
 
