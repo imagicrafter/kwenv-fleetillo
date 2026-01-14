@@ -6,6 +6,12 @@ import { uploadCSV as uploadCSVMiddleware, handleUploadError, requireFile } from
 const router = Router();
 
 /**
+ * GET /api/v1/bookings/template
+ * Download CSV template for booking uploads
+ */
+router.get('/template', bookingController.downloadTemplate);
+
+/**
  * GET /api/v1/bookings/count
  * Get total count of bookings
  */

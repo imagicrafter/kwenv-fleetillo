@@ -405,3 +405,74 @@ export const uploadCSV = async (req: Request, res: Response, next: NextFunction)
     next(error);
   }
 };
+
+/**
+ * Download CSV template for booking uploads
+ * GET /api/v1/bookings/template
+ */
+export const downloadTemplate = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    // CSV header row with all supported columns
+    const headers = [
+      'clientId',
+      'bookingType',
+      'scheduledDate',
+      'scheduledStartTime',
+      'serviceIds',
+      'locationId',
+      'status',
+      'priority',
+      'quotedPrice',
+      'estimatedDurationMinutes',
+      'specialInstructions',
+      'serviceAddressLine1',
+      'serviceAddressLine2',
+      'serviceCity',
+      'serviceState',
+      'servicePostalCode',
+      'serviceCountry',
+      'recurrencePattern',
+      'recurrenceEndDate',
+      'tags',
+    ];
+
+    // Example row showing expected formats
+    const exampleRow = [
+      'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', // clientId (UUID)
+      'one_time', // bookingType (one_time or recurring)
+      '2026-01-15', // scheduledDate (YYYY-MM-DD)
+      '09:00', // scheduledStartTime (HH:MM or HH:MM:SS)
+      'service-id-1,service-id-2', // serviceIds (comma-separated UUIDs)
+      'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', // locationId (UUID, optional)
+      'pending', // status (pending, confirmed, scheduled, etc.)
+      'normal', // priority (low, normal, high, urgent)
+      '150.00', // quotedPrice (decimal number)
+      '60', // estimatedDurationMinutes (integer)
+      'Please call before arrival', // specialInstructions (text)
+      '123 Main Street', // serviceAddressLine1 (text)
+      'Suite 100', // serviceAddressLine2 (text, optional)
+      'San Francisco', // serviceCity (text)
+      'CA', // serviceState (text)
+      '94102', // servicePostalCode (text)
+      'USA', // serviceCountry (text)
+      'weekly', // recurrencePattern (daily, weekly, monthly, etc. - only for recurring bookings)
+      '2026-12-31', // recurrenceEndDate (YYYY-MM-DD, optional)
+      'urgent,priority', // tags (comma-separated)
+    ];
+
+    // Build CSV content
+    const csvLines = [
+      headers.join(','),
+      exampleRow.join(','),
+    ];
+
+    const csvContent = csvLines.join('\n');
+
+    // Set response headers for CSV download
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="bookings_template.csv"');
+    res.status(200).send(csvContent);
+  } catch (error) {
+    next(error);
+  }
+};
