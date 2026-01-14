@@ -8,7 +8,9 @@ import {
   restoreBooking,
   countBookings,
   getBookingByNumber,
+  bulkCreateBookings,
 } from '../services/booking.service.js';
+import { parseAndValidateCSV } from '../services/csv.service.js';
 import type { CreateBookingInput, UpdateBookingInput, BookingFilters } from '../types/booking.js';
 import type { PaginationParams } from '../types/index.js';
 
@@ -295,6 +297,109 @@ export const count = async (req: Request, res: Response, next: NextFunction): Pr
       data: {
         count: result.data,
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Upload CSV file with bookings
+ * POST /api/v1/bookings/upload
+ */
+export const uploadCSV = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    // Check if file was uploaded
+    if (!req.file) {
+      res.status(400).json({
+        success: false,
+        error: {
+          message: 'No file uploaded. Please upload a CSV file.',
+        },
+      });
+      return;
+    }
+
+    // Parse and validate CSV
+    const parseResult = await parseAndValidateCSV(req.file.buffer);
+
+    if (!parseResult.success || !parseResult.data) {
+      res.status(400).json({
+        success: false,
+        error: {
+          message: parseResult.error?.message || 'Failed to parse CSV file',
+        },
+      });
+      return;
+    }
+
+    const { validBookings, errors: csvErrors, totalRows, validRows, invalidRows } = parseResult.data;
+
+    // If there are CSV validation errors, return them
+    if (csvErrors.length > 0) {
+      res.status(400).json({
+        success: false,
+        error: {
+          message: `CSV validation failed. ${invalidRows} of ${totalRows} rows have errors.`,
+          details: csvErrors,
+          summary: {
+            totalRows,
+            validRows,
+            invalidRows,
+          },
+        },
+      });
+      return;
+    }
+
+    // If no valid bookings, return error
+    if (validBookings.length === 0) {
+      res.status(400).json({
+        success: false,
+        error: {
+          message: 'No valid bookings found in CSV file.',
+        },
+      });
+      return;
+    }
+
+    // Bulk insert bookings
+    const bulkResult = await bulkCreateBookings(validBookings);
+
+    if (!bulkResult.success || !bulkResult.data) {
+      res.status(500).json({
+        success: false,
+        error: {
+          message: bulkResult.error?.message || 'Failed to create bookings',
+        },
+      });
+      return;
+    }
+
+    const { created, errors: insertErrors } = bulkResult.data;
+
+    // If there are insert errors, return partial success
+    if (insertErrors.length > 0) {
+      res.status(207).json({
+        success: true,
+        data: {
+          created,
+          total: validBookings.length,
+          errors: insertErrors,
+        },
+        message: `Partially successful. ${created} of ${validBookings.length} bookings created.`,
+      });
+      return;
+    }
+
+    // Full success
+    res.status(201).json({
+      success: true,
+      data: {
+        created,
+        total: totalRows,
+      },
+      message: `Successfully created ${created} bookings from CSV file.`,
     });
   } catch (error) {
     next(error);

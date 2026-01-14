@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import * as bookingController from '../controllers/booking.controller.js';
 import { validateIdParam, validateRequired } from '../middleware/validation.js';
+import { uploadCSV as uploadCSVMiddleware, handleUploadError, requireFile } from '../middleware/fileUpload.js';
 
 const router = Router();
 
@@ -27,6 +28,18 @@ router.get('/', bookingController.getAll);
  * Get booking by ID
  */
 router.get('/:id', validateIdParam('id'), bookingController.getById);
+
+/**
+ * POST /api/v1/bookings/upload
+ * Upload CSV file with bookings
+ */
+router.post(
+  '/upload',
+  uploadCSVMiddleware,
+  requireFile,
+  handleUploadError,
+  bookingController.uploadCSV
+);
 
 /**
  * POST /api/v1/bookings
