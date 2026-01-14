@@ -1,10 +1,10 @@
-# RouteIQ
+# OptiRoute
 
 A route planning and management system for service-based businesses built with TypeScript, Electron, and Supabase.
 
 ## Overview
 
-RouteIQ helps service-based businesses efficiently manage their daily operations by providing:
+OptiRoute helps service-based businesses efficiently manage their daily operations by providing:
 
 - **Customer Management** - Maintain a comprehensive client database with service addresses
 - **Service Catalog** - Manage services with configurable average service times
@@ -33,8 +33,8 @@ RouteIQ helps service-based businesses efficiently manage their daily operations
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/imagicrafter/routeIQ-typescript.git
-   cd routeIQ-typescript
+   git clone https://github.com/imagicrafter/optiroute.git
+   cd optiroute
    ```
 
 2. **Install dependencies:**
@@ -67,7 +67,7 @@ RouteIQ helps service-based businesses efficiently manage their daily operations
    SUPABASE_URL=https://your-project-ref.supabase.co
    SUPABASE_KEY=your-anon-key-here
    SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
-   SUPABASE_SCHEMA=routeiq
+   SUPABASE_SCHEMA=optiroute
 
    # Google Maps API Configuration (Required)
    GOOGLE_MAPS_API_KEY=your-google-maps-api-key-here
@@ -161,7 +161,7 @@ RouteIQ helps service-based businesses efficiently manage their daily operations
 ## Project Structure
 
 ```
-routeiq-typescript/
+optiroute/
 ├── electron-launcher/       # Electron desktop application
 │   ├── src/
 │   │   ├── main.js         # Electron main process
@@ -229,7 +229,7 @@ npm run test:coverage
 ### Database connection fails
 - Run `npm run db:check` to diagnose connection issues
 - Verify your Supabase URL and keys are correct
-- Ensure the `routeiq` schema exists in your Supabase project
+- Ensure the `optiroute` schema exists in your Supabase project
 
 ### Google Maps API errors
 - Verify your API key has the required APIs enabled (Maps JavaScript API, Routes API, Places API)

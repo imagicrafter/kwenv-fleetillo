@@ -1,6 +1,6 @@
-# RouteIQ Electron Launcher
+# OptiRoute Electron Launcher
 
-Electron desktop application launcher for RouteIQ.
+Electron desktop application launcher for OptiRoute.
 
 ## Prerequisites
 
