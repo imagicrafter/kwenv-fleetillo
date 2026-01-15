@@ -316,6 +316,49 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+
+        /* Toast notification styles */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            padding: 12px 20px;
+            border-radius: 6px;
+            min-width: 250px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            animation: slideInRight 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toast.success {
+            background: var(--accent-success);
+            color: white;
+        }
+
+        .toast.error {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 
@@ -500,6 +543,15 @@
                 <div class="search-bar">
                     <span class="search-icon">🔍</span>
                     <input type="text" id="search-input" placeholder="Search drivers...">
+                </div>
+                <div class="filters" style="display: flex; gap: 12px; align-items: center;">
+                    <select id="status-filter" style="padding: 8px 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-primary); font-size: 0.95rem;">
+                        <option value="">All Statuses</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="on_leave">On Leave</option>
+                        <option value="terminated">Terminated</option>
+                    </select>
                 </div>
                 <div class="actions">
                     <button class="btn-primary" id="add-driver-btn">+ Add Driver</button>
@@ -733,6 +785,27 @@
         </div>
     </div>
 
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-confirm-modal" class="modal">
+        <div class="modal-content" style="width: 400px;">
+            <div class="modal-header">
+                <h3>Confirm Delete</h3>
+                <button class="close-modal" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete driver <strong id="delete-driver-name"></strong>?</p>
+                <p style="color: #ff6b6b; font-size: 0.9rem; margin-top: 12px;">⚠️ This action cannot be undone.</p>
+                <div class="form-actions" style="margin-top: 24px;">
+                    <button class="btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                    <button class="btn-danger" id="confirm-delete-btn">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container"></div>
+
     <script src="preload.js"></script>
     <script>
         // State variables
@@ -743,6 +816,37 @@
         let totalDrivers = 0;
         let editingDriverId = null;
         let pendingAvatarFile = null;
+        let searchTerm = '';
+        let statusFilter = '';
+
+        // Toast notification function
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+
+            // Auto-remove after 3 seconds
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Debounce utility function
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
 
         // RPC helper function
         async function rpc(namespace, method, params = {}) {
@@ -772,13 +876,23 @@
             }
         }
 
-        // Load drivers with pagination
+        // Load drivers with pagination and filters
         async function loadDrivers() {
             try {
-                const result = await rpc('drivers', 'getAll', {
+                const params = {
                     page: currentPage,
                     pageSize: pageSize
-                });
+                };
+
+                // Add filters if set
+                if (statusFilter) {
+                    params.status = statusFilter;
+                }
+                if (searchTerm) {
+                    params.searchTerm = searchTerm;
+                }
+
+                const result = await rpc('drivers', 'getAll', params);
 
                 drivers = result.data || result.drivers || [];
                 totalDrivers = result.total || drivers.length;
@@ -901,6 +1015,7 @@
                             <span class="status-badge ${getStatusBadgeClass(driver.status)}">${formatStatus(driver.status)}</span>
                         </td>
                         <td>
+                            <button class="action-btn" onclick="openVehicleAssignModal(${driver.id}, '${driver.first_name} ${driver.last_name}')" title="Assign Vehicle">🚗</button>
                             <button class="action-btn" onclick="openEditDriverModal(${driver.id})" title="Edit">✏️</button>
                             <button class="action-btn" onclick="deleteDriver(${driver.id})" title="Delete">🗑️</button>
                         </td>
@@ -1004,22 +1119,21 @@
                     // Update existing driver
                     await rpc('drivers', 'update', { id: editingDriverId, ...formData });
                     driverId = editingDriverId;
-                    console.log('Driver updated successfully');
+                    showToast('Driver updated successfully', 'success');
                 } else {
                     // Create new driver
                     const result = await rpc('drivers', 'create', formData);
                     driverId = result.data?.id || result.id;
-                    console.log('Driver created successfully:', result);
+                    showToast('Driver created successfully', 'success');
                 }
 
                 // Upload avatar if pending
                 if (pendingAvatarFile && driverId) {
                     try {
                         await uploadAvatar(driverId);
-                        console.log('Avatar uploaded successfully');
                     } catch (avatarError) {
                         console.error('Failed to upload avatar:', avatarError);
-                        alert('Driver saved but avatar upload failed: ' + avatarError.message);
+                        showToast('Driver saved but avatar upload failed', 'error');
                     }
                 }
 
@@ -1027,26 +1141,36 @@
                 await loadDrivers();
             } catch (error) {
                 console.error('Failed to save driver:', error);
-                alert('Failed to save driver: ' + error.message);
+                showToast('Failed to save driver: ' + error.message, 'error');
             }
         }
 
-        // Delete driver
-        async function deleteDriver(driverId) {
+        // Delete driver - show confirmation modal
+        function deleteDriver(driverId) {
             const driver = drivers.find(d => d.id === driverId);
             if (!driver) return;
 
-            if (!confirm(`Are you sure you want to delete driver ${driver.first_name} ${driver.last_name}?`)) {
-                return;
-            }
+            const driverName = `${driver.first_name} ${driver.last_name}`;
+            document.getElementById('delete-driver-name').textContent = driverName;
+            document.getElementById('confirm-delete-btn').onclick = () => executeDelete(driverId);
+            document.getElementById('delete-confirm-modal').style.display = 'block';
+        }
 
+        // Close delete confirmation modal
+        function closeDeleteModal() {
+            document.getElementById('delete-confirm-modal').style.display = 'none';
+        }
+
+        // Execute the delete after confirmation
+        async function executeDelete(driverId) {
             try {
                 await rpc('drivers', 'delete', { id: driverId });
-                console.log('Driver deleted successfully');
+                closeDeleteModal();
+                showToast('Driver deleted successfully', 'success');
                 await loadDrivers();
             } catch (error) {
                 console.error('Failed to delete driver:', error);
-                alert('Failed to delete driver: ' + error.message);
+                showToast('Failed to delete driver: ' + error.message, 'error');
             }
         }
 
@@ -1191,6 +1315,20 @@
             // Add driver button
             document.getElementById('add-driver-btn').addEventListener('click', openAddDriverModal);
 
+            // Search input with debounce
+            document.getElementById('search-input').addEventListener('input', debounce((e) => {
+                searchTerm = e.target.value.trim();
+                currentPage = 1; // Reset to first page
+                loadDrivers();
+            }, 300));
+
+            // Status filter
+            document.getElementById('status-filter').addEventListener('change', (e) => {
+                statusFilter = e.target.value;
+                currentPage = 1; // Reset to first page
+                loadDrivers();
+            });
+
             // Close modal buttons
             document.querySelectorAll('.close-modal, .close-modal-btn').forEach(btn => {
                 btn.addEventListener('click', closeDriverModal);
@@ -1218,14 +1356,56 @@
             });
         });
 
-        // Placeholder functions for vehicle assignment modal (will be implemented in next task)
+        // Vehicle assignment modal functions
+        function populateVehicleDropdown(selectId, currentVehicleId = null) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = '<option value="">-- No Vehicle Assigned --</option>';
+
+            vehicles.forEach(v => {
+                // Show vehicle name and current assignment status
+                const assignedTo = v.assigned_driver_id ? ' (Assigned)' : '';
+                const option = document.createElement('option');
+                option.value = v.id;
+                option.textContent = `${v.make} ${v.model} - ${v.registration_number}${assignedTo}`;
+                if (v.id === currentVehicleId) option.selected = true;
+                select.appendChild(option);
+            });
+        }
+
+        function openVehicleAssignModal(driverId, driverName) {
+            document.getElementById('assign-driver-name').textContent = driverName;
+            document.getElementById('vehicle-assign-modal').dataset.driverId = driverId;
+
+            // Find driver's current vehicle
+            const driver = drivers.find(d => d.id === driverId);
+            populateVehicleDropdown('vehicle-select', driver?.assigned_vehicle_id);
+
+            document.getElementById('vehicle-assign-modal').style.display = 'block';
+        }
+
         function closeVehicleAssignModal() {
             document.getElementById('vehicle-assign-modal').style.display = 'none';
         }
 
-        function confirmVehicleAssignment() {
-            console.log('Vehicle assignment not yet implemented');
-            closeVehicleAssignModal();
+        async function confirmVehicleAssignment() {
+            const driverId = parseInt(document.getElementById('vehicle-assign-modal').dataset.driverId);
+            const vehicleId = document.getElementById('vehicle-select').value;
+
+            try {
+                if (vehicleId) {
+                    await rpc('drivers', 'assignToVehicle', { driverId, vehicleId: parseInt(vehicleId) });
+                    showToast('Vehicle assigned successfully', 'success');
+                } else {
+                    // Unassign - need to remove vehicle assignment
+                    await rpc('drivers', 'unassignFromVehicle', { driverId });
+                    showToast('Vehicle unassigned', 'success');
+                }
+                closeVehicleAssignModal();
+                await loadDrivers(); // Refresh table
+            } catch (error) {
+                console.error('Failed to assign vehicle:', error);
+                showToast('Failed to assign vehicle: ' + error.message, 'error');
+            }
         }
     </script>
 </body>
