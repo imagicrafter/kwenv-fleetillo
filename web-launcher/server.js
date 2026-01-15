@@ -102,6 +102,22 @@ const upload = multer({
     },
 });
 
+// Configure multer for image uploads (driver avatars)
+const imageUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB limit
+    },
+    fileFilter: (req, file, cb) => {
+        const allowedMimes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+        if (allowedMimes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only image files (JPEG, PNG, WebP) are allowed'));
+        }
+    },
+});
+
 // Import Services
 // We assume web-launcher is at routeIQ-typescript/web-launcher and dist is at routeIQ-typescript/dist
 const SERVICE_PATH = path.resolve(__dirname, '../dist/services');
@@ -464,6 +480,65 @@ app.get('/api/bookings/template', (req, res) => {
         return res.status(500).json({
             success: false,
             error: err.message || 'Failed to generate CSV template'
+        });
+    }
+});
+
+// Driver Avatar Upload Endpoint
+app.post('/api/drivers/:id/avatar', imageUpload.single('avatar'), async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        if (!req.file) {
+            return res.status(400).json({
+                success: false,
+                error: 'No file uploaded'
+            });
+        }
+
+        console.log(`Avatar upload for driver ${id}: ${req.file.originalname} (${req.file.size} bytes)`);
+
+        const result = await driverService.uploadDriverAvatar(
+            id,
+            req.file.buffer,
+            req.file.mimetype,
+            req.file.originalname
+        );
+
+        if (!result.success) {
+            return res.status(400).json(result);
+        }
+
+        res.json({
+            success: true,
+            data: { avatarUrl: result.data }
+        });
+
+    } catch (error) {
+        console.error('Avatar upload error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
+        });
+    }
+});
+
+// Driver Avatar Delete Endpoint
+app.delete('/api/drivers/:id/avatar', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        console.log(`Avatar delete for driver ${id}`);
+
+        const result = await driverService.deleteDriverAvatar(id);
+
+        res.json(result);
+
+    } catch (error) {
+        console.error('Avatar delete error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message
         });
     }
 });
