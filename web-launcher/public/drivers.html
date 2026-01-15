@@ -735,17 +735,373 @@
 
     <script src="preload.js"></script>
     <script>
-        // Placeholder for driver management JavaScript
-        // Will be populated in subsequent tasks with:
-        // - Driver loading and rendering
-        // - Search functionality
-        // - Add/Edit driver modal
-        // - Avatar upload functionality
-        // - Pagination controls
+        // State variables
+        let drivers = [];
+        let vehicles = [];
+        let currentPage = 1;
+        let pageSize = 10;
+        let totalDrivers = 0;
+        let editingDriverId = null;
+        let pendingAvatarFile = null;
 
+        // RPC helper function
+        async function rpc(namespace, method, params = {}) {
+            try {
+                const response = await fetch('/api/rpc', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        namespace,
+                        method,
+                        args: params
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || `RPC ${namespace}.${method} failed`);
+                }
+
+                return data;
+            } catch (error) {
+                console.error(`RPC Error (${namespace}.${method}):`, error);
+                throw error;
+            }
+        }
+
+        // Load drivers with pagination
+        async function loadDrivers() {
+            try {
+                const result = await rpc('drivers', 'getAll', {
+                    page: currentPage,
+                    pageSize: pageSize
+                });
+
+                drivers = result.data || result.drivers || [];
+                totalDrivers = result.total || drivers.length;
+
+                renderDriversTable();
+                updatePagination();
+            } catch (error) {
+                console.error('Failed to load drivers:', error);
+                document.getElementById('drivers-table-body').innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align:center; padding: 40px 20px; color: var(--text-secondary);">
+                            Error loading drivers: ${error.message}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Load vehicles for assignment dropdown
+        async function loadVehicles() {
+            try {
+                const result = await rpc('vehicles', 'getAll', { page: 1, pageSize: 1000 });
+                vehicles = result.data || result.vehicles || [];
+                populateVehicleDropdowns();
+            } catch (error) {
+                console.error('Failed to load vehicles:', error);
+            }
+        }
+
+        // Populate vehicle dropdowns
+        function populateVehicleDropdowns() {
+            const assignedVehicleSelect = document.getElementById('assigned-vehicle');
+            const vehicleSelectModal = document.getElementById('vehicle-select');
+
+            const options = vehicles.map(v =>
+                `<option value="${v.id}">${v.make} ${v.model} (${v.registration_number})</option>`
+            ).join('');
+
+            if (assignedVehicleSelect) {
+                assignedVehicleSelect.innerHTML = '<option value="">-- No Vehicle Assigned --</option>' + options;
+            }
+            if (vehicleSelectModal) {
+                vehicleSelectModal.innerHTML = '<option value="">-- No Vehicle Assigned --</option>' + options;
+            }
+        }
+
+        // Get initials for avatar fallback
+        function getInitials(firstName, lastName) {
+            const first = firstName ? firstName.charAt(0).toUpperCase() : '';
+            const last = lastName ? lastName.charAt(0).toUpperCase() : '';
+            return first + last;
+        }
+
+        // Get status badge CSS class
+        function getStatusBadgeClass(status) {
+            const statusMap = {
+                'active': 'driver-active',
+                'inactive': 'driver-inactive',
+                'on_leave': 'driver-on-leave',
+                'terminated': 'driver-terminated'
+            };
+            return statusMap[status] || 'driver-inactive';
+        }
+
+        // Format status for display
+        function formatStatus(status) {
+            const statusMap = {
+                'active': 'Active',
+                'inactive': 'Inactive',
+                'on_leave': 'On Leave',
+                'terminated': 'Terminated'
+            };
+            return statusMap[status] || status;
+        }
+
+        // Render drivers table
+        function renderDriversTable() {
+            const tbody = document.getElementById('drivers-table-body');
+
+            if (drivers.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align:center; padding: 40px 20px; color: var(--text-secondary);">
+                            No drivers found. Click "Add Driver" to create one.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = drivers.map(driver => {
+                const initials = getInitials(driver.first_name, driver.last_name);
+                const avatarHtml = driver.avatar_url
+                    ? `<img src="${driver.avatar_url}" alt="${driver.first_name} ${driver.last_name}" class="driver-avatar">`
+                    : `<div class="driver-avatar-initials">${initials}</div>`;
+
+                const vehicle = driver.vehicle_registration || 'Unassigned';
+                const licenseExpiry = driver.license_expiry
+                    ? new Date(driver.license_expiry).toLocaleDateString()
+                    : 'N/A';
+
+                return `
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                ${avatarHtml}
+                                <div>
+                                    <div style="font-weight: 500;">${driver.first_name} ${driver.last_name}</div>
+                                    <div style="font-size: 0.85rem; color: var(--text-secondary);">${driver.license_number || 'No license'}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div>${driver.phone_number || 'N/A'}</div>
+                            <div style="font-size: 0.85rem; color: var(--text-secondary);">${driver.email || 'N/A'}</div>
+                        </td>
+                        <td>${licenseExpiry}</td>
+                        <td>${vehicle}</td>
+                        <td>
+                            <span class="status-badge ${getStatusBadgeClass(driver.status)}">${formatStatus(driver.status)}</span>
+                        </td>
+                        <td>
+                            <button class="action-btn" onclick="openEditDriverModal(${driver.id})" title="Edit">✏️</button>
+                            <button class="action-btn" onclick="deleteDriver(${driver.id})" title="Delete">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Open add driver modal
+        function openAddDriverModal() {
+            editingDriverId = null;
+            document.getElementById('modal-title').textContent = 'Add Driver';
+            document.getElementById('driver-form').reset();
+            document.getElementById('driver-id').value = '';
+
+            // Reset avatar preview
+            document.getElementById('avatarImage').style.display = 'none';
+            document.getElementById('avatarInitials').textContent = '';
+            document.getElementById('removeAvatarBtn').style.display = 'none';
+            pendingAvatarFile = null;
+
+            document.getElementById('driver-modal').style.display = 'block';
+        }
+
+        // Open edit driver modal
+        async function openEditDriverModal(driverId) {
+            editingDriverId = driverId;
+            document.getElementById('modal-title').textContent = 'Edit Driver';
+
+            const driver = drivers.find(d => d.id === driverId);
+            if (!driver) {
+                console.error('Driver not found:', driverId);
+                return;
+            }
+
+            // Populate form fields
+            document.getElementById('driver-id').value = driver.id;
+            document.getElementById('first-name').value = driver.first_name || '';
+            document.getElementById('last-name').value = driver.last_name || '';
+            document.getElementById('phone-number').value = driver.phone_number || '';
+            document.getElementById('email').value = driver.email || '';
+            document.getElementById('telegram-chat-id').value = driver.telegram_chat_id || '';
+            document.getElementById('license-number').value = driver.license_number || '';
+            document.getElementById('license-class').value = driver.license_class || '';
+            document.getElementById('license-expiry').value = driver.license_expiry || '';
+            document.getElementById('driver-status').value = driver.status || 'active';
+            document.getElementById('hire-date').value = driver.hire_date || '';
+            document.getElementById('assigned-vehicle').value = driver.assigned_vehicle_id || '';
+            document.getElementById('emergency-contact-name').value = driver.emergency_contact_name || '';
+            document.getElementById('emergency-contact-phone').value = driver.emergency_contact_phone || '';
+            document.getElementById('driver-notes').value = driver.notes || '';
+
+            // Set avatar preview
+            if (driver.avatar_url) {
+                document.getElementById('avatarImage').src = driver.avatar_url;
+                document.getElementById('avatarImage').style.display = 'block';
+                document.getElementById('avatarInitials').textContent = '';
+                document.getElementById('removeAvatarBtn').style.display = 'inline-block';
+            } else {
+                const initials = getInitials(driver.first_name, driver.last_name);
+                document.getElementById('avatarImage').style.display = 'none';
+                document.getElementById('avatarInitials').textContent = initials;
+                document.getElementById('removeAvatarBtn').style.display = 'none';
+            }
+
+            document.getElementById('driver-modal').style.display = 'block';
+        }
+
+        // Close driver modal
+        function closeDriverModal() {
+            document.getElementById('driver-modal').style.display = 'none';
+            editingDriverId = null;
+            pendingAvatarFile = null;
+        }
+
+        // Save driver (create or update)
+        async function saveDriver(event) {
+            event.preventDefault();
+
+            const formData = {
+                first_name: document.getElementById('first-name').value,
+                last_name: document.getElementById('last-name').value,
+                phone_number: document.getElementById('phone-number').value || null,
+                email: document.getElementById('email').value || null,
+                telegram_chat_id: document.getElementById('telegram-chat-id').value || null,
+                license_number: document.getElementById('license-number').value || null,
+                license_class: document.getElementById('license-class').value || null,
+                license_expiry: document.getElementById('license-expiry').value || null,
+                status: document.getElementById('driver-status').value,
+                hire_date: document.getElementById('hire-date').value || null,
+                assigned_vehicle_id: document.getElementById('assigned-vehicle').value || null,
+                emergency_contact_name: document.getElementById('emergency-contact-name').value || null,
+                emergency_contact_phone: document.getElementById('emergency-contact-phone').value || null,
+                notes: document.getElementById('driver-notes').value || null
+            };
+
+            try {
+                if (editingDriverId) {
+                    // Update existing driver
+                    await rpc('drivers', 'update', { id: editingDriverId, ...formData });
+                    console.log('Driver updated successfully');
+                } else {
+                    // Create new driver
+                    const result = await rpc('drivers', 'create', formData);
+                    console.log('Driver created successfully:', result);
+                }
+
+                closeDriverModal();
+                await loadDrivers();
+            } catch (error) {
+                console.error('Failed to save driver:', error);
+                alert('Failed to save driver: ' + error.message);
+            }
+        }
+
+        // Delete driver
+        async function deleteDriver(driverId) {
+            const driver = drivers.find(d => d.id === driverId);
+            if (!driver) return;
+
+            if (!confirm(`Are you sure you want to delete driver ${driver.first_name} ${driver.last_name}?`)) {
+                return;
+            }
+
+            try {
+                await rpc('drivers', 'delete', { id: driverId });
+                console.log('Driver deleted successfully');
+                await loadDrivers();
+            } catch (error) {
+                console.error('Failed to delete driver:', error);
+                alert('Failed to delete driver: ' + error.message);
+            }
+        }
+
+        // Update pagination UI
+        function updatePagination() {
+            const totalPages = Math.ceil(totalDrivers / pageSize);
+            const start = (currentPage - 1) * pageSize + 1;
+            const end = Math.min(currentPage * pageSize, totalDrivers);
+
+            document.getElementById('pagination-info').textContent =
+                `${start}-${end} of ${totalDrivers}`;
+
+            document.getElementById('prev-page-btn').disabled = currentPage === 1;
+            document.getElementById('next-page-btn').disabled = currentPage >= totalPages;
+        }
+
+        // Go to specific page
+        function goToPage(page) {
+            const totalPages = Math.ceil(totalDrivers / pageSize);
+            if (page < 1 || page > totalPages) return;
+
+            currentPage = page;
+            loadDrivers();
+        }
+
+        // Event listeners
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('Drivers page loaded - JavaScript will be implemented in subsequent tasks');
+            // Load data
+            loadDrivers();
+            loadVehicles();
+
+            // Add driver button
+            document.getElementById('add-driver-btn').addEventListener('click', openAddDriverModal);
+
+            // Close modal buttons
+            document.querySelectorAll('.close-modal, .close-modal-btn').forEach(btn => {
+                btn.addEventListener('click', closeDriverModal);
+            });
+
+            // Form submit
+            document.getElementById('driver-form').addEventListener('submit', saveDriver);
+
+            // Pagination
+            document.getElementById('prev-page-btn').addEventListener('click', () => goToPage(currentPage - 1));
+            document.getElementById('next-page-btn').addEventListener('click', () => goToPage(currentPage + 1));
+
+            // Rows per page
+            document.getElementById('rows-select').addEventListener('change', (e) => {
+                pageSize = parseInt(e.target.value);
+                currentPage = 1;
+                loadDrivers();
+            });
+
+            // Modal click outside to close
+            document.getElementById('driver-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'driver-modal') {
+                    closeDriverModal();
+                }
+            });
         });
+
+        // Placeholder functions for vehicle assignment modal (will be implemented in next task)
+        function closeVehicleAssignModal() {
+            document.getElementById('vehicle-assign-modal').style.display = 'none';
+        }
+
+        function confirmVehicleAssignment() {
+            console.log('Vehicle assignment not yet implemented');
+            closeVehicleAssignModal();
+        }
     </script>
 </body>
 
