@@ -354,6 +354,7 @@
                 transform: translateX(100%);
                 opacity: 0;
             }
+
             to {
                 transform: translateX(0);
                 opacity: 1;
@@ -414,7 +415,8 @@
                 <a href="bookings.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                         </svg>
                     </span>
                     Bookings
@@ -545,7 +547,8 @@
                     <input type="text" id="search-input" placeholder="Search drivers...">
                 </div>
                 <div class="filters" style="display: flex; gap: 12px; align-items: center;">
-                    <select id="status-filter" style="padding: 8px 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-primary); font-size: 0.95rem;">
+                    <select id="status-filter"
+                        style="padding: 8px 12px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-primary); font-size: 0.95rem;">
                         <option value="">All Statuses</option>
                         <option value="active">Active</option>
                         <option value="inactive">Inactive</option>
@@ -579,7 +582,8 @@
                         <tbody id="drivers-table-body">
                             <!-- Table will be populated by JavaScript -->
                             <tr>
-                                <td colspan="6" style="text-align:center; padding: 40px 20px; color: var(--text-secondary);">
+                                <td colspan="6"
+                                    style="text-align:center; padding: 40px 20px; color: var(--text-secondary);">
                                     No drivers found. Click "Add Driver" to create one.
                                 </td>
                             </tr>
@@ -636,7 +640,8 @@
                         <div class="avatar-actions">
                             <input type="file" id="avatarInput" accept="image/jpeg,image/png,image/webp" hidden>
                             <button type="button" class="btn-secondary" id="uploadAvatarBtn">Upload Photo</button>
-                            <button type="button" class="btn-secondary btn-danger" id="removeAvatarBtn" style="display:none;">Remove</button>
+                            <button type="button" class="btn-secondary btn-danger" id="removeAvatarBtn"
+                                style="display:none;">Remove</button>
                         </div>
                         <p class="avatar-hint">JPEG, PNG or WebP. Max 5MB.</p>
                     </div>
@@ -928,7 +933,7 @@
             const vehicleSelectModal = document.getElementById('vehicle-select');
 
             const options = vehicles.map(v =>
-                `<option value="${v.id}">${v.make} ${v.model} (${v.registration_number})</option>`
+                `<option value="${v.id}">${v.make || ''} ${v.model || ''} (${v.licensePlate || 'No Plate'})</option>`
             ).join('');
 
             if (assignedVehicleSelect) {
@@ -984,14 +989,24 @@
             }
 
             tbody.innerHTML = drivers.map(driver => {
-                const initials = getInitials(driver.first_name, driver.last_name);
-                const avatarHtml = driver.avatar_url
-                    ? `<img src="${driver.avatar_url}" alt="${driver.first_name} ${driver.last_name}" class="driver-avatar">`
+                const initials = getInitials(driver.firstName, driver.lastName);
+                const avatarHtml = driver.profileImageUrl
+                    ? `<img src="${driver.profileImageUrl}" alt="${driver.firstName} ${driver.lastName}" class="driver-avatar">`
                     : `<div class="driver-avatar-initials">${initials}</div>`;
 
-                const vehicle = driver.vehicle_registration || 'Unassigned';
-                const licenseExpiry = driver.license_expiry
-                    ? new Date(driver.license_expiry).toLocaleDateString()
+                // Look up vehicle name from vehicles array
+                let vehicleDisplay = 'Unassigned';
+                if (driver.assignedVehicleId) {
+                    const assignedVehicle = vehicles.find(v => v.id === driver.assignedVehicleId);
+                    if (assignedVehicle) {
+                        const vehicleName = `${assignedVehicle.make || ''} ${assignedVehicle.model || ''}`.trim() || assignedVehicle.name || 'Unknown';
+                        const plate = assignedVehicle.licensePlate ? ` (${assignedVehicle.licensePlate})` : '';
+                        vehicleDisplay = vehicleName + plate;
+                    }
+                }
+
+                const licenseExpiry = driver.licenseExpiry
+                    ? new Date(driver.licenseExpiry).toLocaleDateString()
                     : 'N/A';
 
                 return `
@@ -1000,24 +1015,24 @@
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 ${avatarHtml}
                                 <div>
-                                    <div style="font-weight: 500;">${driver.first_name} ${driver.last_name}</div>
-                                    <div style="font-size: 0.85rem; color: var(--text-secondary);">${driver.license_number || 'No license'}</div>
+                                    <div style="font-weight: 500;">${driver.firstName} ${driver.lastName}</div>
+                                    <div style="font-size: 0.85rem; color: var(--text-secondary);">${driver.licenseNumber || 'No license'}</div>
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <div>${driver.phone_number || 'N/A'}</div>
+                            <div>${driver.phoneNumber || 'N/A'}</div>
                             <div style="font-size: 0.85rem; color: var(--text-secondary);">${driver.email || 'N/A'}</div>
                         </td>
                         <td>${licenseExpiry}</td>
-                        <td>${vehicle}</td>
+                        <td>${vehicleDisplay}</td>
                         <td>
                             <span class="status-badge ${getStatusBadgeClass(driver.status)}">${formatStatus(driver.status)}</span>
                         </td>
                         <td>
-                            <button class="action-btn" onclick="openVehicleAssignModal(${driver.id}, '${driver.first_name} ${driver.last_name}')" title="Assign Vehicle">🚗</button>
-                            <button class="action-btn" onclick="openEditDriverModal(${driver.id})" title="Edit">✏️</button>
-                            <button class="action-btn" onclick="deleteDriver(${driver.id})" title="Delete">🗑️</button>
+                            <button class="action-btn" onclick="openVehicleAssignModal('${driver.id}', '${driver.firstName} ${driver.lastName}')" title="Assign Vehicle">🚗</button>
+                            <button class="action-btn" onclick="openEditDriverModal('${driver.id}')" title="Edit">✏️</button>
+                            <button class="action-btn" onclick="deleteDriver('${driver.id}')" title="Delete">🗑️</button>
                         </td>
                     </tr>
                 `;
@@ -1051,31 +1066,36 @@
                 return;
             }
 
-            // Populate form fields
+            // Populate form fields (driver uses camelCase from service)
             document.getElementById('driver-id').value = driver.id;
-            document.getElementById('first-name').value = driver.first_name || '';
-            document.getElementById('last-name').value = driver.last_name || '';
-            document.getElementById('phone-number').value = driver.phone_number || '';
+            document.getElementById('first-name').value = driver.firstName || '';
+            document.getElementById('last-name').value = driver.lastName || '';
+            document.getElementById('phone-number').value = driver.phoneNumber || '';
             document.getElementById('email').value = driver.email || '';
-            document.getElementById('telegram-chat-id').value = driver.telegram_chat_id || '';
-            document.getElementById('license-number').value = driver.license_number || '';
-            document.getElementById('license-class').value = driver.license_class || '';
-            document.getElementById('license-expiry').value = driver.license_expiry || '';
+            document.getElementById('telegram-chat-id').value = driver.telegramChatId || '';
+            document.getElementById('license-number').value = driver.licenseNumber || '';
+            document.getElementById('license-class').value = driver.licenseClass || '';
+            // Format date for input field (YYYY-MM-DD)
+            document.getElementById('license-expiry').value = driver.licenseExpiry
+                ? new Date(driver.licenseExpiry).toISOString().split('T')[0]
+                : '';
             document.getElementById('driver-status').value = driver.status || 'active';
-            document.getElementById('hire-date').value = driver.hire_date || '';
-            document.getElementById('assigned-vehicle').value = driver.assigned_vehicle_id || '';
-            document.getElementById('emergency-contact-name').value = driver.emergency_contact_name || '';
-            document.getElementById('emergency-contact-phone').value = driver.emergency_contact_phone || '';
+            document.getElementById('hire-date').value = driver.hireDate
+                ? new Date(driver.hireDate).toISOString().split('T')[0]
+                : '';
+            document.getElementById('assigned-vehicle').value = driver.assignedVehicleId || '';
+            document.getElementById('emergency-contact-name').value = driver.emergencyContactName || '';
+            document.getElementById('emergency-contact-phone').value = driver.emergencyContactPhone || '';
             document.getElementById('driver-notes').value = driver.notes || '';
 
             // Set avatar preview
-            if (driver.avatar_url) {
-                document.getElementById('avatarImage').src = driver.avatar_url;
+            if (driver.profileImageUrl) {
+                document.getElementById('avatarImage').src = driver.profileImageUrl;
                 document.getElementById('avatarImage').style.display = 'block';
                 document.getElementById('avatarInitials').textContent = '';
                 document.getElementById('removeAvatarBtn').style.display = 'inline-block';
             } else {
-                const initials = getInitials(driver.first_name, driver.last_name);
+                const initials = getInitials(driver.firstName, driver.lastName);
                 document.getElementById('avatarImage').style.display = 'none';
                 document.getElementById('avatarInitials').textContent = initials;
                 document.getElementById('removeAvatarBtn').style.display = 'none';
@@ -1095,6 +1115,9 @@
         async function saveDriver(event) {
             event.preventDefault();
 
+            // Get vehicle selection (handled separately via assignToVehicle RPC)
+            const selectedVehicleId = document.getElementById('assigned-vehicle').value || null;
+
             const formData = {
                 first_name: document.getElementById('first-name').value,
                 last_name: document.getElementById('last-name').value,
@@ -1106,7 +1129,7 @@
                 license_expiry: document.getElementById('license-expiry').value || null,
                 status: document.getElementById('driver-status').value,
                 hire_date: document.getElementById('hire-date').value || null,
-                assigned_vehicle_id: document.getElementById('assigned-vehicle').value || null,
+                // Note: assigned_vehicle_id is NOT included - handled via assignToVehicle RPC
                 emergency_contact_name: document.getElementById('emergency-contact-name').value || null,
                 emergency_contact_phone: document.getElementById('emergency-contact-phone').value || null,
                 notes: document.getElementById('driver-notes').value || null
@@ -1116,14 +1139,39 @@
                 let driverId;
 
                 if (editingDriverId) {
+                    // When updating, preserve existing profile_image_url if not uploading a new one
+                    const existingDriver = drivers.find(d => d.id === editingDriverId);
+                    if (existingDriver && existingDriver.profileImageUrl && !pendingAvatarFile) {
+                        formData.profile_image_url = existingDriver.profileImageUrl;
+                    }
+
                     // Update existing driver
                     await rpc('drivers', 'update', { id: editingDriverId, ...formData });
                     driverId = editingDriverId;
+
+                    // Handle vehicle assignment change
+                    const currentVehicleId = existingDriver?.assignedVehicleId || null;
+                    if (selectedVehicleId !== currentVehicleId) {
+                        if (selectedVehicleId) {
+                            // Assign to new vehicle
+                            await rpc('drivers', 'assignToVehicle', { driverId, vehicleId: selectedVehicleId });
+                        } else if (currentVehicleId) {
+                            // Unassign from current vehicle
+                            await rpc('drivers', 'unassignFromVehicle', { driverId });
+                        }
+                    }
+
                     showToast('Driver updated successfully', 'success');
                 } else {
                     // Create new driver
                     const result = await rpc('drivers', 'create', formData);
                     driverId = result.data?.id || result.id;
+
+                    // Assign to vehicle if selected
+                    if (selectedVehicleId && driverId) {
+                        await rpc('drivers', 'assignToVehicle', { driverId, vehicleId: selectedVehicleId });
+                    }
+
                     showToast('Driver created successfully', 'success');
                 }
 
@@ -1150,7 +1198,7 @@
             const driver = drivers.find(d => d.id === driverId);
             if (!driver) return;
 
-            const driverName = `${driver.first_name} ${driver.last_name}`;
+            const driverName = `${driver.firstName} ${driver.lastName}`;
             document.getElementById('delete-driver-name').textContent = driverName;
             document.getElementById('confirm-delete-btn').onclick = () => executeDelete(driverId);
             document.getElementById('delete-confirm-modal').style.display = 'block';
@@ -1363,10 +1411,10 @@
 
             vehicles.forEach(v => {
                 // Show vehicle name and current assignment status
-                const assignedTo = v.assigned_driver_id ? ' (Assigned)' : '';
+                const assignedTo = v.assignedDriverId ? ' (Assigned)' : '';
                 const option = document.createElement('option');
                 option.value = v.id;
-                option.textContent = `${v.make} ${v.model} - ${v.registration_number}${assignedTo}`;
+                option.textContent = `${v.make || ''} ${v.model || ''} - ${v.licensePlate || 'No Plate'}${assignedTo}`;
                 if (v.id === currentVehicleId) option.selected = true;
                 select.appendChild(option);
             });
@@ -1378,7 +1426,7 @@
 
             // Find driver's current vehicle
             const driver = drivers.find(d => d.id === driverId);
-            populateVehicleDropdown('vehicle-select', driver?.assigned_vehicle_id);
+            populateVehicleDropdown('vehicle-select', driver?.assignedVehicleId);
 
             document.getElementById('vehicle-assign-modal').style.display = 'block';
         }
@@ -1388,12 +1436,12 @@
         }
 
         async function confirmVehicleAssignment() {
-            const driverId = parseInt(document.getElementById('vehicle-assign-modal').dataset.driverId);
+            const driverId = document.getElementById('vehicle-assign-modal').dataset.driverId;
             const vehicleId = document.getElementById('vehicle-select').value;
 
             try {
                 if (vehicleId) {
-                    await rpc('drivers', 'assignToVehicle', { driverId, vehicleId: parseInt(vehicleId) });
+                    await rpc('drivers', 'assignToVehicle', { driverId, vehicleId });
                     showToast('Vehicle assigned successfully', 'success');
                 } else {
                     // Unassign - need to remove vehicle assignment

@@ -5,7 +5,7 @@
  * in the OptiRoute application.
  */
 
-import { getSupabaseClient, getAdminSupabaseClient } from './supabase.js';
+import { getAdminSupabaseClient } from './supabase.js';
 import { createContextLogger } from '../utils/logger.js';
 import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
 import type {
@@ -177,7 +177,7 @@ export async function getDriverById(id: string): Promise<Result<Driver>> {
   logger.debug('Getting driver by ID', { id });
 
   try {
-    const supabase = getSupabaseClient();
+    const supabase = getClient();
 
     const { data, error } = await supabase
       .from(DRIVERS_TABLE)
@@ -241,7 +241,7 @@ export async function getDrivers(
       .from(DRIVERS_TABLE)
       .select(`
         *,
-        vehicles!vehicles_assigned_driver_id_fkey(id)
+        vehicles!fk_vehicles_driver(id)
       `, { count: 'exact' });
 
     // Apply filters
@@ -503,7 +503,7 @@ export async function getDriverWithVehicle(id: string): Promise<Result<Driver & 
       .from(DRIVERS_TABLE)
       .select(`
         *,
-        vehicles!vehicles_assigned_driver_id_fkey(*)
+        vehicles!fk_vehicles_driver(*)
       `)
       .eq('id', id)
       .is('deleted_at', null)

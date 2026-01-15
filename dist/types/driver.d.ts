@@ -43,6 +43,7 @@ export interface DriverRow {
     license_class: string | null;
     status: DriverStatus;
     hire_date: string | null;
+    assigned_vehicle_id: string | null;
     emergency_contact_name: string | null;
     emergency_contact_phone: string | null;
     notes: string | null;
@@ -53,6 +54,7 @@ export interface DriverRow {
 }
 /**
  * Input for creating a new driver
+ * Note: Date fields accept both Date objects and ISO date strings for flexibility
  */
 export interface CreateDriverInput {
     firstName: string;
@@ -61,10 +63,11 @@ export interface CreateDriverInput {
     email?: string;
     telegramChatId?: string;
     licenseNumber?: string;
-    licenseExpiry?: Date;
+    licenseExpiry?: Date | string;
     licenseClass?: string;
     status?: DriverStatus;
-    hireDate?: Date;
+    hireDate?: Date | string;
+    assignedVehicleId?: string;
     emergencyContactName?: string;
     emergencyContactPhone?: string;
     notes?: string;
@@ -90,6 +93,8 @@ export interface DriverFilters {
 export declare function rowToDriver(row: DriverRow): Driver;
 /**
  * Converts a CreateDriverInput to a database row format
+ * Note: assigned_vehicle_id is NOT included here - vehicle assignments are managed
+ * via the vehicles table's assigned_driver_id column using assignDriverToVehicle()
  */
 export declare function driverInputToRow(input: CreateDriverInput): Partial<DriverRow>;
 //# sourceMappingURL=driver.d.ts.map

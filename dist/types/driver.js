@@ -31,7 +31,25 @@ function rowToDriver(row) {
     };
 }
 /**
+ * Helper to convert a date input (Date object or string) to YYYY-MM-DD format
+ */
+function formatDateForDb(date) {
+    if (!date)
+        return null;
+    if (date instanceof Date) {
+        return date.toISOString().split('T')[0] ?? null;
+    }
+    // If it's already a string, validate it looks like a date and return as-is
+    if (typeof date === 'string' && date.trim().length > 0) {
+        // Return the date portion (handles both YYYY-MM-DD and ISO strings)
+        return date.split('T')[0] ?? null;
+    }
+    return null;
+}
+/**
  * Converts a CreateDriverInput to a database row format
+ * Note: assigned_vehicle_id is NOT included here - vehicle assignments are managed
+ * via the vehicles table's assigned_driver_id column using assignDriverToVehicle()
  */
 function driverInputToRow(input) {
     return {
@@ -41,10 +59,10 @@ function driverInputToRow(input) {
         email: input.email ?? null,
         telegram_chat_id: input.telegramChatId ?? null,
         license_number: input.licenseNumber ?? null,
-        license_expiry: input.licenseExpiry?.toISOString().split('T')[0] ?? null,
+        license_expiry: formatDateForDb(input.licenseExpiry),
         license_class: input.licenseClass ?? null,
         status: input.status ?? 'active',
-        hire_date: input.hireDate?.toISOString().split('T')[0] ?? null,
+        hire_date: formatDateForDb(input.hireDate),
         emergency_contact_name: input.emergencyContactName ?? null,
         emergency_contact_phone: input.emergencyContactPhone ?? null,
         notes: input.notes ?? null,

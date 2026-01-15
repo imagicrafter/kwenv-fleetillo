@@ -145,7 +145,7 @@ async function createDriver(input) {
 async function getDriverById(id) {
     logger.debug('Getting driver by ID', { id });
     try {
-        const supabase = (0, supabase_js_1.getSupabaseClient)();
+        const supabase = getClient();
         const { data, error } = await supabase
             .from(DRIVERS_TABLE)
             .select()
@@ -189,7 +189,7 @@ async function getDrivers(filters, pagination) {
             .from(DRIVERS_TABLE)
             .select(`
         *,
-        vehicles!vehicles_assigned_driver_id_fkey(id)
+        vehicles!fk_vehicles_driver(id)
       `, { count: 'exact' });
         // Apply filters
         if (!filters?.includeDeleted) {
@@ -383,7 +383,7 @@ async function getDriverWithVehicle(id) {
             .from(DRIVERS_TABLE)
             .select(`
         *,
-        vehicles!vehicles_assigned_driver_id_fkey(*)
+        vehicles!fk_vehicles_driver(*)
       `)
             .eq('id', id)
             .is('deleted_at', null)

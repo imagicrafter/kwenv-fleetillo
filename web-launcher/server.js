@@ -221,12 +221,27 @@ const rpcMap = {
     drivers: {
         getAll: driverService.getDrivers,
         create: driverService.createDriver,
-        update: driverService.updateDriver,
-        delete: driverService.deleteDriver,
+        // Wrap update to handle combined {id, ...input} object from frontend
+        update: (data) => {
+            const { id, ...input } = data;
+            return driverService.updateDriver(id, input);
+        },
+        delete: (data) => {
+            // Handle {id} object from frontend
+            const id = typeof data === 'string' ? data : data.id;
+            return driverService.deleteDriver(id);
+        },
         getById: driverService.getDriverById,
         count: driverService.countDrivers,
-        assignToVehicle: driverService.assignDriverToVehicle,
-        unassignFromVehicle: driverService.unassignDriverFromVehicle,
+        // Wrap to handle {driverId, vehicleId} object from frontend
+        assignToVehicle: (data) => {
+            console.log('[DEBUG] assignToVehicle wrapper received:', JSON.stringify(data));
+            return driverService.assignDriverToVehicle(data.driverId, data.vehicleId);
+        },
+        unassignFromVehicle: (data) => {
+            const driverId = typeof data === 'string' ? data : data.driverId;
+            return driverService.unassignDriverFromVehicle(driverId);
+        },
         getVehicles: driverService.getDriverVehicles
     },
     vehicleLocations: {
@@ -534,10 +549,14 @@ app.post('/api/drivers/:id/avatar', imageUpload.single('avatar'), async (req, re
             req.file.originalname
         );
 
+        console.log(`Avatar upload result for driver ${id}:`, JSON.stringify(result, null, 2));
+
         if (!result.success) {
+            console.error(`Avatar upload failed for driver ${id}:`, result.error);
             return res.status(400).json(result);
         }
 
+        console.log(`Avatar uploaded successfully for driver ${id}: ${result.data}`);
         res.json({
             success: true,
             data: { avatarUrl: result.data }
@@ -598,9 +617,14 @@ app.post('/api/rpc', async (req, res) => {
 
         // Transform snake_case to camelCase for drivers namespace (only for create/update methods)
         let transformedArgs = args;
-        if (namespace === 'drivers' && (method === 'create' || method === 'update') && Array.isArray(args) && args.length > 0) {
-            // Apply transformation to the first argument (the driver data object)
-            transformedArgs = [snakeToCamel(args[0]), ...args.slice(1)];
+        if (namespace === 'drivers' && (method === 'create' || method === 'update')) {
+            if (Array.isArray(args) && args.length > 0) {
+                // Args is an array, transform the first element
+                transformedArgs = [snakeToCamel(args[0]), ...args.slice(1)];
+            } else if (args && typeof args === 'object' && !Array.isArray(args)) {
+                // Args is a single object, transform and wrap in array
+                transformedArgs = [snakeToCamel(args)];
+            }
             // Improved logging: Log transformed args
             console.log(`[RPC] ${namespace}.${method} - Transformed args:`, JSON.stringify(transformedArgs));
         }
@@ -654,18 +678,22 @@ app.post('/api/rpc', async (req, res) => {
         return res.json(result);
 
     } catch (err) {
+        // Safely extract namespace and method from request body (might not exist if error occurred early)
+        const ns = req.body?.namespace || 'unknown';
+        const mth = req.body?.method || 'unknown';
+
         // Improved error logging: Log full exception details
-        console.error(`[RPC Exception] ${namespace}.${method}:`, {
+        console.error(`[RPC Exception] ${ns}.${mth}:`, {
             message: err.message,
             stack: err.stack,
-            args: args
+            args: req.body?.args
         });
 
         // Improved error response: Include namespace and method
         res.status(500).json({
             message: err.message,
-            namespace,
-            method
+            namespace: ns,
+            method: mth
         });
     }
 });
