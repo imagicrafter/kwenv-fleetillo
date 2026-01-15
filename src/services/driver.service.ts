@@ -754,7 +754,7 @@ export async function uploadDriverAvatar(
       };
     }
 
-    const driver = driverResult.data;
+    const driver = driverResult.data!;
 
     // Generate unique filename with extension from mime type
     const extension = mimeType.split('/')[1]; // e.g., 'jpeg' from 'image/jpeg'
@@ -766,18 +766,18 @@ export async function uploadDriverAvatar(
       try {
         // Extract path from URL (assuming format: ...storage/v1/object/public/avatars/path)
         const urlParts = driver.profileImageUrl.split('/avatars/');
-        if (urlParts.length > 1) {
+        if (urlParts.length > 1 && urlParts[1]) {
           const oldPath = urlParts[1];
           await supabase.storage.from('avatars').remove([oldPath]);
           logger.debug('Deleted previous avatar', { oldPath });
         }
       } catch (deleteError) {
-        logger.warn('Failed to delete previous avatar, continuing with upload', deleteError);
+        logger.warn('Failed to delete previous avatar, continuing with upload', { error: deleteError });
       }
     }
 
     // Upload new avatar to Supabase storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabase.storage
       .from('avatars')
       .upload(filePath, fileBuffer, {
         contentType: mimeType,
@@ -856,7 +856,7 @@ export async function getDriverAvatarUrl(driverId: string): Promise<Result<strin
       };
     }
 
-    const driver = driverResult.data;
+    const driver = driverResult.data!;
     return { success: true, data: driver.profileImageUrl ?? null };
   } catch (error) {
     logger.error('Unexpected error getting driver avatar URL', error);
@@ -894,7 +894,7 @@ export async function deleteDriverAvatar(driverId: string): Promise<Result<void>
       };
     }
 
-    const driver = driverResult.data;
+    const driver = driverResult.data!;
 
     // If no avatar exists, return success
     if (!driver.profileImageUrl) {
@@ -904,7 +904,7 @@ export async function deleteDriverAvatar(driverId: string): Promise<Result<void>
 
     // Extract path from URL
     const urlParts = driver.profileImageUrl.split('/avatars/');
-    if (urlParts.length > 1) {
+    if (urlParts.length > 1 && urlParts[1]) {
       const filePath = urlParts[1];
 
       // Delete from storage

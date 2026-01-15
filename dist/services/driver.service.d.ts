@@ -69,4 +69,19 @@ export declare function unassignDriverFromVehicle(vehicleId: string): Promise<Re
  * Gets all vehicles assigned to a driver
  */
 export declare function getDriverVehicles(driverId: string): Promise<Result<Vehicle[]>>;
+/**
+ * Uploads an avatar image for a driver
+ * Stores the image in Supabase storage and updates the driver's profile_image_url
+ */
+export declare function uploadDriverAvatar(driverId: string, fileBuffer: Buffer, mimeType: string, originalName: string): Promise<Result<string>>;
+/**
+ * Gets the avatar URL for a driver
+ * Returns the public URL if profile_image_url exists, otherwise null
+ */
+export declare function getDriverAvatarUrl(driverId: string): Promise<Result<string | null>>;
+/**
+ * Deletes a driver's avatar image
+ * Removes the file from Supabase storage and clears the profile_image_url field
+ */
+export declare function deleteDriverAvatar(driverId: string): Promise<Result<void>>;
 //# sourceMappingURL=driver.service.d.ts.map

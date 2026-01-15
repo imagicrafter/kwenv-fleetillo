@@ -17,6 +17,9 @@ exports.getDriverWithVehicle = getDriverWithVehicle;
 exports.assignDriverToVehicle = assignDriverToVehicle;
 exports.unassignDriverFromVehicle = unassignDriverFromVehicle;
 exports.getDriverVehicles = getDriverVehicles;
+exports.uploadDriverAvatar = uploadDriverAvatar;
+exports.getDriverAvatarUrl = getDriverAvatarUrl;
+exports.deleteDriverAvatar = deleteDriverAvatar;
 const supabase_js_1 = require("./supabase.js");
 const logger_js_1 = require("../utils/logger.js");
 const driver_js_1 = require("../types/driver.js");
@@ -534,6 +537,170 @@ async function getDriverVehicles(driverId) {
         return {
             success: false,
             error: new DriverServiceError('Unexpected error getting driver vehicles', exports.DriverErrorCodes.QUERY_FAILED, error),
+        };
+    }
+}
+/**
+ * Uploads an avatar image for a driver
+ * Stores the image in Supabase storage and updates the driver's profile_image_url
+ */
+async function uploadDriverAvatar(driverId, fileBuffer, mimeType, originalName) {
+    logger.debug('Uploading driver avatar', { driverId, mimeType, originalName });
+    try {
+        const supabase = getClient();
+        // Verify driver exists
+        const driverResult = await getDriverById(driverId);
+        if (!driverResult.success) {
+            return {
+                success: false,
+                error: new DriverServiceError(`Driver not found: ${driverId}`, exports.DriverErrorCodes.NOT_FOUND, { driverId }),
+            };
+        }
+        const driver = driverResult.data;
+        // Generate unique filename with extension from mime type
+        const extension = mimeType.split('/')[1]; // e.g., 'jpeg' from 'image/jpeg'
+        const fileName = `avatar_${Date.now()}.${extension}`;
+        const filePath = `drivers/${driverId}/${fileName}`;
+        // Delete previous avatar if it exists
+        if (driver.profileImageUrl) {
+            try {
+                // Extract path from URL (assuming format: ...storage/v1/object/public/avatars/path)
+                const urlParts = driver.profileImageUrl.split('/avatars/');
+                if (urlParts.length > 1 && urlParts[1]) {
+                    const oldPath = urlParts[1];
+                    await supabase.storage.from('avatars').remove([oldPath]);
+                    logger.debug('Deleted previous avatar', { oldPath });
+                }
+            }
+            catch (deleteError) {
+                logger.warn('Failed to delete previous avatar, continuing with upload', { error: deleteError });
+            }
+        }
+        // Upload new avatar to Supabase storage
+        const { error: uploadError } = await supabase.storage
+            .from('avatars')
+            .upload(filePath, fileBuffer, {
+            contentType: mimeType,
+            upsert: true,
+        });
+        if (uploadError) {
+            logger.error('Failed to upload avatar to storage', uploadError);
+            return {
+                success: false,
+                error: new DriverServiceError(`Failed to upload avatar: ${uploadError.message}`, exports.DriverErrorCodes.UPDATE_FAILED, uploadError),
+            };
+        }
+        // Get public URL for the uploaded file
+        const { data: publicUrlData } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(filePath);
+        const publicUrl = publicUrlData.publicUrl;
+        // Update driver record with new profile_image_url
+        const { error: updateError } = await supabase
+            .from(DRIVERS_TABLE)
+            .update({ profile_image_url: publicUrl })
+            .eq('id', driverId);
+        if (updateError) {
+            logger.error('Failed to update driver with avatar URL', updateError);
+            return {
+                success: false,
+                error: new DriverServiceError(`Failed to update driver with avatar URL: ${updateError.message}`, exports.DriverErrorCodes.UPDATE_FAILED, updateError),
+            };
+        }
+        logger.info('Driver avatar uploaded successfully', { driverId, publicUrl });
+        return { success: true, data: publicUrl };
+    }
+    catch (error) {
+        logger.error('Unexpected error uploading driver avatar', error);
+        return {
+            success: false,
+            error: new DriverServiceError('Unexpected error uploading driver avatar', exports.DriverErrorCodes.UPDATE_FAILED, error),
+        };
+    }
+}
+/**
+ * Gets the avatar URL for a driver
+ * Returns the public URL if profile_image_url exists, otherwise null
+ */
+async function getDriverAvatarUrl(driverId) {
+    logger.debug('Getting driver avatar URL', { driverId });
+    try {
+        const driverResult = await getDriverById(driverId);
+        if (!driverResult.success) {
+            return {
+                success: false,
+                error: new DriverServiceError(`Driver not found: ${driverId}`, exports.DriverErrorCodes.NOT_FOUND, { driverId }),
+            };
+        }
+        const driver = driverResult.data;
+        return { success: true, data: driver.profileImageUrl ?? null };
+    }
+    catch (error) {
+        logger.error('Unexpected error getting driver avatar URL', error);
+        return {
+            success: false,
+            error: new DriverServiceError('Unexpected error getting driver avatar URL', exports.DriverErrorCodes.QUERY_FAILED, error),
+        };
+    }
+}
+/**
+ * Deletes a driver's avatar image
+ * Removes the file from Supabase storage and clears the profile_image_url field
+ */
+async function deleteDriverAvatar(driverId) {
+    logger.debug('Deleting driver avatar', { driverId });
+    try {
+        const supabase = getClient();
+        // Get driver to check for existing avatar
+        const driverResult = await getDriverById(driverId);
+        if (!driverResult.success) {
+            return {
+                success: false,
+                error: new DriverServiceError(`Driver not found: ${driverId}`, exports.DriverErrorCodes.NOT_FOUND, { driverId }),
+            };
+        }
+        const driver = driverResult.data;
+        // If no avatar exists, return success
+        if (!driver.profileImageUrl) {
+            logger.debug('No avatar to delete', { driverId });
+            return { success: true };
+        }
+        // Extract path from URL
+        const urlParts = driver.profileImageUrl.split('/avatars/');
+        if (urlParts.length > 1 && urlParts[1]) {
+            const filePath = urlParts[1];
+            // Delete from storage
+            const { error: deleteError } = await supabase.storage
+                .from('avatars')
+                .remove([filePath]);
+            if (deleteError) {
+                logger.error('Failed to delete avatar from storage', deleteError);
+                return {
+                    success: false,
+                    error: new DriverServiceError(`Failed to delete avatar from storage: ${deleteError.message}`, exports.DriverErrorCodes.UPDATE_FAILED, deleteError),
+                };
+            }
+        }
+        // Update driver record to clear profile_image_url
+        const { error: updateError } = await supabase
+            .from(DRIVERS_TABLE)
+            .update({ profile_image_url: null })
+            .eq('id', driverId);
+        if (updateError) {
+            logger.error('Failed to clear driver avatar URL', updateError);
+            return {
+                success: false,
+                error: new DriverServiceError(`Failed to clear driver avatar URL: ${updateError.message}`, exports.DriverErrorCodes.UPDATE_FAILED, updateError),
+            };
+        }
+        logger.info('Driver avatar deleted successfully', { driverId });
+        return { success: true };
+    }
+    catch (error) {
+        logger.error('Unexpected error deleting driver avatar', error);
+        return {
+            success: false,
+            error: new DriverServiceError('Unexpected error deleting driver avatar', exports.DriverErrorCodes.UPDATE_FAILED, error),
         };
     }
 }
