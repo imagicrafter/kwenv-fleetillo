@@ -21,9 +21,9 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="brand">
-                <h1>OptiRoute<svg width="22" height="22" fill="none" stroke="var(--accent-primary)" viewBox="0 0 24 24"
+                <h1>OptiRoute<svg width="22" height="22" fill="none" stroke="var(--accent-success)" viewBox="0 0 24 24"
                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        style="display: inline-block; vertical-align: bottom; margin-left: -1px; margin-bottom: 2px;">
+                        style="display: inline-block; vertical-align: bottom; margin-left: 8px; margin-bottom: 2px;">
                         <circle cx="6" cy="19" r="3" />
                         <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
                         <circle cx="18" cy="5" r="3" />
@@ -31,59 +31,98 @@
             </div>
 
             <nav class="nav-menu">
+                <!-- Dashboard -->
                 <a href="index.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
                         </svg>
                     </span>
                     Dashboard
                 </a>
 
-                <!-- Planning Group (Expanded) -->
-                <div class="nav-group expanded">
-                    <div class="nav-item nav-header" onclick="toggleGroup(this)">
-                        <div style="display: flex; gap: 12px; align-items: center;">
-                            <span class="icon">
-                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                </svg>
-                            </span>
-                            Planning
-                        </div>
-                        <span class="nav-chevron" style="transform: rotate(90deg);">▶</span>
-                    </div>
-                    <div class="nav-children">
-                        <a href="customers.html" class="nav-child-item">Customers</a>
-                        <a href="services.html" class="nav-child-item">Services</a>
-                        <a href="bookings.html" class="nav-child-item"
-                            style="color: var(--text-primary); background-color: rgba(255,255,255,0.05);">Bookings</a>
-                        <a href="calendar.html" class="nav-child-item">Calendar</a>
-                        <a href="locations.html" class="nav-child-item">Locations</a>
-                    </div>
-                </div>
+                <!-- PLANNING -->
+                <div class="menu-header">PLANNING</div>
 
-                <!-- Fleet Group -->
-                <div class="nav-group">
-                    <div class="nav-item nav-header" onclick="toggleGroup(this)">
-                        <div style="display: flex; gap: 12px; align-items: center;">
-                            <span class="icon">
-                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                                </svg>
-                            </span>
-                            Fleet
-                        </div>
-                        <span class="nav-chevron">▶</span>
-                    </div>
-                    <div class="nav-children">
-                        <a href="vehicles.html" class="nav-child-item">Vehicles</a>
-                        <a href="#" class="nav-child-item">Drivers</a>
-                    </div>
-                </div>
+                <a href="customers.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </span>
+                    Customers
+                </a>
+
+                <a href="services.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                    </span>
+                    Services
+                </a>
+
+                <a href="bookings.html" class="nav-item active">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                    </span>
+                    Bookings
+                </a>
+
+                <a href="calendar.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </span>
+                    Calendar
+                </a>
+
+                <a href="locations.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </span>
+                    Locations
+                </a>
+
+                <!-- FLEET -->
+                <div class="menu-header">FLEET</div>
+
+                <a href="vehicles.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                    </span>
+                    Vehicles
+                </a>
+
+                <a href="#" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </span>
+                    Drivers
+                    <span class="badge new">New</span>
+                </a>
+
+                <!-- OPERATIONS -->
+                <div class="menu-header">OPERATIONS</div>
 
                 <a href="routes.html" class="nav-item">
                     <span class="icon">
@@ -95,6 +134,30 @@
                         </svg>
                     </span>
                     Routes
+                </a>
+
+                <a href="#" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                    </span>
+                    Dispatch
+                    <span class="badge new">New</span>
+                </a>
+
+                <!-- SYSTEM -->
+                <div class="menu-header">SYSTEM</div>
+
+                <a href="#" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </span>
+                    Reports
                 </a>
 
                 <a href="settings.html" class="nav-item">
@@ -109,19 +172,16 @@
                     Settings
                 </a>
             </nav>
-
             <script>
-                function toggleGroup(header) {
-                    const group = header.parentElement;
-                    group.classList.toggle('expanded');
-                    const chevron = header.querySelector('.nav-chevron');
-                    if (group.classList.contains('expanded')) {
-                        chevron.style.transform = 'rotate(90deg)';
-                    } else {
-                        chevron.style.transform = 'rotate(0deg)';
+                // Auto-expand current group if any
+                document.addEventListener('DOMContentLoaded', () => {
+                    const activeLink = document.querySelector('.nav-item.active');
+                    if (activeLink) {
+                        // Ensure it's visible, though flatter structure makes this simpler
                     }
-                }
+                });
             </script>
+
 
             <div class="sidebar-footer">
                 <div class="user-info">
@@ -142,17 +202,12 @@
                     <input type="text" id="search-input" placeholder="Search bookings...">
                 </div>
                 <div class="actions">
-                    <button class="btn-secondary" id="download-template-btn" style="margin-right: 8px;">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 4px;">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    <button class="btn-secondary" id="import-btn">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                         </svg>
-                        Download Template
-                    </button>
-                    <button class="btn-secondary" id="upload-csv-btn" style="margin-right: 8px;">
-                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 4px;">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                        </svg>
-                        Upload CSV
+                        Import
                     </button>
                     <button class="btn-primary" id="add-booking-btn">+ New Booking</button>
                 </div>
@@ -236,7 +291,60 @@
                                 <th>Date & Time</th>
                                 <th>Status</th>
                                 <th>Price</th>
-                                <th>Actions</th>
+                                <th style="min-width: 100px;">
+                                    <div
+                                        style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                                        <span>Actions</span>
+                                        <!-- Bulk Status Change -->
+                                        <div style="position: relative; display: inline-block;">
+                                            <button type="button" id="bulk-status-btn" class="action-btn"
+                                                style="display: none; padding: 2px 6px; font-size: 1rem; background: transparent; border: none; cursor: pointer;"
+                                                title="Change Status">🔄</button>
+                                            <div id="bulk-status-dropdown" class="bulk-status-dropdown"
+                                                style="display: none; position: absolute; right: 0; top: 100%; background: #1e1e2e; border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.6); z-index: 1000; min-width: 180px; overflow: hidden;">
+                                                <div
+                                                    style="padding: 8px 12px; font-size: 0.75rem; color: var(--text-secondary); border-bottom: 1px solid var(--border-color); font-weight: 600;">
+                                                    Change Status To</div>
+                                                <button type="button" class="bulk-status-option" data-status="pending"
+                                                    style="width: 100%; text-align: left; padding: 10px 12px; background: transparent; border: none; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.15s;">
+                                                    <span
+                                                        style="width: 10px; height: 10px; border-radius: 50%; background: #8b949e;"></span>Pending
+                                                </button>
+                                                <button type="button" class="bulk-status-option" data-status="confirmed"
+                                                    style="width: 100%; text-align: left; padding: 10px 12px; background: transparent; border: none; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.15s;">
+                                                    <span
+                                                        style="width: 10px; height: 10px; border-radius: 50%; background: #3fb950;"></span>Confirmed
+                                                </button>
+                                                <button type="button" class="bulk-status-option" data-status="scheduled"
+                                                    style="width: 100%; text-align: left; padding: 10px 12px; background: transparent; border: none; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.15s;">
+                                                    <span
+                                                        style="width: 10px; height: 10px; border-radius: 50%; background: #3fb950;"></span>Scheduled
+                                                </button>
+                                                <button type="button" class="bulk-status-option"
+                                                    data-status="in_progress"
+                                                    style="width: 100%; text-align: left; padding: 10px 12px; background: transparent; border: none; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.15s;">
+                                                    <span
+                                                        style="width: 10px; height: 10px; border-radius: 50%; background: #58a6ff;"></span>In
+                                                    Progress
+                                                </button>
+                                                <button type="button" class="bulk-status-option" data-status="completed"
+                                                    style="width: 100%; text-align: left; padding: 10px 12px; background: transparent; border: none; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.15s;">
+                                                    <span
+                                                        style="width: 10px; height: 10px; border-radius: 50%; background: #3fb950;"></span>Completed
+                                                </button>
+                                                <button type="button" class="bulk-status-option" data-status="cancelled"
+                                                    style="width: 100%; text-align: left; padding: 10px 12px; background: transparent; border: none; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; gap: 8px; transition: background 0.15s;">
+                                                    <span
+                                                        style="width: 10px; height: 10px; border-radius: 50%; background: #f85149;"></span>Cancelled
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <!-- Bulk Delete -->
+                                        <button type="button" id="bulk-delete-btn" class="action-btn delete-btn"
+                                            style="display: none; padding: 2px 6px; font-size: 1rem;"
+                                            title="Delete Selected">🗑️</button>
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody id="bookings-table-body">
@@ -431,48 +539,241 @@
         </div>
     </div>
 
-    <!-- CSV Upload Modal -->
-    <div id="csv-upload-modal" class="modal">
-        <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header">
-                <h2>Upload Bookings from CSV</h2>
-                <span class="close-csv-modal">&times;</span>
+    <!-- Enhanced Import Wizard Modal -->
+    <div id="import-modal" class="modal">
+        <div class="modal-content import-wizard-modal"
+            style="width: 85vw; max-width: 1400px; height: 80vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="flex-shrink: 0;">
+                <h2>Import Bookings</h2>
+                <span class="close-import-modal">&times;</span>
             </div>
-            <div class="modal-body">
-                <!-- Drop zone -->
-                <div id="csv-drop-zone" class="csv-drop-zone">
-                    <div class="drop-zone-content">
-                        <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto; color: var(--text-secondary);">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
-                        </svg>
-                        <p style="margin: 16px 0 8px; font-size: 1rem; color: var(--text-primary);">Drag and drop your CSV file here</p>
-                        <p class="drop-zone-hint" style="margin: 0 0 16px; font-size: 0.875rem; color: var(--text-secondary);">or</p>
-                        <button type="button" id="csv-file-select-btn" class="btn-secondary">Select File</button>
-                        <input type="file" id="csv-file-input" accept=".csv" style="display: none;">
+
+            <!-- Stepper with Integrated Navigation -->
+            <div style="padding: 20px 24px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
+                <!-- Step circles row -->
+                <div class="import-stepper" style="display: flex; align-items: center; justify-content: center;">
+                    <div class="stepper-step active" data-step="1">
+                        <div class="stepper-circle">1</div>
+                        <div class="stepper-label">Data Load</div>
                     </div>
-                    <div id="csv-file-preview" class="file-preview" style="display: none;">
-                        <span id="csv-file-name" style="font-weight: 500;"></span>
-                        <button type="button" id="csv-clear-file" class="btn-icon" style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.2rem;">✕</button>
+                    <div class="stepper-line"></div>
+                    <div class="stepper-step" data-step="2">
+                        <div class="stepper-circle">2</div>
+                        <div class="stepper-label">Mapping</div>
+                    </div>
+                    <div class="stepper-line"></div>
+                    <div class="stepper-step" data-step="3">
+                        <div class="stepper-circle">3</div>
+                        <div class="stepper-label">Validation</div>
+                    </div>
+                    <div class="stepper-line"></div>
+                    <div class="stepper-step" data-step="4">
+                        <div class="stepper-circle">4</div>
+                        <div class="stepper-label">Results</div>
                     </div>
                 </div>
-                <!-- Progress indicator -->
-                <div id="csv-upload-progress" style="display: none; margin-top: 16px;">
-                    <div class="progress-bar" style="height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
-                        <div class="progress-fill" style="height: 100%; background: var(--accent-primary); width: 0%; transition: width 0.3s;"></div>
+
+                <!-- Navigation row - same width as stepper steps -->
+                <div
+                    style="display: flex; align-items: center; justify-content: space-between; margin-top: 16px; max-width: 520px; margin-left: auto; margin-right: auto;">
+                    <!-- Left side - Back button under Data Load -->
+                    <div style="width: 80px;">
+                        <button type="button" id="import-back-btn" class="import-nav-btn" style="display: none;">
+                            ← Back
+                        </button>
                     </div>
-                    <p id="csv-progress-text" style="margin-top: 8px; font-size: 0.875rem; color: var(--text-secondary); text-align: center;">Uploading...</p>
-                </div>
-                <!-- Results area -->
-                <div id="csv-upload-results" style="display: none; margin-top: 16px;">
-                    <div id="csv-success-message" class="success-message" style="padding: 12px; background: rgba(46, 160, 67, 0.1); border: 1px solid rgba(46, 160, 67, 0.3); border-radius: 6px; color: #2ea043; margin-bottom: 12px;"></div>
-                    <div id="csv-error-list" class="error-list" style="padding: 12px; background: rgba(248, 81, 73, 0.1); border: 1px solid rgba(248, 81, 73, 0.3); border-radius: 6px; color: #f85149; font-size: 0.875rem; max-height: 200px; overflow-y: auto;"></div>
+                    <!-- Right side - Cancel/Next under Results -->
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" id="import-cancel-btn" class="import-nav-btn">Cancel</button>
+                        <button type="button" id="import-next-btn" class="import-nav-btn-primary" disabled>Next
+                            →</button>
+                        <button type="button" id="import-load-data-btn" class="import-nav-btn-primary"
+                            style="display: none;">Load Data</button>
+                        <button type="button" id="import-done-btn" class="import-nav-btn-primary"
+                            style="display: none;">Done</button>
+                    </div>
                 </div>
             </div>
-            <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 12px;">
-                <button type="button" id="csv-cancel-btn" class="btn-secondary">Cancel</button>
-                <button type="button" id="csv-upload-submit-btn" class="btn-primary" disabled>Upload</button>
+
+            <div class="modal-body" style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+                <div style="padding: 24px 48px; flex: 1; display: flex; flex-direction: column; overflow: hidden;">
+                    <!-- Step 1: Data Load Source -->
+                    <div id="import-step-1" class="import-step">
+                        <!-- Centered container for compact layout -->
+                        <div style="max-width: 500px; margin: 0 auto;">
+                            <!-- Template Download Section -->
+                            <div class="import-template-section"
+                                style="margin-bottom: 20px; padding: 16px; background: rgba(88, 166, 255, 0.05); border: 1px solid rgba(88, 166, 255, 0.2); border-radius: 8px;">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <svg width="24" height="24" fill="none" stroke="var(--accent-success)"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 500; color: var(--text-primary);">Need a template?
+                                        </div>
+                                        <div style="font-size: 0.8rem; color: var(--text-secondary);">Download a CSV
+                                            template
+                                            with the required columns</div>
+                                    </div>
+                                    <button type="button" id="import-download-template-btn" class="import-nav-btn"
+                                        style="white-space: nowrap;">
+                                        <svg width="14" height="14" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 4px;">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                        </svg>
+                                        Download Template
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- File Upload Drop Zone -->
+                            <div id="import-drop-zone" class="csv-drop-zone">
+                                <div class="drop-zone-content">
+                                    <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                        style="margin: 0 auto; color: var(--text-secondary);">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                    </svg>
+                                    <p style="margin: 16px 0 8px; font-size: 1rem; color: var(--text-primary);">Drag and
+                                        drop
+                                        your CSV file here</p>
+                                    <p style="margin: 0 0 16px; font-size: 0.875rem; color: var(--text-secondary);">or
+                                    </p>
+                                    <button type="button" id="import-file-select-btn" class="import-nav-btn">Select
+                                        File</button>
+                                    <input type="file" id="import-file-input" accept=".csv" style="display: none;">
+                                </div>
+                                <div id="import-file-preview" class="file-preview" style="display: none;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <svg width="20" height="20" fill="none" stroke="var(--accent-success)"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                        </svg>
+                                        <span id="import-file-name" style="font-weight: 500;"></span>
+                                    </div>
+                                    <button type="button" id="import-clear-file" class="btn-icon"
+                                        style="background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.2rem;">✕</button>
+                                </div>
+                            </div>
+
+                            <!-- Required Columns Info -->
+                            <div
+                                style="margin-top: 16px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 6px; font-size: 0.8rem; color: var(--text-secondary);">
+                                <strong style="color: var(--text-primary);">Required columns:</strong> Booking #
+                                (optional),
+                                Customer Name, Service Name, Location Name, Date (YYYY-MM-DD)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Data/Table Mapping -->
+                <div id="import-step-2" class="import-step" style="display: none;">
+                    <p style="margin-bottom: 16px; color: var(--text-secondary);">Map the columns from your CSV file
+                        to
+                        the system fields. Use "Do Not Load" to skip a column.</p>
+
+                    <div class="table-container"
+                        style="overflow-x: auto; border: 1px solid var(--border-subtle); border-radius: 8px;">
+                        <table class="data-table mapping-table" id="import-mapping-table"
+                            style="margin: 0; min-width: 100%;">
+                            <thead>
+                                <tr id="mapping-target-row" style="background: var(--bg-card);">
+                                    <!-- Target column dropdowns populated dynamically -->
+                                </tr>
+                                <tr id="mapping-source-row" style="background: rgba(88, 166, 255, 0.05);">
+                                    <!-- Source column names populated dynamically -->
+                                </tr>
+                            </thead>
+                            <tbody id="mapping-preview-tbody">
+                                <!-- Preview rows populated dynamically (first 5 rows) -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Step 3: Data Validation -->
+                <div id="import-step-3" class="import-step" style="display: none;">
+                    <div
+                        style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                        <div>
+                            <span id="validation-status-text" style="color: var(--text-secondary);">Validating
+                                rows...</span>
+                        </div>
+                        <div style="display: flex; gap: 8px;">
+                            <button type="button" id="delete-selected-btn" class="btn-secondary"
+                                style="padding: 6px 12px; font-size: 0.85rem; display: none;">
+                                Delete Selected
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="table-scroll-container">
+                        <table class="data-table validation-table" id="import-validation-table" style="margin: 0;">
+                            <thead style="position: sticky; top: 0; background: var(--bg-card); z-index: 1;">
+                                <tr>
+                                    <th style="width: 30px;"><input type="checkbox" id="validation-select-all"></th>
+                                    <th style="width: 30px;">Status</th>
+                                    <th>Booking #</th>
+                                    <th>Customer</th>
+                                    <th>Service</th>
+                                    <th>Location</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody id="import-validation-tbody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style="margin-top: 12px; font-size: 0.8rem; color: var(--text-secondary);">
+                        <span style="color: #2ea043;">✓</span> Valid row &nbsp;&nbsp;
+                        <span style="color: #f85149;">✕</span> Invalid row - click red cells to fix
+                    </div>
+                </div>
+
+                <!-- Step 4: Results -->
+                <div id="import-step-4" class="import-step" style="display: none;">
+                    <div id="import-results-summary" style="display: flex; gap: 16px; margin-bottom: 20px;">
+                        <div id="import-success-count"
+                            style="flex: 1; padding: 16px; background: rgba(46, 160, 67, 0.1); border: 1px solid rgba(46, 160, 67, 0.3); border-radius: 8px; text-align: center;">
+                            <div style="font-size: 1.5rem; font-weight: 600; color: #2ea043;">0</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">Imported</div>
+                        </div>
+                        <div id="import-skipped-count"
+                            style="flex: 1; padding: 16px; background: rgba(248, 81, 73, 0.1); border: 1px solid rgba(248, 81, 73, 0.3); border-radius: 8px; text-align: center;">
+                            <div style="font-size: 1.5rem; font-weight: 600; color: #f85149;">0</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">Skipped</div>
+                        </div>
+                    </div>
+
+                    <div class="table-scroll-container">
+                        <table class="data-table" id="import-results-table" style="margin: 0;">
+                            <thead style="position: sticky; top: 0; background: var(--bg-card); z-index: 1;">
+                                <tr>
+                                    <th style="width: 40px;">Status</th>
+                                    <th>Booking #</th>
+                                    <th>Customer</th>
+                                    <th>Service</th>
+                                    <th>Location</th>
+                                    <th>Date</th>
+                                    <th>Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="import-results-tbody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
     </div>
 
     <!-- Modal Styles -->
@@ -620,6 +921,370 @@
             border-radius: 6px;
             margin-top: 16px;
         }
+
+        /* Close import modal button */
+        .close-import-modal {
+            color: var(--text-secondary);
+            font-size: 28px;
+            font-weight: normal;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close-import-modal:hover {
+            color: var(--text-primary);
+        }
+
+        /* Spinner animation */
+        .spinner-large {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(88, 166, 255, 0.2);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes toastFadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        @keyframes toastFadeOut {
+            from {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+
+            to {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+        }
+
+        /* Import modal status icons */
+        .status-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+
+        .status-icon.success {
+            background: rgba(46, 160, 67, 0.2);
+            color: #2ea043;
+        }
+
+        .status-icon.error {
+            background: rgba(248, 81, 73, 0.2);
+            color: #f85149;
+        }
+
+        /* Import table row styling */
+        #import-results-table td,
+        #import-validation-table td {
+            padding: 10px 8px;
+            font-size: 0.85rem;
+        }
+
+        /* Stepper Component */
+        .import-stepper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+        }
+
+        .stepper-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .stepper-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+        }
+
+        .stepper-step.active .stepper-circle {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            color: white;
+        }
+
+        .stepper-step.completed .stepper-circle {
+            background: #2ea043;
+            border-color: #2ea043;
+            color: white;
+        }
+
+        .stepper-step.completed .stepper-circle::before {
+            content: '✓';
+        }
+
+        .stepper-label {
+            margin-top: 6px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .stepper-step.active .stepper-label {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .stepper-line {
+            width: 60px;
+            height: 2px;
+            background: var(--border-color);
+            margin: 0 12px 18px;
+        }
+
+        .stepper-step.completed+.stepper-line,
+        .stepper-line.completed {
+            background: #2ea043;
+        }
+
+        /* Import Wizard Navigation Buttons */
+        .import-step {
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .table-scroll-container {
+            flex: 1;
+            overflow-y: auto;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+        }
+
+        .import-nav-btn {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        .import-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--text-secondary);
+            color: var(--text-primary);
+        }
+
+        .import-nav-btn-primary {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--accent-primary);
+            border: none;
+            color: white;
+        }
+
+        .import-nav-btn-primary:hover:not(:disabled) {
+            background: #4a9eff;
+        }
+
+        .import-nav-btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Mapping Table */
+        .mapping-table th,
+        .mapping-table td {
+            padding: 10px 8px;
+            font-size: 0.85rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .mapping-table select {
+            width: 100%;
+            padding: 6px 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-primary);
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .mapping-table select:focus {
+            border-color: var(--accent-primary);
+            outline: none;
+        }
+
+        /* Validation Table */
+        .validation-table .cell-invalid {
+            background: rgba(248, 81, 73, 0.15) !important;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .validation-table .cell-invalid:hover {
+            background: rgba(248, 81, 73, 0.25) !important;
+        }
+
+        .validation-table .cell-editable {
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .validation-table .cell-editable:hover {
+            background: rgba(88, 166, 255, 0.1);
+        }
+
+        .validation-table tr.row-valid {
+            background: transparent;
+        }
+
+        .validation-table tr.row-invalid {
+            background: rgba(248, 81, 73, 0.03);
+        }
+
+        /* Cell Edit Dropdown */
+        .cell-edit-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            min-width: 200px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 100;
+        }
+
+        .cell-edit-dropdown input {
+            width: 100%;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border: none;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+        }
+
+        .cell-edit-dropdown input:focus {
+            outline: none;
+        }
+
+        .cell-edit-dropdown .dropdown-options {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .cell-edit-dropdown .dropdown-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+        }
+
+        .cell-edit-dropdown .dropdown-option:hover {
+            background: rgba(88, 166, 255, 0.1);
+        }
+
+        /* Validation checkbox */
+        .validation-table input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* Layout Fixes for Main Page Scrolling */
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .app-container {
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .main-content {
+            flex: 1;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100%;
+            padding-bottom: 0 !important;
+            /* Move bottom spacing to footer or container */
+        }
+
+        .table-container {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            border-bottom: none !important;
+            /* Remove border if handled by footer */
+        }
+
+        /* Ensure sticky header works on main table */
+        .data-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: var(--bg-card);
+            /* Ensure no transparency */
+        }
+
+        /* Pin Pagination Footer */
+        .pagination-footer {
+            flex-shrink: 0;
+            background-color: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            z-index: 20;
+        }
     </style>
 
     <script src="preload.js"></script>
@@ -671,18 +1336,157 @@
             const nextPageBtn = document.getElementById('next-page-btn');
             const paginationInfo = document.getElementById('pagination-info');
 
-            // --- CSV Upload Elements ---
-            const csvUploadModal = document.getElementById('csv-upload-modal');
-            const csvDropZone = document.getElementById('csv-drop-zone');
-            const csvFileInput = document.getElementById('csv-file-input');
-            const csvFileSelectBtn = document.getElementById('csv-file-select-btn');
-            const csvFilePreview = document.getElementById('csv-file-preview');
-            const csvFileName = document.getElementById('csv-file-name');
-            const csvClearFileBtn = document.getElementById('csv-clear-file');
-            const csvUploadSubmitBtn = document.getElementById('csv-upload-submit-btn');
-            const csvCancelBtn = document.getElementById('csv-cancel-btn');
-            const closeCsvModal = document.querySelector('.close-csv-modal');
-            let selectedCSVFile = null;
+            // --- Import Modal Elements ---
+            const importModal = document.getElementById('import-modal');
+            const importDropZone = document.getElementById('import-drop-zone');
+            const importFileInput = document.getElementById('import-file-input');
+            const importFileSelectBtn = document.getElementById('import-file-select-btn');
+            const importFilePreview = document.getElementById('import-file-preview');
+            const importFileName = document.getElementById('import-file-name');
+            const importClearFileBtn = document.getElementById('import-clear-file');
+            const importNextBtn = document.getElementById('import-next-btn');
+            const importBackBtn = document.getElementById('import-back-btn');
+            const importCancelBtn = document.getElementById('import-cancel-btn');
+            const importDoneBtn = document.getElementById('import-done-btn');
+            const closeImportModal = document.querySelector('.close-import-modal');
+
+            // Wizard state
+            let currentImportStep = 1;
+            let selectedImportFile = null;
+            let parsedCSVData = { headers: [], rows: [] };
+            let columnMapping = {};
+            let validatedRows = [];
+            let importResults = { success: [], skipped: [] };
+            let cachedCustomers = [];
+            let cachedServices = [];
+            let cachedLocations = [];
+            let cachedBookingNumbers = [];
+
+            // Bulk Delete State
+            let selectedBookingIds = new Set();
+
+            function updateBulkActionsUI() {
+                const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+                const bulkStatusBtn = document.getElementById('bulk-status-btn');
+                const bulkStatusDropdown = document.getElementById('bulk-status-dropdown');
+                if (selectedBookingIds.size > 0) {
+                    bulkDeleteBtn.style.display = 'inline-flex';
+                    bulkStatusBtn.style.display = 'inline-flex';
+                } else {
+                    bulkDeleteBtn.style.display = 'none';
+                    bulkStatusBtn.style.display = 'none';
+                    bulkStatusDropdown.style.display = 'none';
+                }
+            }
+
+            // Alias for backward compatibility
+            function updateBulkDeleteUI() {
+                updateBulkActionsUI();
+            }
+
+            // Initialize Bulk Delete Button Listener
+            const bulkDeleteBtn = document.getElementById('bulk-delete-btn');
+            if (bulkDeleteBtn) {
+                bulkDeleteBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    console.log('Bulk delete clicked', selectedBookingIds.size); // Debug log
+
+                    if (selectedBookingIds.size === 0) return;
+
+                    if (confirm(`Are you sure you want to delete ${selectedBookingIds.size} selected booking(s)?`)) {
+                        try {
+                            const idsToDelete = Array.from(selectedBookingIds);
+                            // Delete sequentially for now to avoid race conditions or backend overload
+                            for (const id of idsToDelete) {
+                                await window.electronAPI.bookings.delete(id);
+                            }
+                            selectedBookingIds.clear();
+                            updateBulkDeleteUI();
+                            loadBookings();
+                        } catch (error) {
+                            console.error('Bulk delete failed:', error);
+                            alert('Failed to delete some bookings: ' + error.message);
+                            loadBookings();
+                        }
+                    }
+                });
+            }
+
+            // Initialize Bulk Status Change Button Listener
+            const bulkStatusBtn = document.getElementById('bulk-status-btn');
+            const bulkStatusDropdown = document.getElementById('bulk-status-dropdown');
+
+            if (bulkStatusBtn && bulkStatusDropdown) {
+                // Toggle dropdown on button click
+                bulkStatusBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const isVisible = bulkStatusDropdown.style.display === 'block';
+                    bulkStatusDropdown.style.display = isVisible ? 'none' : 'block';
+                });
+
+                // Handle status option clicks
+                document.querySelectorAll('.bulk-status-option').forEach(option => {
+                    option.addEventListener('click', async (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const newStatus = option.dataset.status;
+                        const count = selectedBookingIds.size;
+
+                        if (count === 0) return;
+
+                        if (confirm(`Change status to "${newStatus}" for ${count} selected booking(s)?`)) {
+                            bulkStatusDropdown.style.display = 'none';
+
+                            try {
+                                const idsToUpdate = Array.from(selectedBookingIds);
+                                let successCount = 0;
+                                let failCount = 0;
+
+                                for (const id of idsToUpdate) {
+                                    try {
+                                        await window.electronAPI.bookings.update({ id, status: newStatus });
+                                        successCount++;
+                                    } catch (err) {
+                                        console.error(`Failed to update booking ${id}:`, err);
+                                        failCount++;
+                                    }
+                                }
+
+                                selectedBookingIds.clear();
+                                updateBulkActionsUI();
+                                loadBookings();
+
+                                if (failCount > 0) {
+                                    alert(`Updated ${successCount} booking(s). ${failCount} failed.`);
+                                }
+                            } catch (error) {
+                                console.error('Bulk status update failed:', error);
+                                alert('Failed to update bookings: ' + error.message);
+                                loadBookings();
+                            }
+                        }
+                    });
+
+                    // Hover effect
+                    option.addEventListener('mouseenter', () => {
+                        option.style.background = 'rgba(255,255,255,0.1)';
+                    });
+                    option.addEventListener('mouseleave', () => {
+                        option.style.background = 'transparent';
+                    });
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', (e) => {
+                    if (!bulkStatusBtn.contains(e.target) && !bulkStatusDropdown.contains(e.target)) {
+                        bulkStatusDropdown.style.display = 'none';
+                    }
+                });
+            }
 
             // --- Filter UI Elements ---
             const filterDateFrom = document.getElementById('filter-date-from');
@@ -809,6 +1613,21 @@
             });
 
             form.addEventListener('submit', handleFormSubmit);
+
+            // Check Import Button Visibility setting
+            (async () => {
+                try {
+                    const settings = await window.electronAPI.settings.getAll();
+                    const importBtn = document.getElementById('import-btn');
+                    if (importBtn && settings) {
+                        // Default to true if not set
+                        const showImport = settings['data.enableImportBookings'] !== false;
+                        importBtn.style.display = showImport ? 'inline-flex' : 'none';
+                    }
+                } catch (error) {
+                    console.error('Failed to load settings:', error);
+                }
+            })();
 
             // Filter Change Listeners
             [filterDateFrom, filterDateTo, filterClient, filterVehicle, filterStatus].forEach(el => {
@@ -993,7 +1812,7 @@
                         </td>
                         <td>${booking.clientName || 'Unknown Client'}</td>
                         <td>
-                            <div><strong>${booking.serviceName || 'Unknown Service'}</strong></div>
+                            <div><strong>${(booking.serviceItems && booking.serviceItems.length > 0) ? booking.serviceItems[0].name : (booking.serviceName || 'Unknown Service')}</strong>${(booking.serviceItems && booking.serviceItems.length > 1) ? ' <span style="font-size:0.8em; color:var(--text-secondary);">+' + (booking.serviceItems.length - 1) + ' more</span>' : ''}</div>
                             <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: capitalize;">${(booking.bookingType || '').replace('_', ' ')}</div>
                         </td>
                         <td>
@@ -1006,8 +1825,12 @@
                         <td><span class="status-badge ${badgeClass}" style="${statusStyle}">${booking.status}</span></td>
                         <td>${priceDisplay}</td>
                         <td>
-                            <button class="action-btn edit-btn" data-id="${booking.id}">✏️</button>
-                            <button class="action-btn delete-btn" data-id="${booking.id}">🗑️</button>
+                            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 12px;">
+                                <button class="action-btn edit-btn" data-id="${booking.id}" title="Edit">✏️</button>
+                                <input type="checkbox" class="booking-checkbox" data-id="${booking.id}" 
+                                    style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--accent-primary);"
+                                    ${selectedBookingIds.has(booking.id) ? 'checked' : ''}>
+                            </div>
                         </td>
                     `;
 
@@ -1022,13 +1845,16 @@
                     });
                 });
 
-                document.querySelectorAll('.delete-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const id = e.target.closest('button').dataset.id;
-                        // deleteBooking(id); // Using logs for specific implementation verification
-                        if (confirm('Delete booking?')) {
-                            window.electronAPI.bookings.delete(id).then(() => loadBookings());
+                // Attach event listeners to checkboxes
+                document.querySelectorAll('.booking-checkbox').forEach(chk => {
+                    chk.addEventListener('change', (e) => {
+                        const id = e.target.dataset.id;
+                        if (e.target.checked) {
+                            selectedBookingIds.add(id);
+                        } else {
+                            selectedBookingIds.delete(id);
                         }
+                        updateBulkDeleteUI();
                     });
                 });
             }
@@ -1095,7 +1921,7 @@
                         div.style.padding = '8px 12px';
                         div.style.cursor = 'pointer';
                         div.style.borderBottom = '1px solid var(--border-subtle)';
-                        div.innerHTML = `<div style="font-weight:500">${service.name}</div><div style="font-size:0.8rem; color:var(--text-secondary)">$${Number(service.price || service.basePrice || 0).toFixed(2)} | ${service.durationMinutes || service.avgDurationMinutes || 0} min</div>`;
+                        div.innerHTML = `<div style="font-weight:500">${service.name}</div><div style="font-size:0.8rem; color:var(--text-secondary)">$${Number(service.price || service.basePrice || 0).toFixed(2)} | ${service.averageDurationMinutes || service.durationMinutes || service.avgDurationMinutes || 0} min</div>`;
                         div.addEventListener('mouseover', () => div.style.backgroundColor = 'rgba(255,255,255,0.05)');
                         div.addEventListener('mouseout', () => div.style.backgroundColor = 'transparent');
                         div.addEventListener('click', () => {
@@ -1585,8 +2411,8 @@
                 }
 
                 const bookingData = {
-                    clientId: clientIdInput.value,
-                    locationId: locationIdInput.value,
+                    clientId: clientIdInput.value || null,
+                    locationId: locationIdInput.value || null,
                     // serviceId: serviceIdInput.value, // Removed single service ID
                     serviceIds: selectedServices.map(s => s.id),
                     serviceItems: selectedServices.map(s => ({
@@ -1645,292 +2471,778 @@
                 }
             });
 
-            // --- CSV Upload Drag and Drop Handlers ---
+            // ========================================
+            // IMPORT WIZARD FUNCTIONALITY (4-STEP)
+            // ========================================
 
-            // Prevent default drag behaviors
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                csvDropZone.addEventListener(eventName, preventDefaults, false);
-            });
+            // Target columns for the import
+            const TARGET_COLUMNS = [
+                { key: 'bookingNumber', label: 'Booking #', required: false },
+                { key: 'customerName', label: 'Customer Name', required: true },
+                { key: 'serviceName', label: 'Service Name', required: true },
+                { key: 'locationName', label: 'Location Name', required: true },
+                { key: 'date', label: 'Date', required: true }
+            ];
 
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
+            // Preload entity data and booking numbers
+            async function loadEntityCaches() {
+                try {
+                    const [customersRes, servicesRes, locationsRes, bookingsRes] = await Promise.all([
+                        window.electronAPI.clients.getAll(),
+                        window.electronAPI.services.getAll(),
+                        window.electronAPI.locations.getAll(),
+                        window.electronAPI.bookings.getAll({}, { page: 1, limit: 10000 })
+                    ]);
+
+                    cachedCustomers = customersRes.data?.data || customersRes.data || [];
+                    cachedServices = servicesRes.data?.data || servicesRes.data || [];
+                    cachedLocations = locationsRes.data || [];
+
+                    // Extract existing booking numbers (exclude deleted ones to allow reuse)
+                    const bookings = bookingsRes.data?.data || bookingsRes.data || [];
+                    cachedBookingNumbers = bookings
+                        .filter(b => !b.deletedAt)
+                        .map(b => b.bookingNumber)
+                        .filter(Boolean);
+
+                    console.log(`Loaded: ${cachedCustomers.length} customers, ${cachedServices.length} services, ${cachedLocations.length} locations, ${cachedBookingNumbers.length} booking numbers`);
+                } catch (error) {
+                    console.error('Failed to load entity caches:', error);
+                }
             }
 
-            // Highlight drop zone when dragging over it
+            loadEntityCaches();
+
+            // --- Step Navigation ---
+            function updateStepperUI() {
+                document.querySelectorAll('.stepper-step').forEach((step, index) => {
+                    const stepNum = index + 1;
+                    step.classList.remove('active', 'completed');
+                    if (stepNum === currentImportStep) {
+                        step.classList.add('active');
+                    } else if (stepNum < currentImportStep) {
+                        step.classList.add('completed');
+                    }
+                });
+
+                // Update step visibility
+                for (let i = 1; i <= 4; i++) {
+                    const stepEl = document.getElementById(`import-step-${i}`);
+                    if (stepEl) {
+                        stepEl.style.display = i === currentImportStep ? 'flex' : 'none';
+                    }
+                }
+
+                // Update buttons
+                const loadDataBtn = document.getElementById('import-load-data-btn');
+                importBackBtn.style.display = currentImportStep > 1 && currentImportStep < 4 ? 'inline-block' : 'none';
+
+                // Show Next on Steps 1-2, Load Data on Step 3, Done on Step 4
+                importNextBtn.style.display = currentImportStep < 3 ? 'inline-block' : 'none';
+                loadDataBtn.style.display = currentImportStep === 3 ? 'inline-block' : 'none';
+                importDoneBtn.style.display = currentImportStep === 4 ? 'inline-block' : 'none';
+            }
+
+            function goToStep(step) {
+                currentImportStep = step;
+                updateStepperUI();
+
+                if (step === 2) renderMappingStep();
+                if (step === 3) renderValidationStep();
+            }
+
+            // Back button
+            importBackBtn.addEventListener('click', () => {
+                if (currentImportStep > 1) {
+                    goToStep(currentImportStep - 1);
+                }
+            });
+
+            // Next button
+            importNextBtn.addEventListener('click', () => {
+                if (currentImportStep === 1 && selectedImportFile) {
+                    goToStep(2);
+                } else if (currentImportStep === 2) {
+                    goToStep(3);
+                } else if (currentImportStep === 3) {
+                    // Should use Load Data button instead
+                }
+            });
+
+            // Done button
+            importDoneBtn.addEventListener('click', () => {
+                closeImportModalFn();
+                loadBookings();
+            });
+
+            // --- Drag and Drop Setup ---
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                importDropZone.addEventListener(eventName, (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }, false);
+            });
+
             ['dragenter', 'dragover'].forEach(eventName => {
-                csvDropZone.addEventListener(eventName, () => {
-                    csvDropZone.classList.add('drag-over');
+                importDropZone.addEventListener(eventName, () => {
+                    importDropZone.classList.add('drag-over');
                 }, false);
             });
 
             ['dragleave', 'drop'].forEach(eventName => {
-                csvDropZone.addEventListener(eventName, () => {
-                    csvDropZone.classList.remove('drag-over');
+                importDropZone.addEventListener(eventName, () => {
+                    importDropZone.classList.remove('drag-over');
                 }, false);
             });
 
-            // Handle dropped files
-            csvDropZone.addEventListener('drop', (e) => {
+            importDropZone.addEventListener('drop', (e) => {
                 const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    handleCSVFile(files[0]);
-                }
+                if (files.length > 0) handleImportFile(files[0]);
             }, false);
 
-            // Handle file selection via button click
-            csvFileSelectBtn.addEventListener('click', () => {
-                csvFileInput.click();
+            importFileSelectBtn.addEventListener('click', () => importFileInput.click());
+
+            importFileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) handleImportFile(e.target.files[0]);
             });
 
-            csvFileInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    handleCSVFile(e.target.files[0]);
-                }
-            });
-
-            // Validate CSV file before selection
-            function validateCSVFile(file) {
-                // Check file extension
+            function validateImportFile(file) {
                 if (!file.name.toLowerCase().endsWith('.csv')) {
                     return { valid: false, error: 'Please select a CSV file (.csv)' };
                 }
-                // Check file size (10MB max)
                 if (file.size > 10 * 1024 * 1024) {
                     return { valid: false, error: 'File size must be less than 10MB' };
                 }
                 return { valid: true };
             }
 
-            // Handle file selection and validation
-            function handleCSVFile(file) {
-                const validation = validateCSVFile(file);
-
+            async function handleImportFile(file) {
+                const validation = validateImportFile(file);
                 if (!validation.valid) {
-                    showValidationError(validation.error);
+                    alert(validation.error);
                     return;
                 }
 
-                // Store selected file
-                selectedCSVFile = file;
+                selectedImportFile = file;
+                importFileName.textContent = file.name;
+                importDropZone.querySelector('.drop-zone-content').style.display = 'none';
+                importFilePreview.style.display = 'flex';
 
-                // Show file preview
-                csvFileName.textContent = file.name;
-                document.querySelector('.drop-zone-content').style.display = 'none';
-                csvFilePreview.style.display = 'flex';
+                // Parse CSV
+                const content = await file.text();
+                parsedCSVData = parseCSVContent(content);
 
-                // Hide any previous errors
-                document.getElementById('csv-upload-results').style.display = 'none';
-
-                // Enable upload button
-                csvUploadSubmitBtn.disabled = false;
+                importNextBtn.disabled = parsedCSVData.rows.length === 0;
             }
 
-            // Show validation error immediately
-            function showValidationError(errorMessage) {
-                const resultsDiv = document.getElementById('csv-upload-results');
-                const successMsg = document.getElementById('csv-success-message');
-                const errorList = document.getElementById('csv-error-list');
-
-                successMsg.style.display = 'none';
-                errorList.style.display = 'block';
-                errorList.innerHTML = `<div class="error-item"><strong>Validation Error:</strong> ${errorMessage}</div>`;
-                resultsDiv.style.display = 'block';
-
-                // Clear file selection
-                selectedCSVFile = null;
-                csvFileInput.value = '';
-            }
-
-            // Clear file selection
-            csvClearFileBtn.addEventListener('click', () => {
-                selectedCSVFile = null;
-                csvFileInput.value = '';
-                csvFilePreview.style.display = 'none';
-                document.querySelector('.drop-zone-content').style.display = 'block';
-                csvUploadSubmitBtn.disabled = true;
+            importClearFileBtn.addEventListener('click', () => {
+                selectedImportFile = null;
+                parsedCSVData = { headers: [], rows: [] };
+                importFileInput.value = '';
+                importFilePreview.style.display = 'none';
+                importDropZone.querySelector('.drop-zone-content').style.display = 'flex';
+                importNextBtn.disabled = true;
             });
 
-            // Upload CSV file
-            async function uploadCSVFile() {
-                if (!selectedCSVFile) return;
+            // --- Template Download ---
+            document.getElementById('import-download-template-btn').addEventListener('click', (e) => {
+                e.preventDefault();
+                const headers = ['Booking #', 'Customer Name', 'Service Name', 'Location Name', 'Date'];
+                const exampleRow = ['BK-001', 'Example Customer', 'Example Service', 'Main Location', '2026-02-01'];
+                const csvContent = headers.join(',') + '\n' + exampleRow.join(',');
+                const dataUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+                const link = document.createElement('a');
+                link.href = dataUri;
+                link.download = 'bookings_import_template.csv';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
 
-                const progressDiv = document.getElementById('csv-upload-progress');
-                const resultsDiv = document.getElementById('csv-upload-results');
-                const successMsg = document.getElementById('csv-success-message');
-                const errorList = document.getElementById('csv-error-list');
-                const progressFill = document.querySelector('.progress-fill');
+            // --- Modal Open/Close ---
+            document.getElementById('import-btn').addEventListener('click', openImportModal);
 
-                // Show progress, hide results
-                progressDiv.style.display = 'block';
-                resultsDiv.style.display = 'none';
-                csvUploadSubmitBtn.disabled = true;
-                progressFill.style.width = '30%';
+            function openImportModal() {
+                importModal.style.display = 'block';
+                resetImportModal();
+            }
 
-                try {
-                    const formData = new FormData();
-                    formData.append('file', selectedCSVFile);
+            function closeImportModalFn() {
+                importModal.style.display = 'none';
+                resetImportModal();
+            }
 
-                    progressFill.style.width = '60%';
+            function resetImportModal() {
+                currentImportStep = 1;
+                selectedImportFile = null;
+                parsedCSVData = { headers: [], rows: [] };
+                columnMapping = {};
+                validatedRows = [];
+                importResults = { success: [], skipped: [] };
+                importFileInput.value = '';
+                importFilePreview.style.display = 'none';
+                importDropZone.querySelector('.drop-zone-content').style.display = 'flex';
+                importNextBtn.disabled = true;
+                updateStepperUI();
+            }
 
-                    const response = await fetch('/api/bookings/upload', {
-                        method: 'POST',
-                        body: formData
+            closeImportModal.addEventListener('click', closeImportModalFn);
+            importCancelBtn.addEventListener('click', closeImportModalFn);
+            importModal.addEventListener('click', (e) => {
+                if (e.target === importModal) closeImportModalFn();
+            });
+
+            // --- CSV Parsing ---
+            function parseCSVContent(content) {
+                const lines = content.split(/\r?\n/).filter(line => line.trim());
+                if (lines.length < 2) return { headers: [], rows: [] };
+
+                const headers = parseCSVLine(lines[0]);
+                const rows = [];
+
+                for (let i = 1; i < lines.length; i++) {
+                    const values = parseCSVLine(lines[i]);
+                    if (values.some(v => v.trim())) {
+                        rows.push({ _rowIndex: i, values });
+                    }
+                }
+
+                return { headers, rows };
+            }
+
+            function parseCSVLine(line) {
+                const result = [];
+                let current = '';
+                let inQuotes = false;
+
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        result.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                result.push(current.trim());
+                return result;
+            }
+
+            // --- Step 2: Column Mapping ---
+            function renderMappingStep() {
+                const targetRow = document.getElementById('mapping-target-row');
+                const sourceRow = document.getElementById('mapping-source-row');
+                const previewTbody = document.getElementById('mapping-preview-tbody');
+
+                // Clear existing
+                targetRow.innerHTML = '';
+                sourceRow.innerHTML = '';
+                previewTbody.innerHTML = '';
+
+                // Auto-detect column mapping
+                columnMapping = {};
+                parsedCSVData.headers.forEach((header, idx) => {
+                    const headerLower = header.toLowerCase().replace(/[^a-z]/g, '');
+                    TARGET_COLUMNS.forEach(target => {
+                        const targetLower = target.label.toLowerCase().replace(/[^a-z]/g, '');
+                        if (headerLower.includes(targetLower) || targetLower.includes(headerLower)) {
+                            if (!Object.values(columnMapping).includes(target.key)) {
+                                columnMapping[idx] = target.key;
+                            }
+                        }
+                    });
+                });
+
+                // Build header rows
+                parsedCSVData.headers.forEach((header, idx) => {
+                    // Target column dropdown
+                    const targetTh = document.createElement('th');
+                    targetTh.style.cssText = 'padding: 12px 8px;';
+                    const select = document.createElement('select');
+                    select.dataset.columnIndex = idx;
+                    select.innerHTML = `<option value="">Do Not Load</option>` +
+                        TARGET_COLUMNS.map(t => `<option value="${t.key}" ${columnMapping[idx] === t.key ? 'selected' : ''}>${t.label}${t.required ? ' *' : ''}</option>`).join('');
+                    select.addEventListener('change', (e) => {
+                        if (e.target.value) {
+                            columnMapping[idx] = e.target.value;
+                        } else {
+                            delete columnMapping[idx];
+                        }
+                    });
+                    targetTh.appendChild(select);
+                    targetRow.appendChild(targetTh);
+
+                    // Source column name
+                    const sourceTh = document.createElement('th');
+                    sourceTh.style.cssText = 'padding: 12px 8px; font-weight: 500;';
+                    sourceTh.textContent = header;
+                    sourceRow.appendChild(sourceTh);
+                });
+
+                // Preview first 5 rows
+                const previewRows = parsedCSVData.rows.slice(0, 5);
+                previewRows.forEach((row, rowIdx) => {
+                    const tr = document.createElement('tr');
+                    row.values.forEach(val => {
+                        const td = document.createElement('td');
+                        td.style.cssText = 'padding: 8px; font-size: 0.85rem;';
+                        td.textContent = val || '-';
+                        tr.appendChild(td);
+                    });
+                    previewTbody.appendChild(tr);
+                });
+            }
+
+            // --- Step 3: Validation ---
+            function renderValidationStep() {
+                const tbody = document.getElementById('import-validation-tbody');
+                tbody.innerHTML = '';
+                validatedRows = [];
+
+                // Phase 1: Map all data according to column mapping
+                parsedCSVData.rows.forEach((row, idx) => {
+                    const mappedRow = { _rowIndex: idx + 1, errors: {}, data: {}, resolvedEntities: {} };
+
+                    parsedCSVData.headers.forEach((header, colIdx) => {
+                        const targetKey = columnMapping[colIdx];
+                        if (targetKey) {
+                            mappedRow.data[targetKey] = row.values[colIdx] || '';
+                        }
                     });
 
-                    progressFill.style.width = '100%';
-                    const result = await response.json();
+                    validatedRows.push(mappedRow);
+                });
 
-                    // Hide progress, show results
-                    setTimeout(() => {
-                        progressDiv.style.display = 'none';
-                        resultsDiv.style.display = 'block';
+                // Phase 2: Validate all rows (now all rows exist for cross-reference checking)
+                validatedRows.forEach(row => validateRow(row));
 
-                        if (result.success) {
-                            successMsg.innerHTML = `
-                                <div style="display: flex; align-items: center; gap: 8px;">
-                                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                    </svg>
-                                    <span>Successfully created ${result.data.created} booking(s)!</span>
-                                </div>
-                            `;
-                            successMsg.style.display = 'block';
-                            errorList.style.display = 'none';
-                            // Refresh bookings table
-                            loadBookings();
+                renderValidationTable();
+                updateValidationStatus();
+            }
 
-                            // Auto-close modal after 2 seconds on success
-                            setTimeout(() => {
-                                closeCSVUploadModal();
-                            }, 2000);
+            function validateRow(row) {
+                row.errors = {};
+                row.resolvedEntities = {};
+
+                // Validate customer
+                if (!row.data.customerName) {
+                    row.errors.customerName = 'Required';
+                } else {
+                    const customer = cachedCustomers.find(c => c.name.toLowerCase() === row.data.customerName.toLowerCase());
+                    if (customer) {
+                        row.resolvedEntities.customer = customer;
+                    } else {
+                        row.errors.customerName = 'Not found';
+                    }
+                }
+
+                // Validate service
+                if (!row.data.serviceName) {
+                    row.errors.serviceName = 'Required';
+                } else {
+                    const service = cachedServices.find(s => s.name.toLowerCase() === row.data.serviceName.toLowerCase());
+                    if (service) {
+                        row.resolvedEntities.service = service;
+                    } else {
+                        row.errors.serviceName = 'Not found';
+                    }
+                }
+
+                // Validate location (must exist AND belong to the customer)
+                if (!row.data.locationName) {
+                    row.errors.locationName = 'Required';
+                } else {
+                    const location = cachedLocations.find(l => l.name.toLowerCase() === row.data.locationName.toLowerCase());
+                    if (location) {
+                        // Check if location belongs to the resolved customer
+                        const customer = row.resolvedEntities?.customer;
+                        if (customer && location.clientId !== customer.id) {
+                            row.errors.locationName = 'Wrong customer';
                         } else {
-                            successMsg.style.display = 'none';
-                            errorList.style.display = 'block';
-
-                            // Enhanced error display with summary and try again button
-                            let errorHTML = '';
-
-                            // Handle different error response formats
-                            if (result.errors && Array.isArray(result.errors)) {
-                                const errorCount = result.errors.length;
-                                errorHTML = `
-                                    <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(248, 81, 73, 0.2);">
-                                        <strong>Found ${errorCount} error${errorCount > 1 ? 's' : ''} in your CSV file:</strong>
-                                    </div>
-                                `;
-                                errorHTML += result.errors.map(err => {
-                                    const rowNum = err.rowNumber ? `<strong>Row ${err.rowNumber}:</strong> ` : '';
-                                    return `<div class="error-item" style="margin: 8px 0;">${rowNum}${err.message}</div>`;
-                                }).join('');
-
-                                errorHTML += `
-                                    <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(248, 81, 73, 0.2); font-size: 0.875rem; color: rgba(248, 81, 73, 0.8);">
-                                        <strong>Helpful hints:</strong><br>
-                                        • Date format: YYYY-MM-DD (e.g., 2026-02-15)<br>
-                                        • Time format: HH:MM (e.g., 14:30)<br>
-                                        • Required columns: clientId, bookingType, scheduledDate<br>
-                                        • Valid booking types: one_time, recurring
-                                    </div>
-                                `;
-                            } else if (result.error) {
-                                errorHTML = `<div class="error-item"><strong>Error:</strong> ${result.error}</div>`;
-                            } else if (result.message) {
-                                errorHTML = `<div class="error-item"><strong>Error:</strong> ${result.message}</div>`;
-                            } else {
-                                errorHTML = `<div class="error-item"><strong>Error:</strong> Upload failed</div>`;
-                            }
-
-                            // Add "Try Again" button
-                            errorHTML += `
-                                <div style="margin-top: 16px; text-align: center;">
-                                    <button type="button" id="csv-try-again-btn" class="btn-primary" style="background: rgba(248, 81, 73, 0.8);">
-                                        Try Again
-                                    </button>
-                                </div>
-                            `;
-
-                            errorList.innerHTML = errorHTML;
-
-                            // Attach try again handler
-                            document.getElementById('csv-try-again-btn').addEventListener('click', () => {
-                                resetCSVUploadModal();
-                            });
+                            row.resolvedEntities.location = location;
                         }
-                    }, 500);
-                } catch (error) {
-                    progressDiv.style.display = 'none';
-                    resultsDiv.style.display = 'block';
-                    successMsg.style.display = 'none';
-                    errorList.style.display = 'block';
-                    errorList.innerHTML = `<div class="error-item">Upload failed: ${error.message}</div>`;
-                } finally {
-                    csvUploadSubmitBtn.disabled = false;
+                    } else {
+                        row.errors.locationName = 'Not found';
+                    }
+                }
+
+                // Validate date
+                if (!row.data.date) {
+                    row.errors.date = 'Required';
+                } else if (!/^\d{4}-\d{2}-\d{2}$/.test(row.data.date)) {
+                    row.errors.date = 'Invalid format';
+                }
+
+                // Validate booking # uniqueness
+                if (row.data.bookingNumber) {
+                    const isDuplicate = cachedBookingNumbers.includes(row.data.bookingNumber) ||
+                        validatedRows.some((r, i) => r !== row && r.data.bookingNumber === row.data.bookingNumber);
+                    if (isDuplicate) {
+                        row.errors.bookingNumber = 'Duplicate';
+                    }
+                }
+
+                row.isValid = Object.keys(row.errors).length === 0;
+            }
+
+            function renderValidationTable() {
+                const tbody = document.getElementById('import-validation-tbody');
+                tbody.innerHTML = '';
+
+                validatedRows.forEach((row, idx) => {
+                    const tr = document.createElement('tr');
+                    tr.className = row.isValid ? 'row-valid' : 'row-invalid';
+                    tr.dataset.rowIndex = idx;
+
+                    tr.innerHTML = `
+                        <td><input type="checkbox" class="validation-row-checkbox" data-index="${idx}"></td>
+                        <td><span class="status-icon ${row.isValid ? 'success' : 'error'}">${row.isValid ? '✓' : '✕'}</span></td>
+                        <td class="cell-editable ${row.errors.bookingNumber ? 'cell-invalid' : ''}" data-field="bookingNumber" title="${row.errors.bookingNumber || ''}">${row.data.bookingNumber || '<span style="color: var(--text-secondary);">Auto</span>'}</td>
+                        <td class="cell-editable ${row.errors.customerName ? 'cell-invalid' : ''}" data-field="customerName" title="${row.errors.customerName || ''}">${escapeHtml(row.data.customerName) || '-'}</td>
+                        <td class="cell-editable ${row.errors.serviceName ? 'cell-invalid' : ''}" data-field="serviceName" title="${row.errors.serviceName || ''}">${escapeHtml(row.data.serviceName) || '-'}</td>
+                        <td class="cell-editable ${row.errors.locationName ? 'cell-invalid' : ''}" data-field="locationName" title="${row.errors.locationName || ''}">${escapeHtml(row.data.locationName) || '-'}</td>
+                        <td class="cell-editable ${row.errors.date ? 'cell-invalid' : ''}" data-field="date" title="${row.errors.date || ''}">${row.data.date || '-'}</td>
+                    `;
+
+                    // Add click handlers for editable cells
+                    tr.querySelectorAll('.cell-editable').forEach(cell => {
+                        cell.addEventListener('click', () => openCellEditor(idx, cell.dataset.field, cell));
+                    });
+
+                    tbody.appendChild(tr);
+                });
+
+                // Select all checkbox
+                document.getElementById('validation-select-all').addEventListener('change', (e) => {
+                    document.querySelectorAll('.validation-row-checkbox').forEach(cb => cb.checked = e.target.checked);
+                    updateDeleteButton();
+                });
+
+                // Update delete button on checkbox change
+                tbody.querySelectorAll('.validation-row-checkbox').forEach(cb => {
+                    cb.addEventListener('change', updateDeleteButton);
+                });
+            }
+
+            function updateDeleteButton() {
+                const checked = document.querySelectorAll('.validation-row-checkbox:checked').length;
+                document.getElementById('delete-selected-btn').style.display = checked > 0 ? 'inline-block' : 'none';
+            }
+
+            function updateValidationStatus() {
+                const validCount = validatedRows.filter(r => r.isValid).length;
+                const total = validatedRows.length;
+                document.getElementById('validation-status-text').textContent = `${validCount} of ${total} rows valid`;
+
+                // Enable/disable the Load Data button based on valid rows
+                const loadBtn = document.getElementById('import-load-data-btn');
+                loadBtn.disabled = validCount === 0;
+            }
+
+            // --- Cell Editor ---
+            let activeDropdown = null;
+
+            // Toast notification function
+            function showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.style.cssText = `
+                    position: fixed;
+                    top: 100px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    padding: 12px 24px;
+                    background: ${type === 'error' ? 'rgba(248, 81, 73, 0.95)' : type === 'warning' ? 'rgba(255, 166, 0, 0.95)' : 'rgba(88, 166, 255, 0.95)'};
+                    color: white;
+                    border-radius: 8px;
+                    font-size: 0.9rem;
+                    z-index: 10000;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                    animation: toastFadeIn 0.3s ease;
+                `;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.animation = 'toastFadeOut 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+
+            function openCellEditor(rowIndex, field, cell) {
+                closeCellEditor();
+
+                const row = validatedRows[rowIndex];
+                const dropdown = document.createElement('div');
+                dropdown.className = 'cell-edit-dropdown';
+
+                let options = [];
+                if (field === 'customerName') {
+                    options = cachedCustomers.map(c => ({ id: c.id, name: c.name }));
+                } else if (field === 'serviceName') {
+                    options = cachedServices.map(s => ({ id: s.id, name: s.name }));
+                } else if (field === 'locationName') {
+                    // Check if customer is resolved first
+                    const customer = row.resolvedEntities?.customer;
+                    if (!customer) {
+                        showToast('Please select a customer first', 'warning');
+                        return;
+                    }
+                    // Filter locations by customer
+                    options = cachedLocations
+                        .filter(l => l.clientId === customer.id)
+                        .map(l => ({ id: l.id, name: l.name }));
+
+                    if (options.length === 0) {
+                        showToast('No locations found for this customer', 'warning');
+                        return;
+                    }
+                } else if (field === 'date') {
+                    // Date picker - auto show calendar
+                    const input = document.createElement('input');
+                    input.type = 'date';
+                    input.value = row.data.date || '';
+                    input.style.cssText = 'width: 180px; padding: 10px 12px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 6px; font-size: 0.9rem;';
+                    input.addEventListener('change', () => {
+                        row.data.date = input.value;
+                        validateRow(row);
+                        renderValidationTable();
+                        updateValidationStatus();
+                        closeCellEditor();
+                    });
+                    dropdown.appendChild(input);
+                    cell.style.position = 'relative';
+                    cell.appendChild(dropdown);
+                    activeDropdown = dropdown;
+                    input.focus();
+                    // Auto-show the calendar picker
+                    if (input.showPicker) {
+                        try { input.showPicker(); } catch (e) { /* ignore */ }
+                    }
+                    return;
+                } else if (field === 'bookingNumber') {
+                    // Text input for booking #
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.value = row.data.bookingNumber || '';
+                    input.placeholder = 'Enter booking # or leave blank for auto';
+                    input.style.cssText = 'width: 200px; padding: 8px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px;';
+
+                    const applyBookingChange = () => {
+                        row.data.bookingNumber = input.value.trim();
+                        // Re-validate ALL rows to properly update duplicate detection
+                        validatedRows.forEach(r => validateRow(r));
+                        renderValidationTable();
+                        updateValidationStatus();
+                        closeCellEditor();
+                    };
+
+                    input.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            applyBookingChange();
+                        } else if (e.key === 'Escape') {
+                            closeCellEditor();
+                        }
+                    });
+                    input.addEventListener('blur', () => {
+                        applyBookingChange();
+                    });
+                    dropdown.appendChild(input);
+                    cell.style.position = 'relative';
+                    cell.appendChild(dropdown);
+                    activeDropdown = dropdown;
+                    input.focus();
+                    return;
+                }
+
+                // Search input
+                const searchInput = document.createElement('input');
+                searchInput.type = 'text';
+                searchInput.placeholder = 'Search...';
+                dropdown.appendChild(searchInput);
+
+                // Options container
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'dropdown-options';
+                dropdown.appendChild(optionsDiv);
+
+                function renderOptions(filter = '') {
+                    const filtered = filter ? options.filter(o => o.name.toLowerCase().includes(filter.toLowerCase())) : options;
+                    optionsDiv.innerHTML = filtered.map(o => `<div class="dropdown-option" data-id="${o.id}" data-name="${escapeHtml(o.name)}">${escapeHtml(o.name)}</div>`).join('');
+
+                    optionsDiv.querySelectorAll('.dropdown-option').forEach(opt => {
+                        opt.addEventListener('click', () => {
+                            row.data[field] = opt.dataset.name;
+                            validateRow(row);
+                            renderValidationTable();
+                            updateValidationStatus();
+                            closeCellEditor();
+                        });
+                    });
+                }
+
+                searchInput.addEventListener('input', () => renderOptions(searchInput.value));
+                renderOptions();
+
+                cell.style.position = 'relative';
+                cell.appendChild(dropdown);
+                activeDropdown = dropdown;
+                searchInput.focus();
+            }
+
+            function closeCellEditor() {
+                if (activeDropdown) {
+                    activeDropdown.remove();
+                    activeDropdown = null;
                 }
             }
 
-            // Attach upload handler to submit button
-            csvUploadSubmitBtn.addEventListener('click', uploadCSVFile);
-
-            // --- Template Download and Modal Management ---
-
-            // Download template button
-            document.getElementById('download-template-btn').addEventListener('click', async () => {
-                try {
-                    const response = await fetch('/api/bookings/template');
-                    if (!response.ok) throw new Error('Failed to download template');
-
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'bookings_template.csv';
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    a.remove();
-                } catch (error) {
-                    console.error('Template download failed:', error);
-                    alert('Failed to download template: ' + error.message);
+            document.addEventListener('click', (e) => {
+                if (activeDropdown && !activeDropdown.contains(e.target) && !e.target.classList.contains('cell-editable')) {
+                    closeCellEditor();
                 }
             });
 
-            // Open CSV upload modal
-            document.getElementById('upload-csv-btn').addEventListener('click', () => {
-                openCSVUploadModal();
+            // --- Delete Selected Rows ---
+            document.getElementById('delete-selected-btn').addEventListener('click', () => {
+                const checkboxes = document.querySelectorAll('.validation-row-checkbox:checked');
+                const indicesToDelete = Array.from(checkboxes).map(cb => parseInt(cb.dataset.index));
+                validatedRows = validatedRows.filter((_, i) => !indicesToDelete.includes(i));
+                renderValidationTable();
+                updateValidationStatus();
             });
 
-            // Modal open/close functions
-            function openCSVUploadModal() {
-                csvUploadModal.style.display = 'block';
-                resetCSVUploadModal();
-            }
-
-            function closeCSVUploadModal() {
-                csvUploadModal.style.display = 'none';
-                resetCSVUploadModal();
-            }
-
-            function resetCSVUploadModal() {
-                selectedCSVFile = null;
-                csvFileInput.value = '';
-                csvFilePreview.style.display = 'none';
-                document.querySelector('.drop-zone-content').style.display = 'block';
-                document.getElementById('csv-upload-progress').style.display = 'none';
-                document.getElementById('csv-upload-results').style.display = 'none';
-                csvUploadSubmitBtn.disabled = true;
-            }
-
-            // Close modal event listeners
-            closeCsvModal.addEventListener('click', closeCSVUploadModal);
-            csvCancelBtn.addEventListener('click', closeCSVUploadModal);
-
-            // Close modal when clicking outside
-            csvUploadModal.addEventListener('click', (e) => {
-                if (e.target === csvUploadModal) {
-                    closeCSVUploadModal();
+            // --- Load Data ---
+            document.getElementById('import-load-data-btn').addEventListener('click', async () => {
+                const validRows = validatedRows.filter(r => r.isValid);
+                if (validRows.length === 0) {
+                    alert('No valid rows to import');
+                    return;
                 }
+
+                const loadBtn = document.getElementById('import-load-data-btn');
+                loadBtn.disabled = true;
+                loadBtn.textContent = 'Importing...';
+
+                importResults = { success: [], skipped: [] };
+
+                for (const row of validRows) {
+                    try {
+                        const customer = row.resolvedEntities.customer;
+                        const service = row.resolvedEntities.service;
+                        const location = row.resolvedEntities.location;
+
+                        const bookingData = {
+                            clientId: customer.id,
+                            serviceId: service.id, // Required for join/display logic
+                            serviceItems: [{
+                                serviceId: service.id,
+                                name: service.name,
+                                quantity: 1,
+                                unitPrice: service.price || service.basePrice || 0
+                            }],
+                            locationId: location.id,
+                            scheduledDate: row.data.date,
+                            bookingType: 'one_time',
+                            status: 'pending'
+                        };
+
+                        // Add custom booking number if provided
+                        if (row.data.bookingNumber) {
+                            bookingData.bookingNumber = row.data.bookingNumber;
+                        }
+
+                        const result = await window.electronAPI.bookings.create(bookingData);
+
+                        importResults.success.push({
+                            bookingNumber: result.bookingNumber || row.data.bookingNumber,
+                            customerName: customer.name,
+                            serviceName: service.name,
+                            locationName: location.name,
+                            date: row.data.date
+                        });
+
+                        // Add to cached booking numbers
+                        if (result.bookingNumber) {
+                            cachedBookingNumbers.push(result.bookingNumber);
+                        }
+                    } catch (err) {
+                        importResults.skipped.push({
+                            ...row.data,
+                            error: err.message
+                        });
+                    }
+                }
+
+                // Add invalid rows to skipped
+                validatedRows.filter(r => !r.isValid).forEach(r => {
+                    importResults.skipped.push({
+                        ...r.data,
+                        error: Object.values(r.errors).join(', ')
+                    });
+                });
+
+                loadBtn.disabled = false;
+                loadBtn.textContent = 'Load Data';
+                goToStep(4);
+                renderResultsStep();
             });
+
+            // --- Step 4: Results ---
+            function renderResultsStep() {
+                document.querySelector('#import-success-count div:first-child').textContent = importResults.success.length;
+                document.querySelector('#import-skipped-count div:first-child').textContent = importResults.skipped.length;
+
+                const tbody = document.getElementById('import-results-tbody');
+                tbody.innerHTML = '';
+
+                importResults.success.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><span class="status-icon success">✓</span></td>
+                        <td>${escapeHtml(row.bookingNumber || 'Auto')}</td>
+                        <td>${escapeHtml(row.customerName)}</td>
+                        <td>${escapeHtml(row.serviceName)}</td>
+                        <td>${escapeHtml(row.locationName)}</td>
+                        <td>${row.date}</td>
+                        <td style="color: #2ea043;">Imported</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                importResults.skipped.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.style.background = 'rgba(248, 81, 73, 0.05)';
+                    tr.innerHTML = `
+                        <td><span class="status-icon error">✕</span></td>
+                        <td>${escapeHtml(row.bookingNumber || '-')}</td>
+                        <td>${escapeHtml(row.customerName || '-')}</td>
+                        <td>${escapeHtml(row.serviceName || '-')}</td>
+                        <td>${escapeHtml(row.locationName || '-')}</td>
+                        <td>${row.date || '-'}</td>
+                        <td style="color: #f85149; font-size: 0.75rem;" title="${escapeHtml(row.error)}">${truncateText(row.error, 15)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // Refresh bookings if we had successes
+                if (importResults.success.length > 0) {
+                    loadBookings();
+                }
+            }
+
+            function truncateText(text, maxLength) {
+                if (!text) return '';
+                return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+            }
+
+            function escapeHtml(text) {
+                if (!text) return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
 
 
         });
