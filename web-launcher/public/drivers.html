@@ -201,25 +201,51 @@
             height: 40px;
             border-radius: 50%;
             object-fit: cover;
-            background-color: rgba(64, 169, 255, 0.2);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            color: var(--text-primary);
+            background: var(--bg-tertiary);
         }
 
-        .driver-avatar-placeholder {
+        .driver-avatar-initials {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background-color: rgba(64, 169, 255, 0.2);
-            display: inline-flex;
+            background: var(--accent-primary);
+            color: white;
+            display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 600;
-            color: var(--text-primary);
-            font-size: 0.9rem;
+            font-size: 14px;
+        }
+
+        /* Status badge colors for drivers */
+        .status-badge.driver-active {
+            background-color: rgba(46, 213, 115, 0.15);
+            border-color: rgba(46, 213, 115, 0.3);
+            color: var(--accent-success);
+        }
+
+        .status-badge.driver-inactive {
+            background-color: rgba(128, 128, 128, 0.15);
+            border-color: rgba(128, 128, 128, 0.3);
+            color: var(--text-secondary);
+        }
+
+        .status-badge.driver-on-leave {
+            background-color: rgba(255, 193, 7, 0.15);
+            border-color: rgba(255, 193, 7, 0.3);
+            color: #ffc107;
+        }
+
+        .status-badge.driver-terminated {
+            background-color: rgba(255, 107, 107, 0.15);
+            border-color: rgba(255, 107, 107, 0.3);
+            color: #ff6b6b;
+        }
+
+        /* License expiry warning */
+        .license-expiry-warning {
+            color: #ffc107;
+            font-weight: 500;
         }
     </style>
 </head>
@@ -417,20 +443,25 @@
                     <span class="date">Manage your driver roster</span>
                 </div>
 
-                <div class="data-table-container">
+                <div class="data-table-container table-container">
                     <table class="data-table">
                         <thead>
                             <tr>
                                 <th>Driver</th>
                                 <th>Contact</th>
-                                <th>License</th>
-                                <th>Employment</th>
+                                <th>License Expiry</th>
+                                <th>Assigned Vehicle</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="drivers-table-body">
-                            <!-- Populated by JS -->
+                            <!-- Table will be populated by JavaScript -->
+                            <tr>
+                                <td colspan="6" style="text-align:center; padding: 40px 20px; color: var(--text-secondary);">
+                                    No drivers found. Click "Add Driver" to create one.
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -464,7 +495,124 @@
         </main>
     </div>
 
-    <!-- Placeholder for driver modal and JavaScript - will be populated in subsequent tasks -->
+    <!-- Add/Edit Driver Modal -->
+    <div id="driver-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Add Driver</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="driver-form">
+                    <input type="hidden" id="driver-id">
+
+                    <!-- Personal Information Section -->
+                    <div class="form-section">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="first-name">First Name *</label>
+                                <input type="text" id="first-name" required placeholder="John">
+                            </div>
+                            <div class="form-group">
+                                <label for="last-name">Last Name *</label>
+                                <input type="text" id="last-name" required placeholder="Doe">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="phone-number">Phone Number</label>
+                                <input type="tel" id="phone-number" placeholder="+1 (555) 123-4567">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" placeholder="john.doe@example.com">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="telegram-chat-id">Telegram Chat ID (Optional)</label>
+                            <input type="text" id="telegram-chat-id" placeholder="123456789">
+                            <small style="color: var(--text-secondary); font-size: 0.75rem;">
+                                For route notifications and updates
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- License Information Section -->
+                    <div class="form-section" style="margin-top: 24px;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="license-number">License Number</label>
+                                <input type="text" id="license-number" placeholder="D1234567">
+                            </div>
+                            <div class="form-group">
+                                <label for="license-class">License Class</label>
+                                <input type="text" id="license-class" placeholder="Class C">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="license-expiry">License Expiry Date</label>
+                            <input type="date" id="license-expiry">
+                            <small style="color: var(--text-secondary); font-size: 0.75rem;">
+                                You'll be notified when licenses are expiring soon
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Employment Information Section -->
+                    <div class="form-section" style="margin-top: 24px;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="driver-status">Status *</label>
+                                <select id="driver-status" required>
+                                    <option value="active">Active</option>
+                                    <option value="inactive">Inactive</option>
+                                    <option value="on_leave">On Leave</option>
+                                    <option value="terminated">Terminated</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="hire-date">Hire Date</label>
+                                <input type="date" id="hire-date">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Emergency Contact Section -->
+                    <div class="form-section" style="margin-top: 24px;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="emergency-contact-name">Emergency Contact Name</label>
+                                <input type="text" id="emergency-contact-name" placeholder="Jane Doe">
+                            </div>
+                            <div class="form-group">
+                                <label for="emergency-contact-phone">Emergency Contact Phone</label>
+                                <input type="tel" id="emergency-contact-phone" placeholder="+1 (555) 987-6543">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notes Section -->
+                    <div class="form-section" style="margin-top: 24px;">
+                        <div class="form-group">
+                            <label for="driver-notes">Notes</label>
+                            <textarea id="driver-notes" rows="3"
+                                style="width: 100%; padding: 10px 12px; background-color: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-primary); font-family: inherit; font-size: 0.95rem; resize: vertical;"
+                                placeholder="Additional notes about the driver..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary close-modal-btn">Cancel</button>
+                        <button type="submit" class="btn-primary">Save Driver</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <script src="preload.js"></script>
     <script>
