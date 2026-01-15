@@ -111,6 +111,7 @@ const serviceService = require(`${SERVICE_PATH}/service.service.js`);
 const bookingService = require(`${SERVICE_PATH}/booking.service.js`);
 const locationService = require(`${SERVICE_PATH}/location.service.js`);
 const vehicleService = require(`${SERVICE_PATH}/vehicle.service.js`);
+const driverService = require(`${SERVICE_PATH}/driver.service.js`);
 const routeService = require(`${SERVICE_PATH}/route.service.js`);
 const routePlanningService = require(`${SERVICE_PATH}/route-planning.service.js`);
 const vehicleLocationService = require(`${SERVICE_PATH}/vehicle-location.service.js`);
@@ -200,6 +201,14 @@ const rpcMap = {
         delete: vehicleService.deleteVehicle,
         getById: vehicleService.getVehicleById,
         count: vehicleService.countVehicles
+    },
+    drivers: {
+        getAll: driverService.getDrivers,
+        create: driverService.createDriver,
+        update: driverService.updateDriver,
+        delete: driverService.deleteDriver,
+        getById: driverService.getDriverById,
+        count: driverService.countDrivers
     },
     vehicleLocations: {
         getByVehicle: vehicleLocationService.getVehicleLocations,
