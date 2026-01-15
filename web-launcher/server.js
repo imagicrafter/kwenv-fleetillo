@@ -269,6 +269,35 @@ const rpcMap = {
     }
 };
 
+// Helper function to convert snake_case to camelCase
+function snakeToCamel(obj) {
+    if (obj === null || obj === undefined) {
+        return obj;
+    }
+
+    // If it's an array, recursively process each element
+    if (Array.isArray(obj)) {
+        return obj.map(item => snakeToCamel(item));
+    }
+
+    // If it's not an object (primitive), return as-is
+    if (typeof obj !== 'object') {
+        return obj;
+    }
+
+    // Convert object keys from snake_case to camelCase
+    const converted = {};
+    for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            // Convert snake_case to camelCase
+            const camelKey = key.replace(/_([a-z])/g, (match, letter) => letter.toUpperCase());
+            // Recursively convert nested objects
+            converted[camelKey] = snakeToCamel(obj[key]);
+        }
+    }
+    return converted;
+}
+
 // Chat Proxy Endpoint
 app.post('/api/chat', async (req, res) => {
     try {
@@ -547,22 +576,38 @@ app.post('/api/rpc', async (req, res) => {
     try {
         const { namespace, method, args } = req.body;
 
-        console.log(`RPC Call: ${namespace}.${method}`, args);
+        // Improved logging: Log original args
+        console.log(`[RPC] ${namespace}.${method} - Original args:`, JSON.stringify(args));
 
         if (!rpcMap[namespace] || !rpcMap[namespace][method]) {
-            console.error(`Method not found: ${namespace}.${method}`);
+            console.error(`[RPC Error] Method not found: ${namespace}.${method}`);
             if (rpcMap[namespace]) {
-                console.error(`Available methods for ${namespace}:`, Object.keys(rpcMap[namespace]));
+                console.error(`[RPC Error] Available methods for ${namespace}:`, Object.keys(rpcMap[namespace]));
             } else {
-                console.error(`Namespace ${namespace} not found. Available:`, Object.keys(rpcMap));
+                console.error(`[RPC Error] Namespace ${namespace} not found. Available:`, Object.keys(rpcMap));
             }
-            return res.status(404).json({ error: 'Method not found', available: rpcMap[namespace] ? Object.keys(rpcMap[namespace]) : [] });
+            return res.status(404).json({
+                error: 'Method not found',
+                namespace,
+                method,
+                available: rpcMap[namespace] ? Object.keys(rpcMap[namespace]) : []
+            });
         }
 
         const fn = rpcMap[namespace][method];
+
+        // Transform snake_case to camelCase for drivers namespace (only for create/update methods)
+        let transformedArgs = args;
+        if (namespace === 'drivers' && (method === 'create' || method === 'update') && Array.isArray(args) && args.length > 0) {
+            // Apply transformation to the first argument (the driver data object)
+            transformedArgs = [snakeToCamel(args[0]), ...args.slice(1)];
+            // Improved logging: Log transformed args
+            console.log(`[RPC] ${namespace}.${method} - Transformed args:`, JSON.stringify(transformedArgs));
+        }
+
         // Handle args: if it's an array, spread it. If not (unlikely from our verify), pass it.
         // Our client shim will send args as an array.
-        const result = await fn(...(Array.isArray(args) ? args : [args]));
+        const result = await fn(...(Array.isArray(transformedArgs) ? transformedArgs : [transformedArgs]));
 
         // Most services return { success: boolean, data: any, error: any }
         // We act as a proxy, so we return the whole result, or maybe just data depending on frontend expectation.
@@ -587,7 +632,21 @@ app.post('/api/rpc', async (req, res) => {
                 // Return data, or empty object if data is undefined (e.g., delete operations)
                 return res.json(result.data !== undefined ? result.data : {});
             } else {
-                return res.status(400).json({ message: result.error?.message || 'Operation failed' });
+                // Improved error logging: Log full error details
+                console.error(`[RPC Error] ${namespace}.${method} failed:`, {
+                    message: result.error?.message,
+                    code: result.error?.code,
+                    details: result.error?.details,
+                    stack: result.error?.stack
+                });
+
+                // Improved error response: Include namespace, method, and error code
+                return res.status(400).json({
+                    message: result.error?.message || 'Operation failed',
+                    code: result.error?.code,
+                    namespace,
+                    method
+                });
             }
         }
 
@@ -595,8 +654,19 @@ app.post('/api/rpc', async (req, res) => {
         return res.json(result);
 
     } catch (err) {
-        console.error('RPC Error:', err);
-        res.status(500).json({ message: err.message });
+        // Improved error logging: Log full exception details
+        console.error(`[RPC Exception] ${namespace}.${method}:`, {
+            message: err.message,
+            stack: err.stack,
+            args: args
+        });
+
+        // Improved error response: Include namespace and method
+        res.status(500).json({
+            message: err.message,
+            namespace,
+            method
+        });
     }
 });
 
