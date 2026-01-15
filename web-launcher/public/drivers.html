@@ -998,14 +998,29 @@
             };
 
             try {
+                let driverId;
+
                 if (editingDriverId) {
                     // Update existing driver
                     await rpc('drivers', 'update', { id: editingDriverId, ...formData });
+                    driverId = editingDriverId;
                     console.log('Driver updated successfully');
                 } else {
                     // Create new driver
                     const result = await rpc('drivers', 'create', formData);
+                    driverId = result.data?.id || result.id;
                     console.log('Driver created successfully:', result);
+                }
+
+                // Upload avatar if pending
+                if (pendingAvatarFile && driverId) {
+                    try {
+                        await uploadAvatar(driverId);
+                        console.log('Avatar uploaded successfully');
+                    } catch (avatarError) {
+                        console.error('Failed to upload avatar:', avatarError);
+                        alert('Driver saved but avatar upload failed: ' + avatarError.message);
+                    }
                 }
 
                 closeDriverModal();
@@ -1057,11 +1072,121 @@
             loadDrivers();
         }
 
+        // Avatar upload functions
+        function setupAvatarUpload() {
+            const input = document.getElementById('avatarInput');
+            const uploadBtn = document.getElementById('uploadAvatarBtn');
+            const removeBtn = document.getElementById('removeAvatarBtn');
+
+            uploadBtn.addEventListener('click', () => input.click());
+            input.addEventListener('change', handleAvatarSelect);
+            removeBtn.addEventListener('click', handleAvatarRemove);
+        }
+
+        function handleAvatarSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Validate file type
+            const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                alert('Invalid file type. Please upload JPEG, PNG, or WebP image.');
+                e.target.value = '';
+                return;
+            }
+
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File too large. Maximum size is 5MB.');
+                e.target.value = '';
+                return;
+            }
+
+            // Preview the image
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('avatarImage').src = e.target.result;
+                document.getElementById('avatarImage').style.display = 'block';
+                document.getElementById('avatarInitials').textContent = '';
+                document.getElementById('removeAvatarBtn').style.display = 'inline-block';
+            };
+            reader.readAsDataURL(file);
+
+            pendingAvatarFile = file; // Store for upload on save
+        }
+
+        function handleAvatarRemove() {
+            // Clear preview
+            document.getElementById('avatarImage').src = '';
+            document.getElementById('avatarImage').style.display = 'none';
+            document.getElementById('removeAvatarBtn').style.display = 'none';
+
+            // Show initials if editing existing driver
+            if (editingDriverId) {
+                const driver = drivers.find(d => d.id === editingDriverId);
+                if (driver) {
+                    const initials = getInitials(driver.first_name, driver.last_name);
+                    document.getElementById('avatarInitials').textContent = initials;
+                }
+            }
+
+            // Clear file input and pending file
+            document.getElementById('avatarInput').value = '';
+            pendingAvatarFile = null;
+
+            // If editing, mark for avatar deletion on save
+            if (editingDriverId) {
+                // Will be handled by deleteAvatar() when saving
+            }
+        }
+
+        async function uploadAvatar(driverId) {
+            if (!pendingAvatarFile) return null;
+
+            try {
+                const formData = new FormData();
+                formData.append('avatar', pendingAvatarFile);
+
+                const response = await fetch(`/api/drivers/${driverId}/avatar`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error || 'Avatar upload failed');
+
+                pendingAvatarFile = null;
+                return result.data?.avatarUrl || result.data?.avatar_url;
+            } catch (error) {
+                console.error('Failed to upload avatar:', error);
+                throw error;
+            }
+        }
+
+        async function deleteAvatar(driverId) {
+            try {
+                const response = await fetch(`/api/drivers/${driverId}/avatar`, {
+                    method: 'DELETE'
+                });
+
+                const result = await response.json();
+                if (!result.success) throw new Error(result.error || 'Avatar deletion failed');
+
+                return true;
+            } catch (error) {
+                console.error('Failed to delete avatar:', error);
+                throw error;
+            }
+        }
+
         // Event listeners
         document.addEventListener('DOMContentLoaded', () => {
             // Load data
             loadDrivers();
             loadVehicles();
+
+            // Setup avatar upload
+            setupAvatarUpload();
 
             // Add driver button
             document.getElementById('add-driver-btn').addEventListener('click', openAddDriverModal);
