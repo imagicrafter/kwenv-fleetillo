@@ -81,6 +81,19 @@ export {
   VehicleErrorCodes,
 } from './vehicle.service.js';
 
+// Driver service
+export {
+  createDriver,
+  getDriverById,
+  getDrivers,
+  updateDriver,
+  deleteDriver,
+  countDrivers,
+  getDriverWithVehicle,
+  DriverServiceError,
+  DriverErrorCodes,
+} from './driver.service.js';
+
 // Booking service
 export {
   createBooking,

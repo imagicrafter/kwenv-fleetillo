@@ -6,6 +6,7 @@ export * from './errors.js';
 export * from './client.js';
 export * from './service.js';
 export * from './vehicle.js';
+export * from './driver.js';
 export * from './booking.js';
 export * from './maintenanceSchedule.js';
 export * from './route.js';

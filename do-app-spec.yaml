@@ -3,7 +3,7 @@ region: nyc
 services:
 - name: web
   github:
-    repo: imagicrafter/routeIQ-typescript
+    repo: imagicrafter/optiroute
     branch: main
     deploy_on_push: true
   source_dir: /

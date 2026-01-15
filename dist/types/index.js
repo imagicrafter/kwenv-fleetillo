@@ -27,6 +27,8 @@ __exportStar(require("./client.js"), exports);
 __exportStar(require("./service.js"), exports);
 // Re-export vehicle types
 __exportStar(require("./vehicle.js"), exports);
+// Re-export driver types
+__exportStar(require("./driver.js"), exports);
 // Re-export booking types
 __exportStar(require("./booking.js"), exports);
 // Re-export maintenance schedule types

@@ -17,6 +17,9 @@ export * from './service.js';
 // Re-export vehicle types
 export * from './vehicle.js';
 
+// Re-export driver types
+export * from './driver.js';
+
 // Re-export booking types
 export * from './booking.js';
 
