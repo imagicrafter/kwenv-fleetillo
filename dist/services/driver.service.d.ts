@@ -57,4 +57,16 @@ export declare function countDrivers(filters?: DriverFilters): Promise<Result<nu
 export declare function getDriverWithVehicle(id: string): Promise<Result<Driver & {
     assignedVehicle?: Vehicle;
 }>>;
+/**
+ * Assigns a driver to a vehicle
+ */
+export declare function assignDriverToVehicle(driverId: string, vehicleId: string): Promise<Result<void>>;
+/**
+ * Unassigns a driver from a vehicle
+ */
+export declare function unassignDriverFromVehicle(vehicleId: string): Promise<Result<void>>;
+/**
+ * Gets all vehicles assigned to a driver
+ */
+export declare function getDriverVehicles(driverId: string): Promise<Result<Vehicle[]>>;
 //# sourceMappingURL=driver.service.d.ts.map

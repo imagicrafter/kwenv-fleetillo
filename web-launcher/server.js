@@ -208,7 +208,10 @@ const rpcMap = {
         update: driverService.updateDriver,
         delete: driverService.deleteDriver,
         getById: driverService.getDriverById,
-        count: driverService.countDrivers
+        count: driverService.countDrivers,
+        assignToVehicle: driverService.assignDriverToVehicle,
+        unassignFromVehicle: driverService.unassignDriverFromVehicle,
+        getVehicles: driverService.getDriverVehicles
     },
     vehicleLocations: {
         getByVehicle: vehicleLocationService.getVehicleLocations,

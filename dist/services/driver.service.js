@@ -14,6 +14,9 @@ exports.updateDriver = updateDriver;
 exports.deleteDriver = deleteDriver;
 exports.countDrivers = countDrivers;
 exports.getDriverWithVehicle = getDriverWithVehicle;
+exports.assignDriverToVehicle = assignDriverToVehicle;
+exports.unassignDriverFromVehicle = unassignDriverFromVehicle;
+exports.getDriverVehicles = getDriverVehicles;
 const supabase_js_1 = require("./supabase.js");
 const logger_js_1 = require("../utils/logger.js");
 const driver_js_1 = require("../types/driver.js");
@@ -410,6 +413,127 @@ async function getDriverWithVehicle(id) {
         return {
             success: false,
             error: new DriverServiceError('Unexpected error getting driver with vehicle', exports.DriverErrorCodes.QUERY_FAILED, error),
+        };
+    }
+}
+/**
+ * Assigns a driver to a vehicle
+ */
+async function assignDriverToVehicle(driverId, vehicleId) {
+    logger.debug('Assigning driver to vehicle', { driverId, vehicleId });
+    try {
+        const supabase = getClient();
+        // First, verify the vehicle exists and is not deleted
+        const { data: vehicle, error: vehicleError } = await supabase
+            .from('vehicles')
+            .select('id, name')
+            .eq('id', vehicleId)
+            .is('deleted_at', null)
+            .single();
+        if (vehicleError || !vehicle) {
+            return {
+                success: false,
+                error: new DriverServiceError(`Vehicle not found: ${vehicleId}`, exports.DriverErrorCodes.QUERY_FAILED, { vehicleId }),
+            };
+        }
+        // Verify the driver exists and is not deleted
+        const { data: driver, error: driverError } = await supabase
+            .from(DRIVERS_TABLE)
+            .select('id, first_name, last_name')
+            .eq('id', driverId)
+            .is('deleted_at', null)
+            .single();
+        if (driverError || !driver) {
+            return {
+                success: false,
+                error: new DriverServiceError(`Driver not found: ${driverId}`, exports.DriverErrorCodes.NOT_FOUND, { driverId }),
+            };
+        }
+        // Update the vehicle's assigned_driver_id
+        const { error: updateError } = await supabase
+            .from('vehicles')
+            .update({ assigned_driver_id: driverId })
+            .eq('id', vehicleId);
+        if (updateError) {
+            logger.error('Failed to assign driver to vehicle', updateError);
+            return {
+                success: false,
+                error: new DriverServiceError(`Failed to assign driver to vehicle: ${updateError.message}`, exports.DriverErrorCodes.UPDATE_FAILED, updateError),
+            };
+        }
+        logger.info('Driver assigned to vehicle successfully', {
+            driverId,
+            driverName: `${driver.first_name} ${driver.last_name}`,
+            vehicleId,
+            vehicleName: vehicle.name
+        });
+        return { success: true };
+    }
+    catch (error) {
+        logger.error('Unexpected error assigning driver to vehicle', error);
+        return {
+            success: false,
+            error: new DriverServiceError('Unexpected error assigning driver to vehicle', exports.DriverErrorCodes.UPDATE_FAILED, error),
+        };
+    }
+}
+/**
+ * Unassigns a driver from a vehicle
+ */
+async function unassignDriverFromVehicle(vehicleId) {
+    logger.debug('Unassigning driver from vehicle', { vehicleId });
+    try {
+        const supabase = getClient();
+        // Update the vehicle's assigned_driver_id to NULL
+        const { error } = await supabase
+            .from('vehicles')
+            .update({ assigned_driver_id: null })
+            .eq('id', vehicleId);
+        if (error) {
+            logger.error('Failed to unassign driver from vehicle', error);
+            return {
+                success: false,
+                error: new DriverServiceError(`Failed to unassign driver from vehicle: ${error.message}`, exports.DriverErrorCodes.UPDATE_FAILED, error),
+            };
+        }
+        logger.info('Driver unassigned from vehicle successfully', { vehicleId });
+        return { success: true };
+    }
+    catch (error) {
+        logger.error('Unexpected error unassigning driver from vehicle', error);
+        return {
+            success: false,
+            error: new DriverServiceError('Unexpected error unassigning driver from vehicle', exports.DriverErrorCodes.UPDATE_FAILED, error),
+        };
+    }
+}
+/**
+ * Gets all vehicles assigned to a driver
+ */
+async function getDriverVehicles(driverId) {
+    logger.debug('Getting vehicles for driver', { driverId });
+    try {
+        const supabase = getClient();
+        const { data, error } = await supabase
+            .from('vehicles')
+            .select('*')
+            .eq('assigned_driver_id', driverId)
+            .is('deleted_at', null);
+        if (error) {
+            logger.error('Failed to get driver vehicles', error);
+            return {
+                success: false,
+                error: new DriverServiceError(`Failed to get driver vehicles: ${error.message}`, exports.DriverErrorCodes.QUERY_FAILED, error),
+            };
+        }
+        const vehicles = data.map(vehicle_js_1.rowToVehicle);
+        return { success: true, data: vehicles };
+    }
+    catch (error) {
+        logger.error('Unexpected error getting driver vehicles', error);
+        return {
+            success: false,
+            error: new DriverServiceError('Unexpected error getting driver vehicles', exports.DriverErrorCodes.QUERY_FAILED, error),
         };
     }
 }

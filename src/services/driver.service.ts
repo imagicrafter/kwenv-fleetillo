@@ -555,3 +555,173 @@ export async function getDriverWithVehicle(id: string): Promise<Result<Driver & 
     };
   }
 }
+
+/**
+ * Assigns a driver to a vehicle
+ */
+export async function assignDriverToVehicle(driverId: string, vehicleId: string): Promise<Result<void>> {
+  logger.debug('Assigning driver to vehicle', { driverId, vehicleId });
+
+  try {
+    const supabase = getClient();
+
+    // First, verify the vehicle exists and is not deleted
+    const { data: vehicle, error: vehicleError } = await supabase
+      .from('vehicles')
+      .select('id, name')
+      .eq('id', vehicleId)
+      .is('deleted_at', null)
+      .single();
+
+    if (vehicleError || !vehicle) {
+      return {
+        success: false,
+        error: new DriverServiceError(
+          `Vehicle not found: ${vehicleId}`,
+          DriverErrorCodes.QUERY_FAILED,
+          { vehicleId }
+        ),
+      };
+    }
+
+    // Verify the driver exists and is not deleted
+    const { data: driver, error: driverError } = await supabase
+      .from(DRIVERS_TABLE)
+      .select('id, first_name, last_name')
+      .eq('id', driverId)
+      .is('deleted_at', null)
+      .single();
+
+    if (driverError || !driver) {
+      return {
+        success: false,
+        error: new DriverServiceError(
+          `Driver not found: ${driverId}`,
+          DriverErrorCodes.NOT_FOUND,
+          { driverId }
+        ),
+      };
+    }
+
+    // Update the vehicle's assigned_driver_id
+    const { error: updateError } = await supabase
+      .from('vehicles')
+      .update({ assigned_driver_id: driverId })
+      .eq('id', vehicleId);
+
+    if (updateError) {
+      logger.error('Failed to assign driver to vehicle', updateError);
+      return {
+        success: false,
+        error: new DriverServiceError(
+          `Failed to assign driver to vehicle: ${updateError.message}`,
+          DriverErrorCodes.UPDATE_FAILED,
+          updateError
+        ),
+      };
+    }
+
+    logger.info('Driver assigned to vehicle successfully', {
+      driverId,
+      driverName: `${driver.first_name} ${driver.last_name}`,
+      vehicleId,
+      vehicleName: vehicle.name
+    });
+
+    return { success: true };
+  } catch (error) {
+    logger.error('Unexpected error assigning driver to vehicle', error);
+    return {
+      success: false,
+      error: new DriverServiceError(
+        'Unexpected error assigning driver to vehicle',
+        DriverErrorCodes.UPDATE_FAILED,
+        error
+      ),
+    };
+  }
+}
+
+/**
+ * Unassigns a driver from a vehicle
+ */
+export async function unassignDriverFromVehicle(vehicleId: string): Promise<Result<void>> {
+  logger.debug('Unassigning driver from vehicle', { vehicleId });
+
+  try {
+    const supabase = getClient();
+
+    // Update the vehicle's assigned_driver_id to NULL
+    const { error } = await supabase
+      .from('vehicles')
+      .update({ assigned_driver_id: null })
+      .eq('id', vehicleId);
+
+    if (error) {
+      logger.error('Failed to unassign driver from vehicle', error);
+      return {
+        success: false,
+        error: new DriverServiceError(
+          `Failed to unassign driver from vehicle: ${error.message}`,
+          DriverErrorCodes.UPDATE_FAILED,
+          error
+        ),
+      };
+    }
+
+    logger.info('Driver unassigned from vehicle successfully', { vehicleId });
+    return { success: true };
+  } catch (error) {
+    logger.error('Unexpected error unassigning driver from vehicle', error);
+    return {
+      success: false,
+      error: new DriverServiceError(
+        'Unexpected error unassigning driver from vehicle',
+        DriverErrorCodes.UPDATE_FAILED,
+        error
+      ),
+    };
+  }
+}
+
+/**
+ * Gets all vehicles assigned to a driver
+ */
+export async function getDriverVehicles(driverId: string): Promise<Result<Vehicle[]>> {
+  logger.debug('Getting vehicles for driver', { driverId });
+
+  try {
+    const supabase = getClient();
+
+    const { data, error } = await supabase
+      .from('vehicles')
+      .select('*')
+      .eq('assigned_driver_id', driverId)
+      .is('deleted_at', null);
+
+    if (error) {
+      logger.error('Failed to get driver vehicles', error);
+      return {
+        success: false,
+        error: new DriverServiceError(
+          `Failed to get driver vehicles: ${error.message}`,
+          DriverErrorCodes.QUERY_FAILED,
+          error
+        ),
+      };
+    }
+
+    const vehicles = (data as VehicleRow[]).map(rowToVehicle);
+    return { success: true, data: vehicles };
+  } catch (error) {
+    logger.error('Unexpected error getting driver vehicles', error);
+    return {
+      success: false,
+      error: new DriverServiceError(
+        'Unexpected error getting driver vehicles',
+        DriverErrorCodes.QUERY_FAILED,
+        error
+      ),
+    };
+  }
+}

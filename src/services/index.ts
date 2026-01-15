@@ -90,6 +90,9 @@ export {
   deleteDriver,
   countDrivers,
   getDriverWithVehicle,
+  assignDriverToVehicle,
+  unassignDriverFromVehicle,
+  getDriverVehicles,
   DriverServiceError,
   DriverErrorCodes,
 } from './driver.service.js';
