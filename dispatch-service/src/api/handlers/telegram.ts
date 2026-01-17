@@ -463,22 +463,9 @@ export function createSendRegistrationEmailHandler() {
     // Generate registration link
     const registrationLink = `https://t.me/${botUsername}?start=${driverId}`;
 
-    // Generate QR code as data URI
-    let qrCodeUrl: string;
-    try {
-      qrCodeUrl = await QRCode.toDataURL(registrationLink, {
-        width: 300,
-        margin: 1,
-        color: {
-          dark: '#000000',
-          light: '#ffffff'
-        }
-      });
-    } catch (qrError) {
-      logger.error('Failed to generate QR code for email', { driverId, error: qrError });
-      // Fallback to Google Charts if local generation fails, though ideally we want local
-      qrCodeUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodeURIComponent(registrationLink)}&choe=UTF-8`;
-    }
+    // Generate QR code URL using a public API for email client compatibility
+    // Data URIs (base64) are often blocked by email clients (Gmail, Outlook)
+    const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(registrationLink)}`;
 
     // Send email using the email adapter
     const emailProvider = process.env.EMAIL_PROVIDER?.toLowerCase() || 'sendgrid';
@@ -501,9 +488,12 @@ export function createSendRegistrationEmailHandler() {
     }
 
     // Build email content
-    const driverName = `${driver.first_name} ${driver.last_name}`;
-    const htmlContent = buildRegistrationEmailHtml(driverName, registrationLink, qrCodeUrl, customMessage);
-    const textContent = buildRegistrationEmailText(driverName, registrationLink, customMessage);
+    const driverFirstName = driver.first_name;
+    const driverFullName = `${driver.first_name} ${driver.last_name}`; // Keep for log or other uses if needed
+
+    // Use first name for friendlier greeting in email
+    const htmlContent = buildRegistrationEmailHtml(driverFirstName, registrationLink, qrCodeUrl, customMessage);
+    const textContent = buildRegistrationEmailText(driverFirstName, registrationLink, customMessage);
 
     try {
       if (emailProvider === 'resend') {
@@ -536,7 +526,7 @@ export function createSendRegistrationEmailHandler() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            personalizations: [{ to: [{ email: driverEmail, name: driverName }] }],
+            personalizations: [{ to: [{ email: driverEmail, name: driverFullName }] }],
             from: { email: fromAddress, name: fromName },
             subject: 'Register Your Telegram for Route Dispatches - OptiRoute',
             content: [
@@ -554,7 +544,7 @@ export function createSendRegistrationEmailHandler() {
 
       logger.info('Registration email sent successfully', {
         driverId,
-        driverName,
+        driverName: driverFullName,
         email: driverEmail,
         provider: emailProvider,
       });
@@ -589,7 +579,7 @@ export function createSendRegistrationEmailHandler() {
  * Build HTML content for registration email
  */
 function buildRegistrationEmailHtml(
-  driverName: string,
+  driverFirstName: string,
   registrationLink: string,
   qrCodeUrl: string,
   customMessage?: string
@@ -608,7 +598,7 @@ function buildRegistrationEmailHtml(
   </div>
 
   <div style="background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;">
-    <h2 style="color: #333; margin-top: 0;">Hi ${driverName}! 👋</h2>
+    <h2 style="color: #333; margin-top: 0;">Hi ${driverFirstName}! 👋</h2>
 
     <p>You've been invited to receive route dispatches via Telegram. This will allow you to get instant notifications about your assigned routes directly on your phone.</p>
 
@@ -657,12 +647,12 @@ function buildRegistrationEmailHtml(
  * Build plain text content for registration email
  */
 function buildRegistrationEmailText(
-  driverName: string,
+  driverFirstName: string,
   registrationLink: string,
   customMessage?: string
 ): string {
   return `
-Hi ${driverName}!
+Hi ${driverFirstName}!
 
 You've been invited to receive route dispatches via Telegram. This will allow you to get instant notifications about your assigned routes directly on your phone.
 
