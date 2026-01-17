@@ -778,41 +778,10 @@
                                 placeholder="Additional notes about the driver..."></textarea>
                         </div>
 
-                        <!-- Telegram Section -->
-                        <div class="form-group" style="margin-top: 16px;">
-                            <label for="telegram-chat-id">Telegram Chat ID (Optional)</label>
-                            <input type="text" id="telegram-chat-id" placeholder="Chat ID">
-                            <small style="color: var(--text-secondary); font-size: 0.75rem;">
-                                For route notifications and updates
-                            </small>
-                            <div id="telegram-registration-area" style="margin-top: 12px; display: none;">
-                                <div style="display: flex; gap: 8px;">
-                                    <button type="button" class="btn btn-secondary btn-sm"
-                                        onclick="showTelegramQrCode()">
-                                        <i class="lucide-qr-code"
-                                            style="width: 14px; height: 14px; margin-right: 6px;"></i>
-                                        Show QR Code
-                                    </button>
-                                    <button type="button" class="btn btn-secondary btn-sm"
-                                        onclick="sendTelegramRegistrationEmail()">
-                                        <i class="lucide-mail"
-                                            style="width: 14px; height: 14px; margin-right: 6px;"></i>
-                                        Send Link
-                                    </button>
-                                </div>
-                                <div id="telegram-status-msg"
-                                    style="margin-top: 8px; font-size: 0.75rem; color: #10b981; display: none;">
-                                    <i class="lucide-check-circle"
-                                        style="width: 12px; height: 12px; vertical-align: middle;"></i>
-                                    Registration Active
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
-                    <!-- Dispatch Preferences Section (Accordion) -->
                     <details class="form-section-accordion">
-                        <summary>Dispatch Preferences</summary>
+                        <summary>Dispatch Registration</summary>
                         <div class="section-content">
                             <div class="form-row">
                                 <div class="form-group">
@@ -833,6 +802,38 @@
                             <small style="color: var(--text-secondary); font-size: 0.75rem;">
                                 If enabled, system will try alternate channel if primary fails.
                             </small>
+
+                            <!-- Telegram Registration (Moved into Dispatch Preferences) -->
+                            <div class="form-group"
+                                style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-subtle);">
+                                <label for="telegram-chat-id">Telegram Chat ID (Optional)</label>
+                                <input type="text" id="telegram-chat-id" placeholder="Chat ID">
+                                <small style="color: var(--text-secondary); font-size: 0.75rem;">
+                                    For route notifications and updates
+                                </small>
+                                <div id="telegram-registration-area" style="margin-top: 12px; display: none;">
+                                    <div style="display: flex; gap: 8px;">
+                                        <button type="button" class="btn btn-secondary btn-sm"
+                                            onclick="showTelegramQrCode()">
+                                            <i class="lucide-qr-code"
+                                                style="width: 14px; height: 14px; margin-right: 6px;"></i>
+                                            Show QR Code
+                                        </button>
+                                        <button type="button" class="btn btn-secondary btn-sm"
+                                            onclick="sendTelegramRegistrationEmail()">
+                                            <i class="lucide-mail"
+                                                style="width: 14px; height: 14px; margin-right: 6px;"></i>
+                                            Send Link
+                                        </button>
+                                    </div>
+                                    <div id="telegram-status-msg"
+                                        style="margin-top: 8px; font-size: 0.75rem; color: #10b981; display: none;">
+                                        <i class="lucide-check-circle"
+                                            style="width: 12px; height: 12px; vertical-align: middle;"></i>
+                                        Registration Active
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </details>
 
