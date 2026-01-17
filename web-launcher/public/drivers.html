@@ -317,6 +317,55 @@
             letter-spacing: 0.5px;
         }
 
+        /* Accordion Styles */
+        details.form-section-accordion {
+            margin-top: 16px;
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        details.form-section-accordion summary {
+            padding: 12px 16px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-primary);
+            list-style: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.2s;
+        }
+
+        details.form-section-accordion summary:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        details.form-section-accordion summary::-webkit-details-marker {
+            display: none;
+        }
+
+        details.form-section-accordion summary::after {
+            content: '+';
+            font-size: 1.2em;
+            font-weight: 300;
+            color: var(--text-secondary);
+        }
+
+        details.form-section-accordion[open] summary::after {
+            content: '−';
+        }
+
+        details.form-section-accordion[open] summary {
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        details.form-section-accordion .section-content {
+            padding: 16px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
         /* Toast notification styles */
         .toast-container {
             position: fixed;
@@ -683,8 +732,10 @@
                         <p class="avatar-hint">JPEG, PNG or WebP. Max 5MB.</p>
                     </div>
 
-                    <!-- Personal Information Section -->
+                    <!-- Personal Information Section (Modified) -->
                     <div class="form-section">
+                        <h4 class="section-title">Driver Details</h4>
+
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="first-name">First Name *</label>
@@ -707,140 +758,153 @@
                             </div>
                         </div>
 
-                        <label for="telegram-chat-id">Telegram Chat ID (Optional)</label>
-                        <input type="text" id="telegram-chat-id" placeholder="Chat ID">
-                        <small style="color: var(--text-secondary); font-size: 0.75rem;">
-                            For route notifications and updates
-                        </small>
-                        <div id="telegram-registration-area" style="margin-top: 12px; display: none;">
-                            <div style="display: flex; gap: 8px;">
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="showTelegramQrCode()">
-                                    <i class="lucide-qr-code" style="width: 14px; height: 14px; margin-right: 6px;"></i>
-                                    Show QR Code
-                                </button>
-                                <button type="button" class="btn btn-secondary btn-sm"
-                                    onclick="sendTelegramRegistrationEmail()">
-                                    <i class="lucide-mail" style="width: 14px; height: 14px; margin-right: 6px;"></i>
-                                    Send Link
-                                </button>
+                        <!-- Emergency Contact (Moved Up) -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="emergency-contact-name">Emergency Contact Name</label>
+                                <input type="text" id="emergency-contact-name" placeholder="Jane Doe">
                             </div>
-                            <div id="telegram-status-msg"
-                                style="margin-top: 8px; font-size: 0.75rem; color: #10b981; display: none;">
-                                <i class="lucide-check-circle"
-                                    style="width: 12px; height: 12px; vertical-align: middle;"></i>
-                                Registration Active
+                            <div class="form-group">
+                                <label for="emergency-contact-phone">Emergency Contact Phone</label>
+                                <input type="tel" id="emergency-contact-phone" placeholder="+1 (555) 987-6543">
+                            </div>
+                        </div>
+
+                        <!-- Notes (Moved Up) -->
+                        <div class="form-group" style="margin-top: 12px;">
+                            <label for="driver-notes">Notes</label>
+                            <textarea id="driver-notes" rows="2"
+                                style="width: 100%; padding: 10px 12px; background-color: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-primary); font-family: inherit; font-size: 0.95rem; resize: vertical;"
+                                placeholder="Additional notes about the driver..."></textarea>
+                        </div>
+
+                        <!-- Telegram Section -->
+                        <div class="form-group" style="margin-top: 16px;">
+                            <label for="telegram-chat-id">Telegram Chat ID (Optional)</label>
+                            <input type="text" id="telegram-chat-id" placeholder="Chat ID">
+                            <small style="color: var(--text-secondary); font-size: 0.75rem;">
+                                For route notifications and updates
+                            </small>
+                            <div id="telegram-registration-area" style="margin-top: 12px; display: none;">
+                                <div style="display: flex; gap: 8px;">
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                        onclick="showTelegramQrCode()">
+                                        <i class="lucide-qr-code"
+                                            style="width: 14px; height: 14px; margin-right: 6px;"></i>
+                                        Show QR Code
+                                    </button>
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                        onclick="sendTelegramRegistrationEmail()">
+                                        <i class="lucide-mail"
+                                            style="width: 14px; height: 14px; margin-right: 6px;"></i>
+                                        Send Link
+                                    </button>
+                                </div>
+                                <div id="telegram-status-msg"
+                                    style="margin-top: 8px; font-size: 0.75rem; color: #10b981; display: none;">
+                                    <i class="lucide-check-circle"
+                                        style="width: 12px; height: 12px; vertical-align: middle;"></i>
+                                    Registration Active
+                                </div>
                             </div>
                         </div>
                     </div>
-            </div>
 
-            <!-- Dispatch Preferences Section -->
-            <div class="form-section" style="margin-top: 24px;">
-                <h4 class="section-title">Dispatch Preferences</h4>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="preferred-channel">Preferred Channel</label>
-                        <select id="preferred-channel">
-                            <option value="telegram">Telegram</option>
-                            <option value="email">Email</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="display: flex; align-items: center; margin-top: 28px;">
-                        <input type="checkbox" id="fallback-enabled" style="width: auto; margin-right: 8px;">
-                        <label for="fallback-enabled" style="margin-bottom: 0; cursor: pointer;">Enable Channel
-                            Fallback</label>
-                    </div>
-                </div>
-                <small style="color: var(--text-secondary); font-size: 0.75rem;">
-                    If enabled, system will try alternate channel if primary fails.
-                </small>
-            </div>
+                    <!-- Dispatch Preferences Section (Accordion) -->
+                    <details class="form-section-accordion">
+                        <summary>Dispatch Preferences</summary>
+                        <div class="section-content">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="preferred-channel">Preferred Channel</label>
+                                    <select id="preferred-channel">
+                                        <option value="telegram">Telegram</option>
+                                        <option value="email">Email</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="display: flex; align-items: center; margin-top: 28px;">
+                                    <input type="checkbox" id="fallback-enabled"
+                                        style="width: auto; margin-right: 8px;">
+                                    <label for="fallback-enabled" style="margin-bottom: 0; cursor: pointer;">Enable
+                                        Channel
+                                        Fallback</label>
+                                </div>
+                            </div>
+                            <small style="color: var(--text-secondary); font-size: 0.75rem;">
+                                If enabled, system will try alternate channel if primary fails.
+                            </small>
+                        </div>
+                    </details>
 
-            <!-- License Information Section -->
-            <div class="form-section" style="margin-top: 24px;">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="license-number">License Number</label>
-                        <input type="text" id="license-number" placeholder="D1234567">
-                    </div>
-                    <div class="form-group">
-                        <label for="license-class">License Class</label>
-                        <input type="text" id="license-class" placeholder="Class C">
-                    </div>
-                </div>
+                    <!-- License Information Section (Accordion) -->
+                    <details class="form-section-accordion">
+                        <summary>License Information</summary>
+                        <div class="section-content">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="license-number">License Number</label>
+                                    <input type="text" id="license-number" placeholder="D1234567">
+                                </div>
+                                <div class="form-group">
+                                    <label for="license-class">License Class</label>
+                                    <input type="text" id="license-class" placeholder="Class C">
+                                </div>
+                            </div>
 
-                <div class="form-group">
-                    <label for="license-expiry">License Expiry Date</label>
-                    <input type="date" id="license-expiry">
-                    <small style="color: var(--text-secondary); font-size: 0.75rem;">
-                        You'll be notified when licenses are expiring soon
-                    </small>
-                </div>
-            </div>
+                            <div class="form-group">
+                                <label for="license-expiry">License Expiry Date</label>
+                                <input type="date" id="license-expiry">
+                                <small style="color: var(--text-secondary); font-size: 0.75rem;">
+                                    You'll be notified when licenses are expiring soon
+                                </small>
+                            </div>
+                        </div>
+                    </details>
 
-            <!-- Employment Information Section -->
-            <div class="form-section" style="margin-top: 24px;">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="driver-status">Status *</label>
-                        <select id="driver-status" required>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="on_leave">On Leave</option>
-                            <option value="terminated">Terminated</option>
-                        </select>
+                    <!-- Employment Information Section (Accordion) -->
+                    <details class="form-section-accordion">
+                        <summary>Employment Information</summary>
+                        <div class="section-content">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="driver-status">Status *</label>
+                                    <select id="driver-status" required>
+                                        <option value="active">Active</option>
+                                        <option value="inactive">Inactive</option>
+                                        <option value="on_leave">On Leave</option>
+                                        <option value="terminated">Terminated</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="hire-date">Hire Date</label>
+                                    <input type="date" id="hire-date">
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Vehicle Assignment Section (Accordion) -->
+                    <details class="form-section-accordion">
+                        <summary>Vehicle Assignment</summary>
+                        <div class="section-content">
+                            <div class="form-group">
+                                <label for="assigned-vehicle">Assigned Vehicle</label>
+                                <select id="assigned-vehicle" name="assignedVehicle">
+                                    <option value="">-- No Vehicle Assigned --</option>
+                                    <!-- Populated dynamically by JavaScript -->
+                                </select>
+                            </div>
+                        </div>
+                    </details>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary close-modal-btn">Cancel</button>
+                        <button type="submit" class="btn-primary">Save Driver</button>
                     </div>
-                    <div class="form-group">
-                        <label for="hire-date">Hire Date</label>
-                        <input type="date" id="hire-date">
-                    </div>
-                </div>
+                </form>
             </div>
-
-            <!-- Vehicle Assignment Section -->
-            <div class="form-section" style="margin-top: 24px;">
-                <h4 class="section-title">Vehicle Assignment</h4>
-                <div class="form-group">
-                    <label for="assigned-vehicle">Assigned Vehicle</label>
-                    <select id="assigned-vehicle" name="assignedVehicle">
-                        <option value="">-- No Vehicle Assigned --</option>
-                        <!-- Populated dynamically by JavaScript -->
-                    </select>
-                </div>
-            </div>
-
-            <!-- Emergency Contact Section -->
-            <div class="form-section" style="margin-top: 24px;">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="emergency-contact-name">Emergency Contact Name</label>
-                        <input type="text" id="emergency-contact-name" placeholder="Jane Doe">
-                    </div>
-                    <div class="form-group">
-                        <label for="emergency-contact-phone">Emergency Contact Phone</label>
-                        <input type="tel" id="emergency-contact-phone" placeholder="+1 (555) 987-6543">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Notes Section -->
-            <div class="form-section" style="margin-top: 24px;">
-                <div class="form-group">
-                    <label for="driver-notes">Notes</label>
-                    <textarea id="driver-notes" rows="3"
-                        style="width: 100%; padding: 10px 12px; background-color: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-primary); font-family: inherit; font-size: 0.95rem; resize: vertical;"
-                        placeholder="Additional notes about the driver..."></textarea>
-                </div>
-            </div>
-
-            <!-- Form Actions -->
-            <div class="form-actions">
-                <button type="button" class="btn-secondary close-modal-btn">Cancel</button>
-                <button type="submit" class="btn-primary">Save Driver</button>
-            </div>
-            </form>
         </div>
-    </div>
     </div>
 
     <!-- Vehicle Assignment Modal -->
