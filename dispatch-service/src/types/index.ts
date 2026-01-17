@@ -114,6 +114,9 @@ export interface Booking {
   stopNumber: number;
   clientName: string;
   address: string;
+  latitude?: number;
+  longitude?: number;
+  mapsUrl?: string;
   scheduledTime?: string;
   services?: string;
   specialInstructions?: string;

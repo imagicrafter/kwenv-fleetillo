@@ -475,7 +475,7 @@
                     Routes
                 </a>
 
-                <a href="#" class="nav-item">
+                <a href="dispatch.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -602,6 +602,26 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Dispatch Confirmation Modal -->
+    <div class="modal-overlay" id="dispatch-confirm-modal" style="display: none;">
+        <div class="modal" style="max-width: 400px;">
+            <div class="modal-header">
+                <h3>Confirm Dispatch</h3>
+                <button class="modal-close" onclick="closeDispatchModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <p style="margin-bottom: 16px;">Are you sure you want to dispatch this route?</p>
+                <p style="font-size: 0.9rem; color: var(--text-secondary);">The driver will receive a notification with
+                    route details.</p>
+            </div>
+            <div class="modal-footer"
+                style="display: flex; gap: 12px; justify-content: flex-end; padding: 16px 20px; border-top: 1px solid var(--border-subtle);">
+                <button class="btn-secondary" onclick="closeDispatchModal()">Cancel</button>
+                <button class="btn-primary" id="confirm-dispatch-btn">📡 Dispatch</button>
+            </div>
+        </div>
     </div>
 
     <div class="modal-overlay" id="plan-routes-modal">
@@ -773,8 +793,10 @@
                         <div style="font-size: 0.7rem; color: var(--text-secondary);">${costLabel}</div>
                     </td>
                     <td>
-                        <button type="button" class="action-btn" onclick="viewRoute('${route.id}'); return false;">🗺️</button>
-                        <button type="button" class="action-btn" onclick="deleteRoute('${route.id}'); return false;">🗑️</button>
+                    <td>
+                        <button type="button" class="action-btn" onclick="dispatchRoute('${route.id}', '${route.driverId || route.assignedDriverId}'); return false;" title="Dispatch Route">📡</button>
+                        <button type="button" class="action-btn" onclick="viewRoute('${route.id}'); return false;" title="View on Map">🗺️</button>
+                        <button type="button" class="action-btn" onclick="deleteRoute('${route.id}'); return false;" title="Delete">🗑️</button>
                     </td>
                 `;
                 tableBody.appendChild(row);
@@ -1631,6 +1653,74 @@
         // Load routes on page load
         loadRoutes();
         calendar.init();
+    </script>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="dispatch-client.js"></script>
+    <script>
+        const dispatchClient = new DispatchClient();
+
+        // Dispatch modal state
+        let pendingDispatch = { routeId: null, driverId: null };
+
+        function openDispatchModal(routeId, driverId) {
+            if (!driverId || driverId === 'undefined' || driverId === 'null') {
+                alert('Cannot dispatch: No driver assigned to this route.');
+                return;
+            }
+            pendingDispatch.routeId = routeId;
+            pendingDispatch.driverId = driverId;
+            document.getElementById('dispatch-confirm-modal').style.display = 'flex';
+        }
+
+        function closeDispatchModal() {
+            document.getElementById('dispatch-confirm-modal').style.display = 'none';
+            pendingDispatch = { routeId: null, driverId: null };
+        }
+
+        async function confirmDispatch() {
+            const { routeId, driverId } = pendingDispatch;
+            if (!routeId || !driverId) return;
+
+            closeDispatchModal();
+
+            try {
+                // Backend requires snake_case payload: { route_id, driver_id }
+                await dispatchClient.dispatchRoute({
+                    route_id: routeId,
+                    driver_id: driverId
+                });
+
+                // Simple toast mechanism if showToast is not available, or use alert fallback
+                if (typeof showToast === 'function') {
+                    showToast('Route dispatched successfully', 'success');
+                } else {
+                    alert('Route dispatched successfully');
+                }
+                loadRoutes(); // Refresh to update status
+            } catch (error) {
+                console.error('Dispatch failed:', error);
+                if (typeof showToast === 'function') {
+                    showToast('Dispatch failed: ' + error.message, 'error');
+                } else {
+                    alert('Dispatch failed: ' + error.message);
+                }
+            }
+        }
+
+        // Legacy function name for backward compatibility
+        function dispatchRoute(routeId, driverId) {
+            openDispatchModal(routeId, driverId);
+        }
+
+        // Attach confirm button handler
+        document.addEventListener('DOMContentLoaded', () => {
+            const confirmBtn = document.getElementById('confirm-dispatch-btn');
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', confirmDispatch);
+            }
+        });
     </script>
 </body>
 

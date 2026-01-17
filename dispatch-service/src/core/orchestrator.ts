@@ -34,6 +34,7 @@ import {
   getDriver,
   getVehicle,
   getBookingsForRoute,
+  getVehicleStartLocation,
 } from '../db/entities.repository.js';
 import type {
   ChannelType,
@@ -236,6 +237,9 @@ export class DispatchOrchestrator implements IDispatchOrchestrator {
       getBookingsForRoute(request.routeId),
     ]);
 
+    // Fetch start location if vehicle exists
+    const startLocation = vehicle ? await getVehicleStartLocation(vehicle.id) : null;
+
     // Step 3: Determine channels to use
     const routerRequest: RouterDispatchRequest = {
       routeId: request.routeId,
@@ -271,7 +275,7 @@ export class DispatchOrchestrator implements IDispatchOrchestrator {
 
     // Step 5: Process channels asynchronously (don't await)
     // This ensures we return immediately per requirement 1.4
-    this.processChannelsAsync(dispatch, driver, route, vehicle, bookings, channels).catch(
+    this.processChannelsAsync(dispatch, driver, route, vehicle, bookings, channels, startLocation).catch(
       (error) => {
         logger.error(
           'Async channel processing failed',
@@ -305,7 +309,8 @@ export class DispatchOrchestrator implements IDispatchOrchestrator {
     route: Route,
     vehicle: Vehicle | null,
     bookings: Booking[],
-    channels: ChannelType[]
+    channels: ChannelType[],
+    startLocation?: { latitude: number; longitude: number } | null
   ): Promise<void> {
     if (channels.length === 0) {
       // No channels to process, mark as failed
@@ -317,7 +322,7 @@ export class DispatchOrchestrator implements IDispatchOrchestrator {
     await updateDispatchStatus(dispatch.id, 'sending');
 
     // Process all channels
-    const results = await this.sendToChannels(dispatch, driver, route, vehicle, bookings, channels);
+    const results = await this.sendToChannels(dispatch, driver, route, vehicle, bookings, channels, startLocation);
 
     // Determine final dispatch status based on results
     const finalStatus = this.determineDispatchStatus(results);
@@ -352,13 +357,14 @@ export class DispatchOrchestrator implements IDispatchOrchestrator {
     route: Route,
     vehicle: Vehicle | null,
     bookings: Booking[],
-    channels: ChannelType[]
+    channels: ChannelType[],
+    startLocation?: { latitude: number; longitude: number } | null
   ): Promise<ChannelDispatchResult[]> {
     const results: ChannelDispatchResult[] = [];
 
     // Process channels concurrently
     const channelPromises = channels.map(async (channel) => {
-      const result = await this.sendToChannel(dispatch, driver, route, vehicle, bookings, channel);
+      const result = await this.sendToChannel(dispatch, driver, route, vehicle, bookings, channel, startLocation);
       results.push(result);
       return result;
     });
@@ -383,7 +389,8 @@ export class DispatchOrchestrator implements IDispatchOrchestrator {
             route,
             vehicle,
             bookings,
-            fallbackChannel
+            fallbackChannel,
+            startLocation
           );
           results.push(fallbackResult);
         }
@@ -412,7 +419,8 @@ export class DispatchOrchestrator implements IDispatchOrchestrator {
     route: Route,
     vehicle: Vehicle | null,
     bookings: Booking[],
-    channel: ChannelType
+    channel: ChannelType,
+    startLocation?: { latitude: number; longitude: number } | null
   ): Promise<ChannelDispatchResult> {
     // Create channel dispatch record
     const channelDispatch = await createChannelDispatch({
@@ -470,7 +478,7 @@ export class DispatchOrchestrator implements IDispatchOrchestrator {
     // Render template for this channel
     let template: string;
     try {
-      const templateContext = buildTemplateContext(route, driver, vehicle, bookings);
+      const templateContext = buildTemplateContext(route, driver, vehicle, bookings, startLocation);
       template = this.templateEngine.renderForChannel(channel, templateContext);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Template rendering failed';

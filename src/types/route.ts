@@ -78,6 +78,10 @@ export interface Route extends Timestamps {
   vehicleId?: ID;
   vehicleName?: string; // Populated from join with vehicles table
 
+  // Driver assignment (derived from vehicle's assigned_driver_id)
+  driverId?: ID;
+  driverName?: string;
+
   // Date and time
   routeDate: Date;
   plannedStartTime?: string;

@@ -49,7 +49,9 @@ export interface TemplateContext {
     scheduledTime: string;
     services: string;
     specialInstructions: string;
+    mapsUrl: string;
   }>;
+  routeMapsUrl: string;
   dispatchedAt: string;
 }
 
@@ -292,11 +294,11 @@ export class TemplateEngine {
       },
       vehicle: context.vehicle
         ? {
-            name: sanitizeString(context.vehicle.name),
-            licensePlate: sanitizeString(context.vehicle.licensePlate),
-            make: sanitizeString(context.vehicle.make),
-            model: sanitizeString(context.vehicle.model),
-          }
+          name: sanitizeString(context.vehicle.name),
+          licensePlate: sanitizeString(context.vehicle.licensePlate),
+          make: sanitizeString(context.vehicle.make),
+          model: sanitizeString(context.vehicle.model),
+        }
         : null,
       bookings: (context.bookings || []).map((booking) => ({
         stopNumber: sanitizeNumber(booking?.stopNumber),
@@ -305,7 +307,9 @@ export class TemplateEngine {
         scheduledTime: sanitizeString(booking?.scheduledTime),
         services: sanitizeString(booking?.services),
         specialInstructions: sanitizeString(booking?.specialInstructions),
+        mapsUrl: sanitizeString(booking?.mapsUrl),
       })),
+      routeMapsUrl: sanitizeString(context.routeMapsUrl),
       dispatchedAt: sanitizeString(context.dispatchedAt),
     };
   }
@@ -337,8 +341,57 @@ export function buildTemplateContext(
   driver: Driver,
   vehicle: Vehicle | null,
   bookings: Booking[],
+  startLocation?: { latitude: number; longitude: number } | null,
   dispatchedAt?: Date
 ): TemplateContext {
+  // Calculate route maps URL
+  let routeMapsUrl = '';
+  // properties are optional in Booking type, so we need to filter and cast or access safely
+  const stopsWithCoords = bookings.filter((b): b is Booking & { latitude: number; longitude: number } =>
+    b.latitude !== undefined && b.longitude !== undefined
+  );
+
+  if (startLocation) {
+    const origin = `${startLocation.latitude},${startLocation.longitude}`;
+
+    // If we have stops, last one is destination
+    if (stopsWithCoords.length > 0) {
+      const end = stopsWithCoords[stopsWithCoords.length - 1]!;
+      const destination = `${end.latitude},${end.longitude}`;
+
+      // All stops except the last one are waypoints (stops[0] is now a waypoint, not origin)
+      const waypoints = stopsWithCoords.slice(0, -1)
+        .map(b => `${b.latitude},${b.longitude}`)
+        .join('|');
+
+      routeMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`;
+      if (waypoints) {
+        routeMapsUrl += `&waypoints=${waypoints}`;
+      }
+    } else {
+      // Just start location? Probably not useful but valid
+      routeMapsUrl = `https://www.google.com/maps/search/?api=1&query=${origin}`;
+    }
+  } else if (stopsWithCoords.length > 0) {
+    // Fallback to original logic (origin = first stop)
+    const start = stopsWithCoords[0]!;
+    const end = stopsWithCoords[stopsWithCoords.length - 1]!;
+
+    // We validated these exist in the filter
+    const origin = `${start.latitude},${start.longitude}`;
+    const destination = `${end.latitude},${end.longitude}`;
+
+    // Intermediate waypoints (exclude start and end)
+    const waypoints = stopsWithCoords.slice(1, -1)
+      .map(b => `${b.latitude},${b.longitude}`)
+      .join('|');
+
+    routeMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`;
+    if (waypoints) {
+      routeMapsUrl += `&waypoints=${waypoints}`;
+    }
+  }
+
   return {
     route: {
       name: route.name || '',
@@ -357,11 +410,11 @@ export function buildTemplateContext(
     },
     vehicle: vehicle
       ? {
-          name: vehicle.name || '',
-          licensePlate: vehicle.licensePlate || '',
-          make: vehicle.make || '',
-          model: vehicle.model || '',
-        }
+        name: vehicle.name || '',
+        licensePlate: vehicle.licensePlate || '',
+        make: vehicle.make || '',
+        model: vehicle.model || '',
+      }
       : null,
     bookings: (bookings || []).map((booking) => ({
       stopNumber: booking.stopNumber || 0,
@@ -370,7 +423,9 @@ export function buildTemplateContext(
       scheduledTime: booking.scheduledTime || '',
       services: booking.services || '',
       specialInstructions: booking.specialInstructions || '',
+      mapsUrl: booking.mapsUrl || '',
     })),
+    routeMapsUrl,
     dispatchedAt: (dispatchedAt || new Date()).toISOString(),
   };
 }

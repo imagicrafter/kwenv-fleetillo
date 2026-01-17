@@ -63,13 +63,14 @@ interface VehicleRow {
 }
 
 /**
- * Booking row from database (with client join)
+ * Booking row from database (with client, service, and location joins)
  * Note: Supabase returns joined tables as arrays when using foreign key relationships
  */
 interface BookingRow {
   id: string;
   client_id: string;
   service_id: string;
+  location_id: string | null;
   scheduled_date: string;
   scheduled_start_time: string;
   service_address_line1: string | null;
@@ -85,6 +86,23 @@ interface BookingRow {
   services: {
     name: string;
   } | { name: string }[] | null;
+  locations: {
+    address_line1: string | null;
+    address_line2: string | null;
+    city: string | null;
+    state: string | null;
+    postal_code: string | null;
+    latitude: number | null;
+    longitude: number | null;
+  } | {
+    address_line1: string | null;
+    address_line2: string | null;
+    city: string | null;
+    state: string | null;
+    postal_code: string | null;
+    latitude: number | null;
+    longitude: number | null;
+  }[] | null;
 }
 
 // =============================================================================
@@ -198,15 +216,43 @@ function buildAddress(
 
 /**
  * Converts a database row to a Booking entity
+ * Uses location address as fallback when booking-level address is empty
  */
 function rowToBooking(row: BookingRow, stopNumber: number): Booking {
-  const address = buildAddress(
+  // Try booking-level address first
+  let address = buildAddress(
     row.service_address_line1,
     row.service_address_line2,
     row.service_city,
     row.service_state,
     row.service_postal_code
   );
+
+  // Get location data (may be object or array from Supabase join)
+  const locationData = Array.isArray(row.locations)
+    ? row.locations[0]
+    : row.locations;
+
+  // Fallback to location address if booking address is "Address not available"
+  if (address === 'Address not available' && locationData) {
+    address = buildAddress(
+      locationData.address_line1,
+      locationData.address_line2,
+      locationData.city,
+      locationData.state,
+      locationData.postal_code
+    );
+  }
+
+  // Get coordinates from location
+  const latitude = locationData?.latitude ?? undefined;
+  const longitude = locationData?.longitude ?? undefined;
+
+  // Build Google Maps URL for individual stop navigation
+  let mapsUrl: string | undefined;
+  if (latitude && longitude) {
+    mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`;
+  }
 
   // Handle Supabase's joined table format (can be object or array)
   const clientName = Array.isArray(row.clients)
@@ -223,6 +269,9 @@ function rowToBooking(row: BookingRow, stopNumber: number): Booking {
     stopNumber,
     clientName,
     address,
+    latitude,
+    longitude,
+    mapsUrl,
     scheduledTime: row.scheduled_start_time ?? undefined,
     services: serviceName ?? undefined,
     specialInstructions: row.special_instructions ?? undefined,
@@ -478,6 +527,7 @@ export async function getBookingsForRoute(routeId: string): Promise<Booking[]> {
       id,
       client_id,
       service_id,
+      location_id,
       scheduled_date,
       scheduled_start_time,
       service_address_line1,
@@ -492,6 +542,15 @@ export async function getBookingsForRoute(routeId: string): Promise<Booking[]> {
       ),
       services (
         name
+      ),
+      locations (
+        address_line1,
+        address_line2,
+        city,
+        state,
+        postal_code,
+        latitude,
+        longitude
       )
     `
     )
@@ -539,6 +598,47 @@ export async function getBookingsForRoute(routeId: string): Promise<Booking[]> {
 }
 
 /**
+ * Retrieves the primary location for a vehicle to use as the route origin
+ */
+export async function getVehicleStartLocation(
+  vehicleId: string
+): Promise<{ latitude: number; longitude: number } | null> {
+  const client = getSupabaseClient();
+
+  const { data, error } = await client
+    .from('vehicle_locations')
+    .select(`
+      is_primary,
+      locations!inner (
+        latitude,
+        longitude
+      )
+    `)
+    .eq('vehicle_id', vehicleId)
+    .eq('is_primary', true)
+    .single();
+
+  if (error || !data || !data.locations) {
+    if (error && error.code !== 'PGRST116') {
+      logger.error('Failed to get vehicle start location', { vehicleId, error, code: error.code });
+    }
+    return null;
+  }
+
+  // Handle potential array return from join (though inner join + single should be object)
+  const loc = Array.isArray(data.locations) ? data.locations[0] : data.locations;
+
+  if (loc && loc.latitude && loc.longitude) {
+    return {
+      latitude: loc.latitude,
+      longitude: loc.longitude
+    };
+  }
+
+  return null;
+}
+
+/**
  * Fetches all dispatch context data for a route and driver
  *
  * This is a convenience function that fetches all data needed for a dispatch
@@ -559,6 +659,7 @@ export async function getDispatchContext(
   driver: Driver;
   vehicle: Vehicle | null;
   bookings: Booking[];
+  startLocation: { latitude: number; longitude: number } | null;
 } | null> {
   logger.debug('Fetching dispatch context', { routeId, driverId });
 
@@ -578,14 +679,18 @@ export async function getDispatchContext(
     return null;
   }
 
-  // Fetch bookings
-  const bookings = await getBookingsForRoute(routeId);
+  // Fetch bookings and vehicle start location in parallel
+  const [bookings, startLocation] = await Promise.all([
+    getBookingsForRoute(routeId),
+    routeResult.vehicle ? getVehicleStartLocation(routeResult.vehicle.id) : Promise.resolve(null)
+  ]);
 
   logger.info('Dispatch context fetched', {
     routeId,
     driverId,
     vehicleId: routeResult.vehicle?.id,
     bookingsCount: bookings.length,
+    hasStartLocation: !!startLocation
   });
 
   return {
@@ -593,5 +698,6 @@ export async function getDispatchContext(
     driver,
     vehicle: routeResult.vehicle,
     bookings,
+    startLocation,
   };
 }

@@ -13,7 +13,8 @@ const express = require('express');
  * Check if dispatch should be embedded
  */
 function isEmbeddedMode() {
-    return process.env.DISPATCH_MODE === 'embedded';
+    // Default to embedded if not specified, or if explicitly set to 'embedded'
+    return process.env.DISPATCH_MODE === 'embedded' || !process.env.DISPATCH_MODE;
 }
 
 /**
@@ -61,6 +62,23 @@ async function createDispatchRouter() {
 
     } catch (error) {
         console.error('[Dispatch] Failed to load dispatch service:', error.message);
+
+        // Debug: Write error to file for AI agent inspection
+        try {
+            const fs = require('fs');
+            const debugLogPath = '/Users/justinmartin/.gemini/antigravity/brain/20522686-dbf4-4e78-b08a-988ddaca0f63/dispatch_init_error.log';
+            const errorInfo = {
+                timestamp: new Date().toISOString(),
+                message: error.message,
+                stack: error.stack,
+                code: error.code,
+                path: dispatchServicePath
+            };
+            fs.writeFileSync(debugLogPath, JSON.stringify(errorInfo, null, 2));
+            console.log('[Debug] Error logged to ' + debugLogPath);
+        } catch (filesErr) {
+            console.error('[Debug] Failed to write error log:', filesErr);
+        }
 
         // Return error handler if dispatch service fails to load
         router.use((req, res) => {

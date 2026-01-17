@@ -50,7 +50,7 @@ services:
   - key: SUPABASE_URL
     value: https://vtaufnxworztolfdwlll.supabase.co
     scope: RUN_TIME
-  - key: SUPABASE_SERVICE_KEY
+  - key: SUPABASE_KEY
     value: ***REMOVED_SUPABASE_SECRET***
     scope: RUN_TIME
   - key: SUPABASE_SCHEMA
@@ -85,7 +85,6 @@ services:
   - key: NODE_ENV
     value: production
     scope: RUN_TIME
-  # Health check configuration
   health_check:
     http_path: /api/v1/health
     initial_delay_seconds: 10
@@ -93,9 +92,33 @@ services:
     timeout_seconds: 5
     success_threshold: 1
     failure_threshold: 3
-  # Internal routing - dispatch service is accessed internally by the main app
-  internal_ports:
-  - 3001
+
+ingress:
+  rules:
+  - component:
+      name: web
+    match:
+      path:
+        prefix: /
+  - component:
+      name: dispatch
+    match:
+      path:
+        prefix: /dispatch
+    cors:
+      allow_origins:
+      - prefix: "*"
+      allow_methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+      allow_headers:
+      - Content-Type
+      - Authorization
+      - X-API-Key
+      - X-Correlation-ID
 
 domains:
 - domain: optiroute.imagicrafterai.com

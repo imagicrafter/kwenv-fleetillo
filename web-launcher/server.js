@@ -10,7 +10,17 @@ const cookieParser = require('cookie-parser');
 // Load env vars (only if .env file exists - in production, env vars come from platform)
 const fs = require('fs');
 const envPath = path.join(__dirname, '../.env');
+const localEnvPath = path.join(__dirname, '.env');
+
+// Try loading from current directory first (for web-launcher specific config)
+if (fs.existsSync(localEnvPath)) {
+    console.log('[Config] Loading .env from web-launcher directory');
+    dotenv.config({ path: localEnvPath });
+}
+
+// Then try loading from parent directory (for shared config)
 if (fs.existsSync(envPath)) {
+    // We don't override existing vars, so specific config wins
     dotenv.config({ path: envPath });
 }
 // Also load agent env vars for the chat proxy (if exists)
@@ -26,6 +36,9 @@ const DEMO_PASSWORD = process.env.DEMO_PASSWORD || 'demo123';
 // Debug: Log password info at startup (masked)
 console.log(`[DEBUG] DEMO_PASSWORD loaded: ${DEMO_PASSWORD ? DEMO_PASSWORD.substring(0, 3) + '***' : 'NOT SET'}`);
 console.log(`[DEBUG] NODE_ENV: ${process.env.NODE_ENV || 'not set'}`);
+console.log(`[DEBUG] EMAIL_PROVIDER: ${process.env.EMAIL_PROVIDER || 'not set'}`);
+console.log(`[DEBUG] RESEND_API_KEY: ${process.env.RESEND_API_KEY ? (process.env.RESEND_API_KEY.substring(0, 5) + '...') : 'not set'}`);
+console.log(`[DEBUG] SENDGRID_API_KEY: ${process.env.SENDGRID_API_KEY ? 'set' : 'not set'}`);
 
 // Trust proxy - required for secure cookies behind load balancer
 if (process.env.NODE_ENV === 'production') {
@@ -53,10 +66,24 @@ const requireAuth = (req, res, next) => {
         return next();
     }
 
-    // Allow dispatch service routes (uses its own API key auth)
+    // Dispatch Service Auth & Proxy
     if (req.path.startsWith('/dispatch')) {
-        return next();
+        // If authenticated via web session, allow internal access to dispatch service
+        if (req.session && req.session.authenticated) {
+            // Inject the API key trusted by the dispatch service
+            // This allows the frontend to call /dispatch APIs without exposing the key
+            const keys = (process.env.DISPATCH_API_KEYS || 'default-dev-key').split(',');
+            // console.log(`[Auth] Injecting API key for ${req.path}: ${keys[0].substring(0, 3)}...`);
+            req.headers['x-api-key'] = keys[0];
+            return next();
+        } else {
+            console.log(`[Auth] Dispatch request unauthenticated: ${req.path}`);
+        }
     }
+
+    // If not authenticated, allow login pages (handled below) or reject
+    // We do NOT return next() here if not authenticated, so it falls through to the checks below
+
 
     if (req.session && req.session.authenticated) {
         return next();

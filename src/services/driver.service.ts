@@ -225,7 +225,7 @@ export async function getDriverById(id: string): Promise<Result<Driver>> {
 
 /**
  * Gets all drivers with optional filtering and pagination
- * Includes LEFT JOIN with vehicles to get assigned vehicle info
+ * Uses a separate query to get vehicle assignments for robustness
  */
 export async function getDrivers(
   filters?: DriverFilters,
@@ -236,13 +236,10 @@ export async function getDrivers(
   try {
     const supabase = getClient();
 
-    // Use a raw query with LEFT JOIN to get vehicle info
+    // First, query drivers without the FK join (more robust)
     let query = supabase
       .from(DRIVERS_TABLE)
-      .select(`
-        *,
-        vehicles!fk_vehicles_driver(id)
-      `, { count: 'exact' });
+      .select('*', { count: 'exact' });
 
     // Apply filters
     if (!filters?.includeDeleted) {
@@ -284,15 +281,49 @@ export async function getDrivers(
       };
     }
 
-    // Convert rows to Driver objects and add assignedVehicleId
-    const drivers = (data as any[]).map((row) => {
-      const driver = convertRowToDriver(row as DriverRow);
-      // Add assignedVehicleId from the joined vehicles data
-      if (row.vehicles && Array.isArray(row.vehicles) && row.vehicles.length > 0) {
-        driver.assignedVehicleId = row.vehicles[0].id;
+    // Convert rows to Driver objects
+    const drivers = (data as DriverRow[]).map(convertRowToDriver);
+    const driverIds = drivers.map(d => d.id);
+
+    // Fetch vehicle assignments separately (more robust than FK join)
+    if (driverIds.length > 0) {
+      const { data: vehicleData, error: vehicleError } = await supabase
+        .from('vehicles')
+        .select('id, assigned_driver_id')
+        .in('assigned_driver_id', driverIds)
+        .is('deleted_at', null);
+
+      if (vehicleError) {
+        logger.warn('Failed to fetch vehicle assignments, continuing without', { error: vehicleError.message });
+      } else if (vehicleData && vehicleData.length > 0) {
+        // Build a map of driver ID -> vehicle ID
+        const driverToVehicleMap = new Map<string, string>();
+        for (const vehicle of vehicleData) {
+          if (vehicle.assigned_driver_id) {
+            driverToVehicleMap.set(vehicle.assigned_driver_id, vehicle.id);
+          }
+        }
+
+        // Assign vehicle IDs to drivers
+        for (const driver of drivers) {
+          const vehicleId = driverToVehicleMap.get(driver.id);
+          if (vehicleId) {
+            driver.assignedVehicleId = vehicleId;
+            logger.debug('Driver has assigned vehicle', {
+              driverId: driver.id,
+              driverName: `${driver.firstName} ${driver.lastName}`,
+              vehicleId: driver.assignedVehicleId
+            });
+          }
+        }
+
+        logger.debug('Mapped vehicle assignments', {
+          totalDrivers: drivers.length,
+          driversWithVehicles: driverToVehicleMap.size,
+          vehicleAssignments: Array.from(driverToVehicleMap.entries())
+        });
       }
-      return driver;
-    });
+    }
 
     const total = count ?? 0;
 

@@ -9,6 +9,10 @@ You have been assigned a new route:
 ⏰ **Start Time:** {{route.plannedStartTime}}
 📍 **Total Stops:** {{route.totalStops}}
 
+{{#if routeMapsUrl}}
+🗺️ [Open Route in Google Maps]({{routeMapsUrl}})
+{{/if}}
+
 {{#if vehicle}}
 🚗 **Vehicle:** {{vehicle.name}}
 {{#if vehicle.licensePlate}}🔢 **License Plate:** {{vehicle.licensePlate}}{{/if}}
@@ -21,6 +25,7 @@ You have been assigned a new route:
 {{#each bookings}}
 **{{stopNumber}}.** {{clientName}}
 📍 {{address}}
+{{#if mapsUrl}}🗺️ [Navigate]({{mapsUrl}}){{/if}}
 {{#if scheduledTime}}⏰ {{scheduledTime}}{{/if}}
 {{#if services}}📦 {{services}}{{/if}}
 {{#if specialInstructions}}⚠️ _{{specialInstructions}}_{{/if}}

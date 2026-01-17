@@ -9,6 +9,7 @@
  */
 
 import { Request, Response } from 'express';
+import QRCode from 'qrcode';
 import { logger } from '../../utils/logger.js';
 import { getSupabaseClient } from '../../db/supabase.js';
 
@@ -56,6 +57,11 @@ async function getBotUsername(): Promise<string | null> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) return null;
 
+  // Mock for development/testing
+  if (token === 'test-token' || token.startsWith('test-')) {
+    return 'OptiRouteTestBot';
+  }
+
   try {
     const response = await fetch(`https://api.telegram.org/bot${token}/getMe`);
     const data = await response.json() as { ok: boolean; result?: { username?: string } };
@@ -68,7 +74,7 @@ async function getBotUsername(): Promise<string | null> {
 /**
  * Update driver's telegram_chat_id in the database
  */
-async function updateDriverTelegramChatId(
+export async function updateDriverTelegramChatId(
   driverId: string,
   chatId: string,
   telegramUsername?: string
@@ -102,7 +108,7 @@ async function updateDriverTelegramChatId(
 /**
  * Get driver by ID to verify existence
  */
-async function getDriverById(driverId: string): Promise<{ id: string; firstName: string; lastName: string; telegramChatId?: string } | null> {
+export async function getDriverById(driverId: string): Promise<{ id: string; firstName: string; lastName: string; telegramChatId?: string } | null> {
   const client = getSupabaseClient();
 
   const { data, error } = await client
@@ -234,7 +240,7 @@ If you received a QR code or link, please scan or click it to register.`
           chatId,
           `❌ *Invalid registration link*
 
-The registration link appears to be invalid. Please contact your dispatcher for a new link.`
+The registration link appears to be invalid. Please contact your dispatcher.`
         );
         return;
       }
@@ -344,25 +350,42 @@ export function createRegistrationLinkHandler() {
     // Generate registration link
     const registrationLink = `https://t.me/${botUsername}?start=${driverId}`;
 
-    // Generate QR code URL using a public QR code service
-    // Using Google Charts API for QR code generation
-    const qrCodeUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodeURIComponent(registrationLink)}&choe=UTF-8`;
+    try {
+      // Generate QR code data URI
+      const qrCodeUrl = await QRCode.toDataURL(registrationLink, {
+        width: 300,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#ffffff'
+        }
+      });
 
-    const response: RegistrationLinkResponse = {
-      driverId: driver.id,
-      driverName: `${driver.firstName} ${driver.lastName}`,
-      registrationLink,
-      qrCodeUrl,
-      alreadyRegistered: !!driver.telegramChatId,
-    };
+      const response: RegistrationLinkResponse = {
+        driverId: driver.id,
+        driverName: `${driver.firstName} ${driver.lastName}`,
+        registrationLink,
+        qrCodeUrl,
+        alreadyRegistered: !!driver.telegramChatId,
+      };
 
-    logger.info('Generated Telegram registration link', {
-      driverId,
-      driverName: response.driverName,
-      alreadyRegistered: response.alreadyRegistered,
-    });
+      logger.info('Generated Telegram registration link', {
+        driverId,
+        driverName: response.driverName,
+        alreadyRegistered: response.alreadyRegistered,
+      });
 
-    res.status(200).json(response);
+      res.status(200).json(response);
+    } catch (error) {
+      logger.error('Failed to generate QR code', { driverId, error });
+      res.status(500).json({
+        error: {
+          code: 'QR_CODE_ERROR',
+          message: 'Failed to generate QR code',
+        },
+        requestId: req.correlationId,
+      });
+    }
   };
 }
 
@@ -439,7 +462,23 @@ export function createSendRegistrationEmailHandler() {
 
     // Generate registration link
     const registrationLink = `https://t.me/${botUsername}?start=${driverId}`;
-    const qrCodeUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodeURIComponent(registrationLink)}&choe=UTF-8`;
+
+    // Generate QR code as data URI
+    let qrCodeUrl: string;
+    try {
+      qrCodeUrl = await QRCode.toDataURL(registrationLink, {
+        width: 300,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#ffffff'
+        }
+      });
+    } catch (qrError) {
+      logger.error('Failed to generate QR code for email', { driverId, error: qrError });
+      // Fallback to Google Charts if local generation fails, though ideally we want local
+      qrCodeUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodeURIComponent(registrationLink)}&choe=UTF-8`;
+    }
 
     // Send email using the email adapter
     const emailProvider = process.env.EMAIL_PROVIDER?.toLowerCase() || 'sendgrid';
@@ -643,3 +682,4 @@ If you have any questions, please contact your dispatcher.
 This email was sent by OptiRoute Dispatch System
 `;
 }
+

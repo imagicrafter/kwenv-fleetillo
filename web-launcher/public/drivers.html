@@ -360,6 +360,43 @@
                 opacity: 1;
             }
         }
+
+        /* Status Message Styles */
+        .status-waiting {
+            color: var(--accent-warning);
+            font-weight: 500;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .status-waiting::before {
+            content: '';
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--accent-warning);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .status-connected {
+            color: var(--accent-success);
+            font-weight: 600;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 
@@ -670,100 +707,140 @@
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="telegram-chat-id">Telegram Chat ID (Optional)</label>
-                            <input type="text" id="telegram-chat-id" placeholder="123456789">
-                            <small style="color: var(--text-secondary); font-size: 0.75rem;">
-                                For route notifications and updates
-                            </small>
-                        </div>
-                    </div>
-
-                    <!-- License Information Section -->
-                    <div class="form-section" style="margin-top: 24px;">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="license-number">License Number</label>
-                                <input type="text" id="license-number" placeholder="D1234567">
+                        <label for="telegram-chat-id">Telegram Chat ID (Optional)</label>
+                        <input type="text" id="telegram-chat-id" placeholder="Chat ID">
+                        <small style="color: var(--text-secondary); font-size: 0.75rem;">
+                            For route notifications and updates
+                        </small>
+                        <div id="telegram-registration-area" style="margin-top: 12px; display: none;">
+                            <div style="display: flex; gap: 8px;">
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="showTelegramQrCode()">
+                                    <i class="lucide-qr-code" style="width: 14px; height: 14px; margin-right: 6px;"></i>
+                                    Show QR Code
+                                </button>
+                                <button type="button" class="btn btn-secondary btn-sm"
+                                    onclick="sendTelegramRegistrationEmail()">
+                                    <i class="lucide-mail" style="width: 14px; height: 14px; margin-right: 6px;"></i>
+                                    Send Link
+                                </button>
                             </div>
-                            <div class="form-group">
-                                <label for="license-class">License Class</label>
-                                <input type="text" id="license-class" placeholder="Class C">
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="license-expiry">License Expiry Date</label>
-                            <input type="date" id="license-expiry">
-                            <small style="color: var(--text-secondary); font-size: 0.75rem;">
-                                You'll be notified when licenses are expiring soon
-                            </small>
-                        </div>
-                    </div>
-
-                    <!-- Employment Information Section -->
-                    <div class="form-section" style="margin-top: 24px;">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="driver-status">Status *</label>
-                                <select id="driver-status" required>
-                                    <option value="active">Active</option>
-                                    <option value="inactive">Inactive</option>
-                                    <option value="on_leave">On Leave</option>
-                                    <option value="terminated">Terminated</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="hire-date">Hire Date</label>
-                                <input type="date" id="hire-date">
+                            <div id="telegram-status-msg"
+                                style="margin-top: 8px; font-size: 0.75rem; color: #10b981; display: none;">
+                                <i class="lucide-check-circle"
+                                    style="width: 12px; height: 12px; vertical-align: middle;"></i>
+                                Registration Active
                             </div>
                         </div>
                     </div>
-
-                    <!-- Vehicle Assignment Section -->
-                    <div class="form-section" style="margin-top: 24px;">
-                        <h4 class="section-title">Vehicle Assignment</h4>
-                        <div class="form-group">
-                            <label for="assigned-vehicle">Assigned Vehicle</label>
-                            <select id="assigned-vehicle" name="assignedVehicle">
-                                <option value="">-- No Vehicle Assigned --</option>
-                                <!-- Populated dynamically by JavaScript -->
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Emergency Contact Section -->
-                    <div class="form-section" style="margin-top: 24px;">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="emergency-contact-name">Emergency Contact Name</label>
-                                <input type="text" id="emergency-contact-name" placeholder="Jane Doe">
-                            </div>
-                            <div class="form-group">
-                                <label for="emergency-contact-phone">Emergency Contact Phone</label>
-                                <input type="tel" id="emergency-contact-phone" placeholder="+1 (555) 987-6543">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Notes Section -->
-                    <div class="form-section" style="margin-top: 24px;">
-                        <div class="form-group">
-                            <label for="driver-notes">Notes</label>
-                            <textarea id="driver-notes" rows="3"
-                                style="width: 100%; padding: 10px 12px; background-color: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-primary); font-family: inherit; font-size: 0.95rem; resize: vertical;"
-                                placeholder="Additional notes about the driver..."></textarea>
-                        </div>
-                    </div>
-
-                    <!-- Form Actions -->
-                    <div class="form-actions">
-                        <button type="button" class="btn-secondary close-modal-btn">Cancel</button>
-                        <button type="submit" class="btn-primary">Save Driver</button>
-                    </div>
-                </form>
             </div>
+
+            <!-- Dispatch Preferences Section -->
+            <div class="form-section" style="margin-top: 24px;">
+                <h4 class="section-title">Dispatch Preferences</h4>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="preferred-channel">Preferred Channel</label>
+                        <select id="preferred-channel">
+                            <option value="telegram">Telegram</option>
+                            <option value="email">Email</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="display: flex; align-items: center; margin-top: 28px;">
+                        <input type="checkbox" id="fallback-enabled" style="width: auto; margin-right: 8px;">
+                        <label for="fallback-enabled" style="margin-bottom: 0; cursor: pointer;">Enable Channel
+                            Fallback</label>
+                    </div>
+                </div>
+                <small style="color: var(--text-secondary); font-size: 0.75rem;">
+                    If enabled, system will try alternate channel if primary fails.
+                </small>
+            </div>
+
+            <!-- License Information Section -->
+            <div class="form-section" style="margin-top: 24px;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="license-number">License Number</label>
+                        <input type="text" id="license-number" placeholder="D1234567">
+                    </div>
+                    <div class="form-group">
+                        <label for="license-class">License Class</label>
+                        <input type="text" id="license-class" placeholder="Class C">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="license-expiry">License Expiry Date</label>
+                    <input type="date" id="license-expiry">
+                    <small style="color: var(--text-secondary); font-size: 0.75rem;">
+                        You'll be notified when licenses are expiring soon
+                    </small>
+                </div>
+            </div>
+
+            <!-- Employment Information Section -->
+            <div class="form-section" style="margin-top: 24px;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="driver-status">Status *</label>
+                        <select id="driver-status" required>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="on_leave">On Leave</option>
+                            <option value="terminated">Terminated</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="hire-date">Hire Date</label>
+                        <input type="date" id="hire-date">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vehicle Assignment Section -->
+            <div class="form-section" style="margin-top: 24px;">
+                <h4 class="section-title">Vehicle Assignment</h4>
+                <div class="form-group">
+                    <label for="assigned-vehicle">Assigned Vehicle</label>
+                    <select id="assigned-vehicle" name="assignedVehicle">
+                        <option value="">-- No Vehicle Assigned --</option>
+                        <!-- Populated dynamically by JavaScript -->
+                    </select>
+                </div>
+            </div>
+
+            <!-- Emergency Contact Section -->
+            <div class="form-section" style="margin-top: 24px;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="emergency-contact-name">Emergency Contact Name</label>
+                        <input type="text" id="emergency-contact-name" placeholder="Jane Doe">
+                    </div>
+                    <div class="form-group">
+                        <label for="emergency-contact-phone">Emergency Contact Phone</label>
+                        <input type="tel" id="emergency-contact-phone" placeholder="+1 (555) 987-6543">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes Section -->
+            <div class="form-section" style="margin-top: 24px;">
+                <div class="form-group">
+                    <label for="driver-notes">Notes</label>
+                    <textarea id="driver-notes" rows="3"
+                        style="width: 100%; padding: 10px 12px; background-color: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-subtle); border-radius: 6px; color: var(--text-primary); font-family: inherit; font-size: 0.95rem; resize: vertical;"
+                        placeholder="Additional notes about the driver..."></textarea>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="form-actions">
+                <button type="button" class="btn-secondary close-modal-btn">Cancel</button>
+                <button type="submit" class="btn-primary">Save Driver</button>
+            </div>
+            </form>
         </div>
+    </div>
     </div>
 
     <!-- Vehicle Assignment Modal -->
@@ -933,7 +1010,7 @@
             const vehicleSelectModal = document.getElementById('vehicle-select');
 
             const options = vehicles.map(v =>
-                `<option value="${v.id}">${v.make || ''} ${v.model || ''} (${v.licensePlate || 'No Plate'})</option>`
+                `<option value="${v.id}">${v.name || (v.make + ' ' + v.model)} (${v.licensePlate || 'No Plate'})</option>`
             ).join('');
 
             if (assignedVehicleSelect) {
@@ -999,9 +1076,7 @@
                 if (driver.assignedVehicleId) {
                     const assignedVehicle = vehicles.find(v => v.id === driver.assignedVehicleId);
                     if (assignedVehicle) {
-                        const vehicleName = `${assignedVehicle.make || ''} ${assignedVehicle.model || ''}`.trim() || assignedVehicle.name || 'Unknown';
-                        const plate = assignedVehicle.licensePlate ? ` (${assignedVehicle.licensePlate})` : '';
-                        vehicleDisplay = vehicleName + plate;
+                        vehicleDisplay = assignedVehicle.name || 'Unknown Vehicle';
                     }
                 }
 
@@ -1044,7 +1119,12 @@
             editingDriverId = null;
             document.getElementById('modal-title').textContent = 'Add Driver';
             document.getElementById('driver-form').reset();
+            document.getElementById('driver-form').reset();
             document.getElementById('driver-id').value = '';
+
+            // Hide registration area for new drivers (must save first)
+            const regArea = document.getElementById('telegram-registration-area');
+            if (regArea) regArea.style.display = 'none';
 
             // Reset avatar preview
             document.getElementById('avatarImage').style.display = 'none';
@@ -1073,6 +1153,32 @@
             document.getElementById('phone-number').value = driver.phoneNumber || '';
             document.getElementById('email').value = driver.email || '';
             document.getElementById('telegram-chat-id').value = driver.telegramChatId || '';
+
+            // Telegram Registration UI
+            const regArea = document.getElementById('telegram-registration-area');
+            const statusMsg = document.getElementById('telegram-status-msg');
+
+            if (regArea) {
+                regArea.style.display = 'block'; // Always show for edit mode to allow re-registration
+
+                // Check both property names (camelCase/snake_case) and current input value
+                const hasTelegram = driver.telegramChatId || driver.telegram_chat_id || document.getElementById('telegram-chat-id').value;
+
+                if (hasTelegram) {
+                    statusMsg.style.display = 'block';
+                    statusMsg.innerHTML = '<i class="lucide-check-circle" style="width: 12px; height: 12px; vertical-align: middle;"></i> Connected to Telegram';
+                    statusMsg.style.color = '#10b981';
+                } else {
+                    statusMsg.style.display = 'block';
+                    statusMsg.innerHTML = '<i class="lucide-alert-circle" style="width: 12px; height: 12px; vertical-align: middle;"></i> Not connected';
+                    statusMsg.style.color = '#f59e0b';
+                }
+            }
+
+            // Dispatch preferences
+            document.getElementById('preferred-channel').value = driver.preferredChannel || 'telegram';
+            document.getElementById('fallback-enabled').checked = driver.fallbackEnabled !== false; // Default true
+
             document.getElementById('license-number').value = driver.licenseNumber || '';
             document.getElementById('license-class').value = driver.licenseClass || '';
             // Format date for input field (YYYY-MM-DD)
@@ -1139,11 +1245,15 @@
                 let driverId;
 
                 if (editingDriverId) {
-                    // When updating, preserve existing profile_image_url if not uploading a new one
                     const existingDriver = drivers.find(d => d.id === editingDriverId);
+                    // When updating, preserve existing profile_image_url if not uploading a new one
                     if (existingDriver && existingDriver.profileImageUrl && !pendingAvatarFile) {
                         formData.profile_image_url = existingDriver.profileImageUrl;
                     }
+
+                    // Add dispatch preferences to update
+                    formData.preferred_channel = document.getElementById('preferred-channel').value;
+                    formData.fallback_enabled = document.getElementById('fallback-enabled').checked;
 
                     // Update existing driver
                     await rpc('drivers', 'update', { id: editingDriverId, ...formData });
@@ -1164,6 +1274,9 @@
                     showToast('Driver updated successfully', 'success');
                 } else {
                     // Create new driver
+                    formData.preferred_channel = document.getElementById('preferred-channel').value;
+                    formData.fallback_enabled = document.getElementById('fallback-enabled').checked;
+
                     const result = await rpc('drivers', 'create', formData);
                     driverId = result.data?.id || result.id;
 
@@ -1414,7 +1527,7 @@
                 const assignedTo = v.assignedDriverId ? ' (Assigned)' : '';
                 const option = document.createElement('option');
                 option.value = v.id;
-                option.textContent = `${v.make || ''} ${v.model || ''} - ${v.licensePlate || 'No Plate'}${assignedTo}`;
+                option.textContent = `${v.name || (v.make + ' ' + v.model)} (${v.licensePlate || 'No Plate'})${assignedTo}`;
                 if (v.id === currentVehicleId) option.selected = true;
                 select.appendChild(option);
             });
@@ -1455,7 +1568,219 @@
                 showToast('Failed to assign vehicle: ' + error.message, 'error');
             }
         }
+
+        // Telegram Registration Logic
+        let currentRegistrationLink = '';
+        let registrationPollInterval = null;
+
+        async function showTelegramQrCode() {
+            if (!editingDriverId) {
+                showToast('Please save the driver first', 'error');
+                return;
+            }
+
+            document.getElementById('qr-modal').style.display = 'block';
+            document.getElementById('qr-code-container').innerHTML = '<div class="loading-spinner"></div>';
+            document.getElementById('qr-status-message').textContent = 'Waiting for connection...';
+            document.getElementById('qr-status-message').className = 'status-waiting';
+
+            try {
+                // Fetch registration link from backend
+                const response = await fetch(`/dispatch/api/v1/telegram/registration/${editingDriverId}`);
+                if (!response.ok) throw new Error('Failed to get registration link');
+
+                const data = await response.json();
+
+                // Backend returns flat object: { registrationLink, qrCodeUrl, ... }
+                if (!data.registrationLink) throw new Error('Invalid registration data received');
+
+                const link = data.registrationLink;
+                currentRegistrationLink = link;
+
+                // Update UI
+                document.getElementById('registration-link-input').value = link;
+                document.getElementById('open-telegram-btn').href = link;
+
+                // Use the server-generated QR code (data URI)
+                if (data.qrCodeUrl) {
+                    document.getElementById('qr-code-container').innerHTML = `
+                        <img src="${data.qrCodeUrl}" alt="Telegram Registration QR Code" width="200" height="200" style="display: block;">
+                    `;
+                } else {
+                    // Fallback to external API if server side failed for some reason (shouldn't happen with new backend)
+                    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(link)}`;
+                    document.getElementById('qr-code-container').innerHTML = `
+                        <img src="${qrUrl}" alt="Telegram Registration QR Code" width="200" height="200" style="display: block;">
+                    `;
+                }
+
+                // Start polling for connection
+                startRegistrationPolling(editingDriverId);
+
+            } catch (error) {
+                console.error('QR Code Error:', error);
+                document.getElementById('qr-code-container').innerHTML = `
+                    <div style="color: var(--danger-color); padding: 20px;">
+                        <i class="lucide-alert-circle" style="margin-bottom: 8px;"></i><br>
+                        Failed to load registration link
+                    </div>
+                `;
+                showToast('Failed to generate registration link', 'error');
+            }
+        }
+
+        function startRegistrationPolling(driverId) {
+            // Clear existing poll if any
+            if (registrationPollInterval) clearInterval(registrationPollInterval);
+
+            let attempts = 0;
+            const maxAttempts = 60; // 2 minutes (assuming 2s interval)
+
+            registrationPollInterval = setInterval(async () => {
+                attempts++;
+                if (attempts > maxAttempts) {
+                    clearInterval(registrationPollInterval);
+                    return; // Stop polling after timeout
+                }
+
+                try {
+                    // Fetch fresh driver data
+                    const driver = await rpc('drivers', 'getById', { id: driverId });
+
+                    if (driver && (driver.telegramChatId || driver.telegram_chat_id)) {
+                        // Connected!
+                        clearInterval(registrationPollInterval);
+
+                        // Update local drivers array
+                        const localDriver = drivers.find(d => d.id === driverId);
+                        if (localDriver) {
+                            localDriver.telegramChatId = driver.telegramChatId || driver.telegram_chat_id;
+                        }
+
+                        // Update QR Modal UI
+                        const qrStatus = document.getElementById('qr-status-message');
+                        if (qrStatus) {
+                            qrStatus.innerHTML = '<i class="lucide-check-circle"></i> Connected Successfully!';
+                            qrStatus.className = 'status-connected';
+                        }
+                        // Close QR modal after a brief delay if it's open (optional, maybe better to let user close)
+                        // setTimeout(closeQrModal, 2000);
+
+                        // Update Edit Modal UI
+                        const statusMsg = document.getElementById('telegram-status-msg');
+                        if (statusMsg) {
+                            statusMsg.style.display = 'block';
+                            statusMsg.innerHTML = '<i class="lucide-check-circle" style="width: 12px; height: 12px; vertical-align: middle;"></i> Connected to Telegram';
+                            statusMsg.style.color = '#10b981';
+                        }
+
+                        showToast('Driver successfully connected to Telegram!', 'success');
+                    }
+                } catch (err) {
+                    console.error('Polling error:', err);
+                    // Don't stop polling on transient errors
+                }
+            }, 2000); // Poll every 2 seconds
+        }
+
+        function closeQrModal() {
+            document.getElementById('qr-modal').style.display = 'none';
+            if (registrationPollInterval) clearInterval(registrationPollInterval);
+        }
+
+        function copyRegistrationLink() {
+            const input = document.getElementById('registration-link-input');
+            input.select();
+            document.execCommand('copy');
+            showToast('Link copied to clipboard', 'success');
+        }
+
+        async function sendTelegramRegistrationEmail() {
+            if (!editingDriverId) return;
+
+            // Simple confirmation
+            if (!confirm('Send registration instructions to driver via email?')) return;
+
+            try {
+                const response = await fetch('/dispatch/api/v1/telegram/send-registration', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ driverId: editingDriverId })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showToast('Registration email sent successfully', 'success');
+                    // Start polling since they might click the email link soon
+                    startRegistrationPolling(editingDriverId);
+                } else {
+                    throw new Error(result.message || 'Failed to send email');
+                }
+            } catch (error) {
+                console.error('Email Error:', error);
+                showToast('Failed to send email: ' + error.message, 'error');
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function (event) {
+            const modal = document.getElementById('driver-modal');
+            const deleteModal = document.getElementById('delete-modal');
+            const qrModal = document.getElementById('qr-modal');
+            const vehicleModal = document.getElementById('vehicle-assign-modal');
+
+            if (event.target == modal) {
+                closeDriverModal();
+            }
+            if (event.target == deleteModal) {
+                closeDeleteModal();
+            }
+            if (event.target == qrModal) {
+                closeQrModal();
+            }
+            if (event.target == vehicleModal) {
+                closeVehicleAssignModal();
+            }
+        }
     </script>
+
+    <!-- Telegram QR Code Modal -->
+    <div id="qr-modal" class="modal">
+        <div class="modal-content" style="max-width: 400px; text-align: center;">
+            <div class="modal-header">
+                <h3 id="qr-modal-title">Telegram Registration</h3>
+                <button class="close-btn" onclick="closeQrModal()">
+                    <i class="lucide-x"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="padding: 24px;">
+                <p style="margin-bottom: 20px; color: var(--text-secondary);">
+                    Scan this QR code with your phone or open the link to start the Telegram bot.
+                </p>
+                <div id="qr-code-container"
+                    style="margin-bottom: 12px; background: white; padding: 16px; display: inline-block; border-radius: 8px; border: 1px solid var(--border-color);">
+                    <!-- QR Image will be injected here -->
+                    <div class="loading-spinner"></div>
+                </div>
+                <div id="qr-status-message" style="margin-bottom: 20px; min-height: 24px;"></div>
+                <div class="form-group">
+                    <label>Registration Link</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="registration-link-input" readonly style="margin-bottom: 0;">
+                        <button class="btn btn-secondary" onclick="copyRegistrationLink()">
+                            <i class="lucide-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <div style="margin-top: 24px;">
+                    <a id="open-telegram-btn" href="#" target="_blank" class="btn btn-primary"
+                        style="width: 100%; justify-content: center;">
+                        <i class="lucide-send" style="margin-right: 8px;"></i> Open in Telegram
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

@@ -330,12 +330,12 @@ export async function getRoutes(
     const routes = (data as RouteRow[]).map(convertRowToRoute);
     const total = count ?? 0;
 
-    // Fetch vehicle names for routes that have a vehicleId
+    // Fetch vehicle names and assigned driver IDs for routes that have a vehicleId
     const vehicleIds = [...new Set(routes.filter(r => r.vehicleId).map(r => r.vehicleId!))] as string[];
     if (vehicleIds.length > 0) {
       const { data: vehiclesData } = await supabase
         .from('vehicles')
-        .select('id, name')
+        .select('id, name, assigned_driver_id')
         .in('id', vehicleIds);
 
       if (vehiclesData) {
@@ -345,6 +345,7 @@ export async function getRoutes(
             const vehicle = vehicleMap.get(route.vehicleId);
             if (vehicle) {
               route.vehicleName = vehicle.name;
+              route.driverId = vehicle.assigned_driver_id ?? undefined;
             }
           }
         });

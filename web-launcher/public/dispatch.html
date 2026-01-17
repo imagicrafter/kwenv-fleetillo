@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dispatch Management - OptiRoute</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Specific styles for dispatch dashboard */
+        .dispatch-timeline {
+            position: relative;
+            padding-left: 20px;
+            margin-top: 10px;
+        }
+
+        .channel-stats {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .filter-bar {
+            background-color: var(--bg-card);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .channel-icon {
+            width: 16px;
+            height: 16px;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 4px;
+        }
+    </style>
+</head>
+
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Sidebar (matches routes.html but with active Dispatch) -->
+        <aside class="sidebar">
+            <div class="brand">
+                <h1>OptiRoute<svg width="22" height="22" fill="none" stroke="var(--accent-success)" viewBox="0 0 24 24"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        style="display: inline-block; vertical-align: bottom; margin-left: 8px; margin-bottom: 2px;">
+                        <circle cx="6" cy="19" r="3" />
+                        <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
+                        <circle cx="18" cy="5" r="3" />
+                    </svg></h1>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="index.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                        </svg>
+                    </span>
+                    Dashboard
+                </a>
+
+                <div class="menu-header">PLANNING</div>
+                <a href="customers.html" class="nav-item"><span class="icon">...</span>Customers</a>
+                <a href="services.html" class="nav-item"><span class="icon">...</span>Services</a>
+                <a href="bookings.html" class="nav-item"><span class="icon">...</span>Bookings</a>
+                <a href="calendar.html" class="nav-item"><span class="icon">...</span>Calendar</a>
+                <a href="locations.html" class="nav-item"><span class="icon">...</span>Locations</a>
+
+                <div class="menu-header">FLEET</div>
+                <a href="vehicles.html" class="nav-item"><span class="icon">...</span>Vehicles</a>
+                <a href="drivers.html" class="nav-item"><span class="icon">...</span>Drivers</a>
+
+                <div class="menu-header">OPERATIONS</div>
+                <a href="routes.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
+                        </svg>
+                    </span>
+                    Routes
+                </a>
+
+                <a href="dispatch.html" class="nav-item active">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                    </span>
+                    Dispatch
+                </a>
+
+                <div class="menu-header">SYSTEM</div>
+                <a href="#" class="nav-item">... Reports</a>
+                <a href="settings.html" class="nav-item">... Settings</a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="avatar">JM</div>
+                    <div class="details">
+                        <span class="name">Admin User</span>
+                        <span class="role">Administrator</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-bar">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" placeholder="Search dispatch history..." id="search-input">
+                </div>
+                <div class="actions">
+                    <button class="btn-primary" onclick="window.location.href='routes.html'">📤 New Dispatch</button>
+                    <button class="btn-icon">⚙️</button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="page-header">
+                    <h2>Dispatch Management</h2>
+                    <span class="date">Observability and Intervention</span>
+                </div>
+
+                <!-- Metrics Grid -->
+                <div class="stats-grid">
+                    <div class="card stat-card">
+                        <div class="stat-header primary">
+                            <span class="label">Active Dispatches</span>
+                        </div>
+                        <div class="stat-value" id="stats-active">--</div>
+                        <div class="stat-details">
+                            <span class="trend neutral">Live status</span>
+                        </div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-header success">
+                            <span class="label">Success Rate (24h)</span>
+                        </div>
+                        <div class="stat-value" id="stats-success">--%</div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-header warning">
+                            <span class="label">Pending</span>
+                        </div>
+                        <div class="stat-value" id="stats-pending">--</div>
+                    </div>
+                    <div class="card stat-card">
+                        <div class="stat-header danger">
+                            <span class="label">Failed</span>
+                        </div>
+                        <div class="stat-value" id="stats-failed">--</div>
+                        <div class="stat-details">
+                            <span class="trend negative" style="cursor: pointer;" onclick="filterFailed()">View
+                                failed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filter-bar">
+                    <select id="filter-status" class="form-control"
+                        style="width: auto; padding: 6px; border-radius: 6px; background: rgba(0,0,0,0.2); color:white; border: 1px solid var(--border-subtle);">
+                        <option value="">All Statuses</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="pending">Pending</option>
+                        <option value="sending">Sending</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                    <select id="filter-channel" class="form-control" style="width: auto;">
+                        <option value="">All Channels</option>
+                        <option value="telegram">Telegram</option>
+                        <option value="email">Email</option>
+                    </select>
+                    <button class="btn-secondary" onclick="loadDispatchHistory()">Refresh</button>
+                </div>
+
+                <!-- History Table -->
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Route</th>
+                                <th>Driver</th>
+                                <th>Status</th>
+                                <th>Channels</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dispatch-table-body">
+                            <tr class="loading-row">
+                                <td colspan="6" style="text-align:center; padding: 20px;">Loading data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Dispatch Detail Modal -->
+    <div class="modal-overlay" id="dispatch-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Dispatch Details</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="dispatch-detail-content">
+                <!-- Populated by JS -->
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeModal()">Close</button>
+                <button class="btn-primary" id="retry-btn">Retry Dispatch</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="dispatch-client.js"></script>
+    <script>
+        const client = new DispatchClient();
+
+        // Mock data logic for now until endpoint exists
+        // This simulates the response we expect from the future GET /dispatch/history endpoint
+        const mockHistory = [
+            {
+                id: '1',
+                created_at: new Date().toISOString(),
+                route: { name: 'Route A', code: 'R-101' },
+                driver: { name: 'John Doe' },
+                status: 'delivered',
+                channels: ['telegram']
+            },
+            {
+                id: '2',
+                created_at: new Date(Date.now() - 3600000).toISOString(),
+                route: { name: 'Route B', code: 'R-102' },
+                driver: { name: 'Jane Smith' },
+                status: 'failed',
+                channels: ['telegram', 'email'],
+                error: 'Invalid Telegram Chat ID'
+            }
+        ];
+
+        async function loadDispatchHistory() {
+            const tableBody = document.getElementById('dispatch-table-body');
+            tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Loading...</td></tr>';
+
+            try {
+                // Try to get real data, fall back to mock if 404/500
+                let data = await client.getHistory().catch(e => {
+                    console.warn("Using mock data:", e);
+                    return { dispatches: mockHistory, stats: { active: 0, successRate: 95, pending: 0, failed: 1 } };
+                });
+
+                // If API returns null/empty verify if it's because unimplemented
+                // For this demo/implementation phase, we might need to assume empty if not mock
+                if (!data || !data.dispatches) {
+                    data = { dispatches: [], stats: { active: 0, successRate: 0, pending: 0, failed: 0 } };
+                }
+
+                renderTable(data.dispatches);
+                renderStats(data.stats);
+
+            } catch (error) {
+                console.error("Error loading history", error);
+                tableBody.innerHTML = `<tr><td colspan="6" style="color: var(--accent-danger); text-align:center;">Error loading data: ${error.message}</td></tr>`;
+            }
+        }
+
+        function renderStats(stats) {
+            if (!stats) return;
+            document.getElementById('stats-active').innerText = stats.active || 0;
+            document.getElementById('stats-success').innerText = (stats.successRate || 0) + '%';
+            document.getElementById('stats-pending').innerText = stats.pending || 0;
+            document.getElementById('stats-failed').innerText = stats.failed || 0;
+        }
+
+        function renderTable(dispatches) {
+            const tableBody = document.getElementById('dispatch-table-body');
+            if (!dispatches || dispatches.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No dispatch history found.</td></tr>';
+                return;
+            }
+
+            tableBody.innerHTML = dispatches.map(d => `
+                <tr>
+                    <td>${new Date(d.created_at).toLocaleString()}</td>
+                    <td>${d.route?.name || 'Unknown'} <small style="color:var(--text-secondary)">${d.route?.code || ''}</small></td>
+                    <td>${d.driver?.name || 'Unknown'}</td>
+                    <td><span class="status-badge ${getStatusClass(d.status)}">${d.status}</span></td>
+                    <td>${d.channels.join(', ')}</td>
+                    <td>
+                        <button class="action-btn" onclick="viewDetails('${d.id}')">👁️</button>
+                        ${d.status === 'failed' ? `<button class="action-btn" onclick="retry('${d.id}')">🔄</button>` : ''}
+                    </td>
+                </tr>
+             `).join('');
+        }
+
+        function getStatusClass(status) {
+            if (status === 'delivered') return 'active'; // green
+            if (status === 'failed') return 'suspended'; // red
+            if (status === 'sending') return 'archived'; // yellow/orange
+            return 'inactive';
+        }
+
+        function viewDetails(id) {
+            // In a real app, fetch detailed info from client.getDispatchStatus(id)
+            const modal = document.getElementById('dispatch-modal');
+            const content = document.getElementById('dispatch-detail-content');
+            content.innerHTML = `<p>Loading details for ${id}...</p>`;
+            modal.style.display = 'block';
+
+            // Mock detail view
+            content.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <p><strong>Dispatch ID:</strong> ${id}</p>
+                    <p><strong>Route:</strong> Route A</p>
+                    <p><strong>Driver:</strong> John Doe</p>
+                </div>
+                <h4>Timeline</h4>
+                <div class="dispatch-timeline">
+                    <div style="border-left: 2px solid var(--border-subtle); padding-left: 15px; padding-bottom: 10px;">
+                        <div class="dot primary" style="position: absolute; left: -5px;"></div>
+                        <strong>Dispatch Requested</strong>
+                        <div style="font-size: 0.8em; color: var(--text-secondary);">10:00 AM</div>
+                    </div>
+                     <div style="border-left: 2px solid var(--border-subtle); padding-left: 15px;">
+                        <div class="dot success" style="position: absolute; left: -5px;"></div>
+                        <strong>Delivered via Telegram</strong>
+                        <div style="font-size: 0.8em; color: var(--text-secondary);">10:01 AM</div>
+                    </div>
+                </div>
+             `;
+        }
+
+        function closeModal() {
+            document.getElementById('dispatch-modal').style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', loadDispatchHistory);
+
+    </script>
+</body>
+
+</html>

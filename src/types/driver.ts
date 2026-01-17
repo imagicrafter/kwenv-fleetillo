@@ -9,6 +9,9 @@ import type { ID, Timestamps } from './index.js';
  */
 export type DriverStatus = 'active' | 'inactive' | 'on_leave' | 'terminated';
 
+export type DispatchChannel = 'telegram' | 'email';
+
+
 /**
  * Driver entity representing a driver in the system
  */
@@ -19,6 +22,11 @@ export interface Driver extends Timestamps {
   phoneNumber?: string;
   email?: string;
   telegramChatId?: string;
+
+  // Dispatch Preferences
+  preferredChannel?: DispatchChannel;
+  fallbackEnabled?: boolean;
+
 
   // License information
   licenseNumber?: string;
@@ -53,7 +61,11 @@ export interface DriverRow {
   last_name: string;
   phone_number: string | null;
   email: string | null;
+
   telegram_chat_id: string | null;
+  preferred_channel: string | null;
+  fallback_enabled: boolean | null;
+
   license_number: string | null;
   license_expiry: string | null;
   license_class: string | null;
@@ -79,6 +91,9 @@ export interface CreateDriverInput {
   phoneNumber?: string;
   email?: string;
   telegramChatId?: string;
+  preferredChannel?: DispatchChannel;
+  fallbackEnabled?: boolean;
+
   licenseNumber?: string;
   licenseExpiry?: Date | string;
   licenseClass?: string;
@@ -117,7 +132,11 @@ export function rowToDriver(row: DriverRow): Driver {
     lastName: row.last_name,
     phoneNumber: row.phone_number ?? undefined,
     email: row.email ?? undefined,
+
     telegramChatId: row.telegram_chat_id ?? undefined,
+    preferredChannel: (row.preferred_channel as DispatchChannel) ?? 'telegram',
+    fallbackEnabled: row.fallback_enabled ?? true,
+
     licenseNumber: row.license_number ?? undefined,
     licenseExpiry: row.license_expiry ? new Date(row.license_expiry) : undefined,
     licenseClass: row.license_class ?? undefined,
@@ -160,7 +179,11 @@ export function driverInputToRow(input: CreateDriverInput): Partial<DriverRow> {
     last_name: input.lastName,
     phone_number: input.phoneNumber ?? null,
     email: input.email ?? null,
+
     telegram_chat_id: input.telegramChatId ?? null,
+    preferred_channel: input.preferredChannel ?? 'telegram',
+    fallback_enabled: input.fallbackEnabled ?? true,
+
     license_number: input.licenseNumber ?? null,
     license_expiry: formatDateForDb(input.licenseExpiry),
     license_class: input.licenseClass ?? null,
