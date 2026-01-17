@@ -6,8 +6,13 @@ The Dispatch Service provides REST APIs for sending route assignments to drivers
 
 ## Base URL
 
-- **Production:** `https://your-app-url` (internal service on port 3001)
+- **Production (Embedded):** `https://optiroute.imagicrafterai.com/dispatch`
+- **Production (Standalone):** `https://your-dispatch-service-url`
 - **Local Development:** `http://localhost:3001`
+
+In embedded mode, all endpoints are prefixed with `/dispatch`. For example:
+- Health: `GET /dispatch/api/v1/health`
+- Dispatch: `POST /dispatch/api/v1/dispatch`
 
 ## Authentication
 
@@ -323,17 +328,16 @@ Check the health status of the dispatch service and its dependencies.
 ```json
 {
   "status": "healthy",
-  "timestamp": "2026-01-16T10:30:00Z",
-  "checks": {
+  "timestamp": "2026-01-17T05:08:42.712Z",
+  "components": {
     "database": {
-      "status": "up",
-      "latencyMs": 45
+      "status": "healthy"
     },
     "telegram": {
-      "status": "up"
+      "status": "healthy"
     },
     "email": {
-      "status": "up"
+      "status": "healthy"
     }
   }
 }
@@ -342,17 +346,19 @@ Check the health status of the dispatch service and its dependencies.
 **Response (503 Service Unavailable):**
 ```json
 {
-  "status": "unhealthy",
-  "timestamp": "2026-01-16T10:30:00Z",
-  "checks": {
+  "status": "degraded",
+  "timestamp": "2026-01-17T04:54:53.801Z",
+  "components": {
     "database": {
-      "status": "down"
+      "status": "healthy"
     },
     "telegram": {
-      "status": "unconfigured"
+      "status": "degraded",
+      "error": "Telegram bot token is not configured"
     },
     "email": {
-      "status": "up"
+      "status": "degraded",
+      "error": "Email provider is not configured"
     }
   }
 }
@@ -363,24 +369,187 @@ Check the health status of the dispatch service and its dependencies.
 - `degraded` - Some non-critical dependencies unavailable
 - `unhealthy` - Critical dependencies unavailable
 
-**Check Status Values:**
-- `up` - Service available
-- `down` - Service unavailable
-- `unconfigured` - Service not configured (missing credentials)
+**Component Status Values:**
+- `healthy` - Service available and configured
+- `degraded` - Service not configured or unavailable (includes error message)
 
 **Example Usage:**
 ```javascript
 async function checkServiceHealth() {
-  const response = await fetch('http://localhost:3001/api/v1/health');
+  const response = await fetch('/dispatch/api/v1/health');
   const health = await response.json();
-  
+
   if (health.status !== 'healthy') {
     console.warn('Dispatch service is not healthy:', health);
   }
-  
+
   return health;
 }
 ```
+
+---
+
+### 5. Telegram Registration Link
+
+Generate a Telegram registration link and QR code for a driver.
+
+**Endpoint:** `GET /api/v1/telegram/registration/:driverId`
+
+**Parameters:**
+- `driverId` - Driver UUID (path parameter)
+
+**Response (200 OK):**
+```json
+{
+  "driverId": "3d219b3d-986b-47c1-a065-462f91d50fa4",
+  "driverName": "Test Driver",
+  "registrationLink": "https://t.me/route_dispatch_bot?start=3d219b3d-986b-47c1-a065-462f91d50fa4",
+  "qrCodeUrl": "https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=...",
+  "alreadyRegistered": false
+}
+```
+
+**Error Responses:**
+
+**404 Not Found** - Driver not found:
+```json
+{
+  "error": {
+    "code": "DRIVER_NOT_FOUND",
+    "message": "Driver not found"
+  },
+  "requestId": "correlation-id"
+}
+```
+
+**503 Service Unavailable** - Telegram not configured:
+```json
+{
+  "error": {
+    "code": "TELEGRAM_NOT_CONFIGURED",
+    "message": "Telegram bot is not configured"
+  },
+  "requestId": "correlation-id"
+}
+```
+
+**Example Usage:**
+```javascript
+async function getDriverRegistrationLink(driverId) {
+  const response = await fetch(`/dispatch/api/v1/telegram/registration/${driverId}`, {
+    headers: { 'X-API-Key': 'your-api-key' }
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error.message);
+  }
+
+  return await response.json();
+}
+```
+
+---
+
+### 6. Send Registration Email
+
+Send an email to a driver with their Telegram registration link and QR code.
+
+**Endpoint:** `POST /api/v1/telegram/send-registration`
+
+**Request Body:**
+```json
+{
+  "driverId": "uuid",           // Required: Driver UUID
+  "customMessage": "string"     // Optional: Custom message to include
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Registration email sent successfully",
+  "driverId": "3d219b3d-986b-47c1-a065-462f91d50fa4",
+  "email": "driver@example.com"
+}
+```
+
+**Error Responses:**
+
+**400 Bad Request** - Driver has no email:
+```json
+{
+  "error": {
+    "code": "NO_EMAIL",
+    "message": "Driver does not have an email address configured"
+  },
+  "requestId": "correlation-id"
+}
+```
+
+**404 Not Found** - Driver not found:
+```json
+{
+  "error": {
+    "code": "DRIVER_NOT_FOUND",
+    "message": "Driver not found"
+  },
+  "requestId": "correlation-id"
+}
+```
+
+**503 Service Unavailable** - Email not configured:
+```json
+{
+  "error": {
+    "code": "EMAIL_NOT_CONFIGURED",
+    "message": "Email service (resend) is not configured"
+  },
+  "requestId": "correlation-id"
+}
+```
+
+**Example Usage:**
+```javascript
+async function sendRegistrationEmail(driverId) {
+  const response = await fetch('/dispatch/api/v1/telegram/send-registration', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-API-Key': 'your-api-key'
+    },
+    body: JSON.stringify({ driverId })
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error.message);
+  }
+
+  return await response.json();
+}
+```
+
+---
+
+### 7. Telegram Webhook
+
+Receives updates from Telegram when drivers interact with the bot.
+
+**Endpoint:** `POST /api/v1/telegram/webhook`
+
+**Authentication:** None required (Telegram sends updates directly)
+
+**Note:** This endpoint is called by Telegram, not by your application. After deployment, register the webhook URL with Telegram:
+
+```bash
+curl "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=https://optiroute.imagicrafterai.com/dispatch/api/v1/telegram/webhook"
+```
+
+The webhook handles:
+- `/start <driver_id>` - Links driver's Telegram account to their driver record
+- General messages - Responds with help information
 
 ---
 
