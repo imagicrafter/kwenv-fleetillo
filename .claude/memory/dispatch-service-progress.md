@@ -2,7 +2,7 @@
 
 **Last Updated:** 2026-01-17
 **Branch:** `feature/dispatch-service`
-**Status:** Deployment in progress (embedded mode)
+**Status:** ✅ Fully deployed and operational (embedded mode)
 
 ## Overview
 
@@ -120,12 +120,20 @@ EMAIL_FROM_ADDRESS=dispatch@optiroute.imagicrafterai.com
 | `TELEGRAM_BOT_TOKEN` | Telegram bot token from BotFather |
 | `RESEND_API_KEY` | Resend API key (full access) |
 
+## Completed Tasks (2026-01-17)
+
+1. ✅ **Fixed auth bypass** - Dispatch routes now bypass session auth (use API key auth)
+2. ✅ **Set secrets in Digital Ocean** - All secrets configured and working
+3. ✅ **Set up Telegram webhook** - Webhook registered with Telegram
+4. ✅ **Fixed template path resolution** - Templates now found correctly in embedded mode
+5. ✅ **Added Resend support** - Registration emails now work with Resend provider
+6. ✅ **Fixed RLS bypass** - Dispatch service now uses service role key for DB access
+7. ✅ **Tested all APIs** - Health, registration, dispatch all working
+
 ## Remaining Tasks
 
-1. **Set secrets in Digital Ocean dashboard** - Required for deployment to work
-2. **Set up Telegram webhook** - After deployment, register webhook URL with Telegram
-3. **Test end-to-end flow** - Driver registration and dispatch
-4. **Update UI** - Add dispatch buttons to routes page
+1. **Update UI** - Add dispatch buttons to routes page
+2. **Real driver test** - Test with actual Telegram registration flow
 
 ## API Endpoints After Deployment
 
