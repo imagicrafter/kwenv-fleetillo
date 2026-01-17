@@ -54,6 +54,8 @@ export interface Route extends Timestamps {
     routeCode?: string;
     vehicleId?: ID;
     vehicleName?: string;
+    driverId?: ID;
+    driverName?: string;
     routeDate: Date;
     plannedStartTime?: string;
     plannedEndTime?: string;

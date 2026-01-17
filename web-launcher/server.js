@@ -66,6 +66,13 @@ const requireAuth = (req, res, next) => {
         return next();
     }
 
+    // Allow Telegram Webhook (public endpoint)
+    // Checks for both specific webhook path and health check
+    if (req.path.includes('/api/v1/telegram/webhook') || req.path.includes('/api/v1/health')) {
+        console.log(`[Auth] Allowing public access to: ${req.path}`);
+        return next();
+    }
+
     // Dispatch Service Auth & Proxy
     if (req.path.startsWith('/dispatch')) {
         // If authenticated via web session, allow internal access to dispatch service

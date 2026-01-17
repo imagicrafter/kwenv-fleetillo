@@ -245,12 +245,12 @@ async function getRoutes(filters, pagination) {
         }
         const routes = data.map(route_js_1.rowToRoute);
         const total = count ?? 0;
-        // Fetch vehicle names for routes that have a vehicleId
+        // Fetch vehicle names and assigned driver IDs for routes that have a vehicleId
         const vehicleIds = [...new Set(routes.filter(r => r.vehicleId).map(r => r.vehicleId))];
         if (vehicleIds.length > 0) {
             const { data: vehiclesData } = await supabase
                 .from('vehicles')
-                .select('id, name')
+                .select('id, name, assigned_driver_id')
                 .in('id', vehicleIds);
             if (vehiclesData) {
                 const vehicleMap = new Map(vehiclesData.map(v => [v.id, v]));
@@ -259,6 +259,7 @@ async function getRoutes(filters, pagination) {
                         const vehicle = vehicleMap.get(route.vehicleId);
                         if (vehicle) {
                             route.vehicleName = vehicle.name;
+                            route.driverId = vehicle.assigned_driver_id ?? undefined;
                         }
                     }
                 });

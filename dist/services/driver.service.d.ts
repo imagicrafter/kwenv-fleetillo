@@ -36,7 +36,7 @@ export declare function createDriver(input: CreateDriverInput): Promise<Result<D
 export declare function getDriverById(id: string): Promise<Result<Driver>>;
 /**
  * Gets all drivers with optional filtering and pagination
- * Includes LEFT JOIN with vehicles to get assigned vehicle info
+ * Uses a separate query to get vehicle assignments for robustness
  */
 export declare function getDrivers(filters?: DriverFilters, pagination?: PaginationParams): Promise<Result<PaginatedResponse<Driver>>>;
 /**

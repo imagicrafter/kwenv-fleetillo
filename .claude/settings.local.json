@@ -10,7 +10,19 @@
       "Bash(git reset:*)",
       "Bash(git commit:*)",
       "Bash(wc:*)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(git merge:*)",
+      "Bash(npm run build:*)",
+      "Bash(python3:*)",
+      "Bash(doctl apps update:*)",
+      "Bash(doctl apps get-deployment:*)",
+      "Bash(doctl apps list-deployments:*)",
+      "Bash(chmod:*)",
+      "Bash(doctl apps list:*)",
+      "Bash(doctl apps get:*)",
+      "Bash(doctl apps spec get:*)",
+      "Bash(doctl apps logs:*)",
+      "Bash(doctl apps create-deployment:*)"
     ]
   }
 }

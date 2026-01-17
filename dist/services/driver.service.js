@@ -178,19 +178,16 @@ async function getDriverById(id) {
 }
 /**
  * Gets all drivers with optional filtering and pagination
- * Includes LEFT JOIN with vehicles to get assigned vehicle info
+ * Uses a separate query to get vehicle assignments for robustness
  */
 async function getDrivers(filters, pagination) {
     logger.debug('Getting drivers', { filters, pagination });
     try {
         const supabase = getClient();
-        // Use a raw query with LEFT JOIN to get vehicle info
+        // First, query drivers without the FK join (more robust)
         let query = supabase
             .from(DRIVERS_TABLE)
-            .select(`
-        *,
-        vehicles!fk_vehicles_driver(id)
-      `, { count: 'exact' });
+            .select('*', { count: 'exact' });
         // Apply filters
         if (!filters?.includeDeleted) {
             query = query.is('deleted_at', null);
@@ -219,15 +216,46 @@ async function getDrivers(filters, pagination) {
                 error: new DriverServiceError(`Failed to get drivers: ${error.message}`, exports.DriverErrorCodes.QUERY_FAILED, error),
             };
         }
-        // Convert rows to Driver objects and add assignedVehicleId
-        const drivers = data.map((row) => {
-            const driver = (0, driver_js_1.rowToDriver)(row);
-            // Add assignedVehicleId from the joined vehicles data
-            if (row.vehicles && Array.isArray(row.vehicles) && row.vehicles.length > 0) {
-                driver.assignedVehicleId = row.vehicles[0].id;
+        // Convert rows to Driver objects
+        const drivers = data.map(driver_js_1.rowToDriver);
+        const driverIds = drivers.map(d => d.id);
+        // Fetch vehicle assignments separately (more robust than FK join)
+        if (driverIds.length > 0) {
+            const { data: vehicleData, error: vehicleError } = await supabase
+                .from('vehicles')
+                .select('id, assigned_driver_id')
+                .in('assigned_driver_id', driverIds)
+                .is('deleted_at', null);
+            if (vehicleError) {
+                logger.warn('Failed to fetch vehicle assignments, continuing without', { error: vehicleError.message });
             }
-            return driver;
-        });
+            else if (vehicleData && vehicleData.length > 0) {
+                // Build a map of driver ID -> vehicle ID
+                const driverToVehicleMap = new Map();
+                for (const vehicle of vehicleData) {
+                    if (vehicle.assigned_driver_id) {
+                        driverToVehicleMap.set(vehicle.assigned_driver_id, vehicle.id);
+                    }
+                }
+                // Assign vehicle IDs to drivers
+                for (const driver of drivers) {
+                    const vehicleId = driverToVehicleMap.get(driver.id);
+                    if (vehicleId) {
+                        driver.assignedVehicleId = vehicleId;
+                        logger.debug('Driver has assigned vehicle', {
+                            driverId: driver.id,
+                            driverName: `${driver.firstName} ${driver.lastName}`,
+                            vehicleId: driver.assignedVehicleId
+                        });
+                    }
+                }
+                logger.debug('Mapped vehicle assignments', {
+                    totalDrivers: drivers.length,
+                    driversWithVehicles: driverToVehicleMap.size,
+                    vehicleAssignments: Array.from(driverToVehicleMap.entries())
+                });
+            }
+        }
         const total = count ?? 0;
         return {
             success: true,

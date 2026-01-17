@@ -6,6 +6,7 @@ import type { ID, Timestamps } from './index.js';
  * Driver status options
  */
 export type DriverStatus = 'active' | 'inactive' | 'on_leave' | 'terminated';
+export type DispatchChannel = 'telegram' | 'email';
 /**
  * Driver entity representing a driver in the system
  */
@@ -16,6 +17,8 @@ export interface Driver extends Timestamps {
     phoneNumber?: string;
     email?: string;
     telegramChatId?: string;
+    preferredChannel?: DispatchChannel;
+    fallbackEnabled?: boolean;
     licenseNumber?: string;
     licenseExpiry?: Date;
     licenseClass?: string;
@@ -38,6 +41,8 @@ export interface DriverRow {
     phone_number: string | null;
     email: string | null;
     telegram_chat_id: string | null;
+    preferred_channel: string | null;
+    fallback_enabled: boolean | null;
     license_number: string | null;
     license_expiry: string | null;
     license_class: string | null;
@@ -62,6 +67,8 @@ export interface CreateDriverInput {
     phoneNumber?: string;
     email?: string;
     telegramChatId?: string;
+    preferredChannel?: DispatchChannel;
+    fallbackEnabled?: boolean;
     licenseNumber?: string;
     licenseExpiry?: Date | string;
     licenseClass?: string;
