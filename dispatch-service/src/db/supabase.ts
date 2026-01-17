@@ -32,18 +32,22 @@ interface SupabaseConfig {
 
 /**
  * Gets the Supabase configuration from environment variables
+ *
+ * For the dispatch service, we prefer the service role key to bypass RLS
+ * since this is a backend service that needs full database access.
  */
 function getConfig(): SupabaseConfig {
   const url = process.env.SUPABASE_URL;
-  const anonKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY;
-  const schema = process.env.SUPABASE_SCHEMA || 'optiroute';
+  // Prefer service role key for full RLS bypass, fallback to anon key
+  const anonKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY;
+  const schema = process.env.SUPABASE_SCHEMA || 'routeiq';
 
   if (!url) {
     throw new Error('SUPABASE_URL environment variable is required');
   }
 
   if (!anonKey) {
-    throw new Error('SUPABASE_ANON_KEY or SUPABASE_KEY environment variable is required');
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, or SUPABASE_KEY environment variable is required');
   }
 
   return { url, anonKey, schema };
