@@ -4,7 +4,7 @@ services:
 - name: web
   github:
     repo: imagicrafter/optiroute
-    branch: main
+    branch: feature/dispatch-service
     deploy_on_push: true
   source_dir: /
   build_command: npm install && npm run build && cd web-launcher && npm install
@@ -37,7 +37,7 @@ services:
 - name: dispatch
   github:
     repo: imagicrafter/optiroute
-    branch: main
+    branch: feature/dispatch-service
     deploy_on_push: true
   source_dir: /dispatch-service
   build_command: npm install && npm run build
