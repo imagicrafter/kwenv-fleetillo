@@ -9,17 +9,20 @@ OptiRoute helps service-based businesses efficiently manage their daily operatio
 - **Customer Management** - Maintain a comprehensive client database with service addresses
 - **Service Catalog** - Manage services with configurable average service times
 - **Vehicle Fleet Management** - Track vehicles with service type tagging and maintenance schedules
+- **Driver Management** - Manage drivers with license tracking and vehicle assignments
 - **Booking Scheduler** - Schedule one-time and recurring service appointments
 - **Route Optimization** - Generate optimized daily route plans using Google Routes API
 - **Address Validation** - Validate and geocode addresses using Google Maps API
+- **Dispatch Service** - Send route assignments to drivers via Telegram and Email
 
 ## Technology Stack
 
 - **Runtime:** Node.js (>= 18.0.0)
 - **Language:** TypeScript
 - **Desktop App:** Electron
+- **Web App:** Express.js
 - **Database:** Supabase (PostgreSQL)
-- **APIs:** Google Routes API, Google Maps API
+- **APIs:** Google Routes API, Google Maps API, Telegram Bot API, Resend Email API
 - **Testing:** Playwright, Jest
 
 ## Prerequisites
@@ -168,6 +171,23 @@ optiroute/
 │   │   ├── preload.js      # Preload script for IPC
 │   │   └── ui/             # HTML/CSS frontend files
 │   └── package.json
+├── web-launcher/            # Web application server
+│   ├── server.js           # Express server with RPC API
+│   ├── dispatch-integration.js  # Embedded dispatch service
+│   └── public/             # Static frontend files
+├── dispatch-service/        # Dispatch microservice
+│   ├── src/
+│   │   ├── api/            # REST API handlers
+│   │   ├── adapters/       # Telegram & Email adapters
+│   │   ├── core/           # Orchestrator & templates
+│   │   └── db/             # Database repositories
+│   ├── templates/          # Message templates
+│   └── API.md              # API documentation
+├── deploy/                  # Deployment configuration
+│   ├── config.yaml         # Deployment settings
+│   ├── do-app-spec.embedded.yaml   # Single service spec
+│   ├── do-app-spec.standalone.yaml # Two service spec
+│   └── deploy.sh           # Unified deployment script
 ├── src/
 │   ├── controllers/        # Route controllers
 │   ├── errors/             # Error handling utilities
@@ -236,27 +256,96 @@ npm run test:coverage
 - Check API key restrictions in Google Cloud Console
 
 ## Deployment
- 
- ### Digital Ocean App Platform
- 
- This repository includes a `do-app-spec.yaml` file for easy deployment to Digital Ocean App Platform.
- 
- 1. **Install `doctl`**: Ensure you have the Digital Ocean setup and authenticated.
- 2. **Create App**: Run the following command to create and deploy the app:
-    ```bash
-    doctl apps create --spec do-app-spec.yaml
-    ```
- 3. **Environment Variables**: The `do-app-spec.yaml` contains placeholder or initial environment variables. **IMPORTANT:** You should update these values in the Digital Ocean dashboard after deployment, especially secrets like `SUPABASE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `GOOGLE_MAPS_API_KEY`.
- 
- The generic build command used is:
- ```bash
- npm install && npm run build && cd web-launcher && npm install
- ```
- And the run command:
- ```bash
- node web-launcher/server.js
- ```
- 
- ## License
+
+### Digital Ocean App Platform
+
+The `deploy/` directory contains configuration for flexible deployment to Digital Ocean App Platform.
+
+#### Deployment Modes
+
+| Mode | Description | Use Case |
+|------|-------------|----------|
+| `embedded` | Single service with dispatch built into web-launcher | Demos, development, low-traffic |
+| `standalone` | Separate web and dispatch services | Production, high-traffic, scalable |
+
+#### Quick Deploy
+
+```bash
+# Deploy in embedded mode (single service)
+./deploy/deploy.sh embedded
+
+# Deploy in standalone mode (two services)
+./deploy/deploy.sh standalone
+
+# Preview without deploying
+./deploy/deploy.sh --dry-run embedded
+```
+
+#### Manual Deploy
+
+1. **Install `doctl`**: Ensure you have the Digital Ocean CLI setup and authenticated.
+
+2. **Create App**:
+   ```bash
+   # For embedded mode
+   doctl apps create --spec deploy/do-app-spec.embedded.yaml
+
+   # For standalone mode
+   doctl apps create --spec deploy/do-app-spec.standalone.yaml
+   ```
+
+3. **Set Secrets**: After deployment, set the following secrets in the Digital Ocean dashboard:
+   - `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key
+   - `GOOGLE_MAPS_API_KEY` - Google Maps API key
+   - `DISPATCH_API_KEYS` - API key for dispatch service authentication
+   - `TELEGRAM_BOT_TOKEN` - Telegram bot token (from @BotFather)
+   - `RESEND_API_KEY` - Resend email API key
+
+#### Build Commands
+
+**Embedded mode:**
+```bash
+npm install && npm run build && cd web-launcher && npm install && cd ../dispatch-service && npm install && npm run build
+```
+
+**Run command:**
+```bash
+node web-launcher/server.js
+```
+
+## Dispatch Service
+
+The dispatch service enables sending route assignments to drivers via Telegram and Email.
+
+### Features
+
+- **Telegram Integration** - Drivers receive route assignments via Telegram bot
+- **Email Notifications** - Fallback email delivery via Resend or SendGrid
+- **Driver Registration** - QR code-based Telegram registration flow
+- **Multi-channel Dispatch** - Send via preferred channel with fallback support
+
+### API Endpoints
+
+When running in embedded mode, dispatch endpoints are available at `/dispatch/api/v1/...`:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/dispatch/api/v1/health` | GET | Health check |
+| `/dispatch/api/v1/dispatch` | POST | Send route dispatch |
+| `/dispatch/api/v1/dispatch/:id` | GET | Get dispatch status |
+| `/dispatch/api/v1/telegram/webhook` | POST | Telegram webhook |
+| `/dispatch/api/v1/telegram/registration/:driverId` | GET | Get registration link |
+| `/dispatch/api/v1/telegram/send-registration` | POST | Email registration link |
+
+### Telegram Bot Setup
+
+1. Create a bot via [@BotFather](https://t.me/botfather) on Telegram
+2. Save the bot token
+3. Set `TELEGRAM_BOT_TOKEN` environment variable
+4. After deployment, the webhook is automatically configured
+
+For detailed API documentation, see `dispatch-service/API.md`.
+
+## License
 
 MIT
