@@ -79,14 +79,16 @@ export class TemplateEngine {
   private handlebars: typeof Handlebars;
 
   constructor(templatesDir?: string) {
-    // Default to templates folder relative to project root
+    // Default to templates folder relative to dispatch-service
     if (templatesDir) {
       this.templatesDir = templatesDir;
     } else {
-      // Use process.cwd() as a reliable way to find the project root
-      // This works in both ESM and CommonJS environments
-      // The templates folder is at the project root level
-      this.templatesDir = path.resolve(process.cwd(), 'templates');
+      // Use import.meta.url to get the path relative to this module
+      // This works in ESM environments and is more reliable than process.cwd()
+      // In embedded mode, process.cwd() may be the web-launcher directory
+      const moduleDir = new URL('.', import.meta.url).pathname;
+      // Templates are at dispatch-service/templates, this file is at dispatch-service/src/core/
+      this.templatesDir = path.resolve(moduleDir, '../../templates');
     }
 
     // Create a new Handlebars instance with custom configuration
