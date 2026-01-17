@@ -53,6 +53,11 @@ const requireAuth = (req, res, next) => {
         return next();
     }
 
+    // Allow dispatch service routes (uses its own API key auth)
+    if (req.path.startsWith('/dispatch')) {
+        return next();
+    }
+
     if (req.session && req.session.authenticated) {
         return next();
     }
