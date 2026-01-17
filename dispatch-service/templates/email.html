@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Route Assignment - {{route.name}}</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      background-color: #ffffff;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      text-align: center;
+      border-bottom: 2px solid #4CAF50;
+      padding-bottom: 20px;
+      margin-bottom: 20px;
+    }
+    .header h1 {
+      color: #4CAF50;
+      margin: 0;
+      font-size: 24px;
+    }
+    .greeting {
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+    .route-info {
+      background-color: #f9f9f9;
+      border-radius: 6px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .route-info h2 {
+      color: #333;
+      margin-top: 0;
+      font-size: 18px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    .info-label {
+      font-weight: 600;
+      color: #666;
+    }
+    .info-value {
+      color: #333;
+    }
+    .vehicle-info {
+      background-color: #e3f2fd;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .vehicle-info h3 {
+      margin-top: 0;
+      color: #1976D2;
+      font-size: 16px;
+    }
+    .bookings-section h2 {
+      color: #333;
+      font-size: 18px;
+      border-bottom: 2px solid #4CAF50;
+      padding-bottom: 10px;
+    }
+    .booking-card {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-left: 4px solid #4CAF50;
+    }
+    .booking-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .stop-number {
+      background-color: #4CAF50;
+      color: white;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 14px;
+    }
+    .client-name {
+      font-weight: 600;
+      font-size: 16px;
+      color: #333;
+    }
+    .booking-details {
+      color: #666;
+      font-size: 14px;
+    }
+    .booking-details p {
+      margin: 5px 0;
+    }
+    .booking-details .icon {
+      margin-right: 8px;
+    }
+    .special-instructions {
+      background-color: #fff3e0;
+      border-radius: 4px;
+      padding: 10px;
+      margin-top: 10px;
+      font-style: italic;
+      color: #e65100;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #ddd;
+      color: #999;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🚚 Route Assignment</h1>
+    </div>
+
+    <div class="greeting">
+      Hello <strong>{{driver.fullName}}</strong>,
+    </div>
+
+    <p>You have been assigned a new route. Please review the details below:</p>
+
+    <div class="route-info">
+      <h2>📋 Route Details</h2>
+      <div class="info-row">
+        <span class="info-label">Route Name:</span>
+        <span class="info-value">{{route.name}}</span>
+      </div>
+      {{#if route.code}}
+      <div class="info-row">
+        <span class="info-label">Route Code:</span>
+        <span class="info-value">{{route.code}}</span>
+      </div>
+      {{/if}}
+      <div class="info-row">
+        <span class="info-label">Date:</span>
+        <span class="info-value">{{route.date}}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Start Time:</span>
+        <span class="info-value">{{route.plannedStartTime}}</span>
+      </div>
+      {{#if route.plannedEndTime}}
+      <div class="info-row">
+        <span class="info-label">End Time:</span>
+        <span class="info-value">{{route.plannedEndTime}}</span>
+      </div>
+      {{/if}}
+      <div class="info-row">
+        <span class="info-label">Total Stops:</span>
+        <span class="info-value">{{route.totalStops}}</span>
+      </div>
+      {{#if route.totalDistanceKm}}
+      <div class="info-row">
+        <span class="info-label">Total Distance:</span>
+        <span class="info-value">{{route.totalDistanceKm}} km</span>
+      </div>
+      {{/if}}
+      {{#if route.totalDurationMinutes}}
+      <div class="info-row">
+        <span class="info-label">Estimated Duration:</span>
+        <span class="info-value">{{route.totalDurationMinutes}} minutes</span>
+      </div>
+      {{/if}}
+    </div>
+
+    {{#if vehicle}}
+    <div class="vehicle-info">
+      <h3>🚗 Vehicle Information</h3>
+      <div class="info-row">
+        <span class="info-label">Vehicle:</span>
+        <span class="info-value">{{vehicle.name}}</span>
+      </div>
+      {{#if vehicle.licensePlate}}
+      <div class="info-row">
+        <span class="info-label">License Plate:</span>
+        <span class="info-value">{{vehicle.licensePlate}}</span>
+      </div>
+      {{/if}}
+      {{#if vehicle.make}}
+      <div class="info-row">
+        <span class="info-label">Make/Model:</span>
+        <span class="info-value">{{vehicle.make}} {{vehicle.model}}</span>
+      </div>
+      {{/if}}
+    </div>
+    {{/if}}
+
+    <div class="bookings-section">
+      <h2>📍 Stops ({{route.totalStops}})</h2>
+
+      {{#each bookings}}
+      <div class="booking-card">
+        <div class="booking-header">
+          <span class="stop-number">{{stopNumber}}</span>
+          <span class="client-name">{{clientName}}</span>
+        </div>
+        <div class="booking-details">
+          <p><span class="icon">📍</span> {{address}}</p>
+          {{#if scheduledTime}}
+          <p><span class="icon">⏰</span> Scheduled: {{scheduledTime}}</p>
+          {{/if}}
+          {{#if services}}
+          <p><span class="icon">📦</span> Services: {{services}}</p>
+          {{/if}}
+          {{#if specialInstructions}}
+          <div class="special-instructions">
+            <span class="icon">⚠️</span> {{specialInstructions}}
+          </div>
+          {{/if}}
+        </div>
+      </div>
+      {{/each}}
+    </div>
+
+    <div class="footer">
+      <p>This route was dispatched on {{dispatchedAt}}</p>
+      <p>OptiRoute Dispatch Service</p>
+    </div>
+  </div>
+</body>
+</html>

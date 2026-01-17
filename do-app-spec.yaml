@@ -32,6 +32,71 @@ services:
   - key: SESSION_SECRET
     value: ***REMOVED_SESSION_SECRET***
     scope: RUN_TIME
+
+# Dispatch Service - Route assignment notifications via Telegram and Email
+- name: dispatch
+  github:
+    repo: imagicrafter/optiroute
+    branch: main
+    deploy_on_push: true
+  source_dir: /dispatch-service
+  build_command: npm install && npm run build
+  run_command: npm start
+  http_port: 3001
+  instance_size_slug: apps-s-1vcpu-0.5gb
+  instance_count: 1
+  envs:
+  # Shared Supabase configuration (same database as main app)
+  - key: SUPABASE_URL
+    value: https://vtaufnxworztolfdwlll.supabase.co
+    scope: RUN_TIME
+  - key: SUPABASE_SERVICE_KEY
+    value: ***REMOVED_SUPABASE_SECRET***
+    scope: RUN_TIME
+  - key: SUPABASE_SCHEMA
+    value: routeiq
+    scope: RUN_TIME
+  # Dispatch service port
+  - key: PORT
+    value: "3001"
+    scope: RUN_TIME
+  # API authentication keys (comma-separated for multiple clients)
+  - key: DISPATCH_API_KEYS
+    type: SECRET
+    scope: RUN_TIME
+  # Telegram adapter configuration
+  - key: TELEGRAM_BOT_TOKEN
+    type: SECRET
+    scope: RUN_TIME
+  # Email adapter configuration (Resend)
+  - key: EMAIL_PROVIDER
+    value: resend
+    scope: RUN_TIME
+  - key: RESEND_API_KEY
+    type: SECRET
+    scope: RUN_TIME
+  - key: EMAIL_FROM_ADDRESS
+    value: dispatch@optiroute.imagicrafterai.com
+    scope: RUN_TIME
+  - key: EMAIL_FROM_NAME
+    value: OptiRoute Dispatch
+    scope: RUN_TIME
+  # Node environment
+  - key: NODE_ENV
+    value: production
+    scope: RUN_TIME
+  # Health check configuration
+  health_check:
+    http_path: /api/v1/health
+    initial_delay_seconds: 10
+    period_seconds: 30
+    timeout_seconds: 5
+    success_threshold: 1
+    failure_threshold: 3
+  # Internal routing - dispatch service is accessed internally by the main app
+  internal_ports:
+  - 3001
+
 domains:
 - domain: optiroute.imagicrafterai.com
   type: PRIMARY
