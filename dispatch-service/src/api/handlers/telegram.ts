@@ -442,16 +442,19 @@ export function createSendRegistrationEmailHandler() {
     const qrCodeUrl = `https://chart.googleapis.com/chart?cht=qr&chs=300x300&chl=${encodeURIComponent(registrationLink)}&choe=UTF-8`;
 
     // Send email using the email adapter
-    const emailProvider = process.env.EMAIL_PROVIDER;
+    const emailProvider = process.env.EMAIL_PROVIDER?.toLowerCase() || 'sendgrid';
+    const resendKey = process.env.RESEND_API_KEY;
     const sendgridKey = process.env.SENDGRID_API_KEY || process.env.EMAIL_API_KEY;
     const fromAddress = process.env.EMAIL_FROM_ADDRESS || 'dispatch@optiroute.com';
     const fromName = process.env.EMAIL_FROM_NAME || 'OptiRoute Dispatch';
 
-    if (!sendgridKey) {
+    // Check if the appropriate email provider is configured
+    const apiKey = emailProvider === 'resend' ? resendKey : sendgridKey;
+    if (!apiKey) {
       res.status(503).json({
         error: {
           code: 'EMAIL_NOT_CONFIGURED',
-          message: 'Email service is not configured',
+          message: `Email service (${emailProvider}) is not configured`,
         },
         requestId: req.correlationId,
       });
@@ -464,8 +467,29 @@ export function createSendRegistrationEmailHandler() {
     const textContent = buildRegistrationEmailText(driverName, registrationLink, customMessage);
 
     try {
-      // Send via SendGrid
-      if (emailProvider === 'sendgrid' || !emailProvider) {
+      if (emailProvider === 'resend') {
+        // Send via Resend
+        const response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: `${fromName} <${fromAddress}>`,
+            to: [driverEmail],
+            subject: 'Register Your Telegram for Route Dispatches - OptiRoute',
+            html: htmlContent,
+            text: textContent,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json() as { message?: string };
+          throw new Error(`Resend API error: ${errorData.message || response.statusText}`);
+        }
+      } else {
+        // Send via SendGrid (default)
         const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
           method: 'POST',
           headers: {
@@ -493,6 +517,7 @@ export function createSendRegistrationEmailHandler() {
         driverId,
         driverName,
         email: driverEmail,
+        provider: emailProvider,
       });
 
       res.status(200).json({
@@ -506,6 +531,7 @@ export function createSendRegistrationEmailHandler() {
       logger.error('Failed to send registration email', {
         driverId,
         email: driverEmail,
+        provider: emailProvider,
         error: error instanceof Error ? error.message : 'Unknown error',
       });
 
