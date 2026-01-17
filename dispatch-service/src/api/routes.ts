@@ -18,6 +18,8 @@ import {
   createDispatchHandler,
   createBatchDispatchHandler,
   createGetDispatchHandler,
+  createListDispatchesHandler,
+  createGetDispatchStatsHandler,
 } from './handlers/dispatch.js';
 import {
   createTelegramWebhookHandler,
@@ -86,9 +88,26 @@ export function createApiRouter(dependencies: RouterDependencies): Router {
    *
    * @requirements 2.1 - Process batch dispatch items and return results
    * @requirements 9.1, 9.2, 9.3 - API key authentication
-   */
-  const batchDispatchHandler = createBatchDispatchHandler(orchestrator);
+   */  const batchDispatchHandler = createBatchDispatchHandler(orchestrator);
   router.post('/dispatch/batch', authMiddleware, batchDispatchHandler);
+
+  /**
+   * GET /api/v1/dispatch
+   *
+   * Retrieve a list of dispatches with optional filters.
+   * Requires valid API key in X-API-Key header.
+   */
+  const listDispatchesHandler = createListDispatchesHandler(orchestrator);
+  router.get('/dispatch', authMiddleware, listDispatchesHandler);
+
+  /**
+   * GET /api/v1/dispatch/stats
+   *
+   * Retrieve dispatch statistics.
+   * Requires valid API key in X-API-Key header.
+   */
+  const getDispatchStatsHandler = createGetDispatchStatsHandler(orchestrator);
+  router.get('/dispatch/stats', authMiddleware, getDispatchStatsHandler);
 
   /**
    * GET /api/v1/dispatch/:id

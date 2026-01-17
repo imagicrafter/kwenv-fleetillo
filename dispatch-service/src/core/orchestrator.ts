@@ -28,6 +28,10 @@ import {
   createChannelDispatch,
   updateChannelDispatch,
   getDispatchWithChannels,
+  listDispatches,
+  getDispatchStats,
+  ListDispatchesFilters,
+  DispatchStats,
 } from '../db/dispatch.repository.js';
 import {
   getRoute,
@@ -151,6 +155,21 @@ export interface IDispatchOrchestrator {
     dispatch: Dispatch;
     channelDispatches: ChannelDispatch[];
   } | null>;
+
+  /**
+   * List dispatches with filters
+   *
+   * @param filters - Filter options
+   * @returns Promise resolving to list of dispatches and total count
+   */
+  listDispatches(filters: ListDispatchesFilters): Promise<{ dispatches: Dispatch[]; total: number }>;
+
+  /**
+   * Get dispatch statistics
+   *
+   * @returns Promise resolving to dispatch statistics
+   */
+  getStats(): Promise<DispatchStats>;
 }
 
 // =============================================================================
@@ -691,6 +710,25 @@ export class DispatchOrchestrator implements IDispatchOrchestrator {
     dispatchId: string
   ): Promise<{ dispatch: Dispatch; channelDispatches: ChannelDispatch[] } | null> {
     return getDispatchWithChannels(dispatchId);
+  }
+
+  /**
+   * List dispatches with filters
+   *
+   * @param filters - Filter options
+   * @returns Promise resolving to list of dispatches and total count
+   */
+  async listDispatches(filters: ListDispatchesFilters): Promise<{ dispatches: Dispatch[]; total: number }> {
+    return listDispatches(filters);
+  }
+
+  /**
+   * Get dispatch statistics
+   *
+   * @returns Promise resolving to dispatch statistics
+   */
+  async getStats(): Promise<DispatchStats> {
+    return getDispatchStats();
   }
 }
 

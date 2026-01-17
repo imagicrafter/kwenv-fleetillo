@@ -149,6 +149,16 @@ export class TelegramAdapter implements ChannelAdapter {
           chat_id: driver.telegramChatId,
           text: template,
           parse_mode: 'Markdown',
+          reply_markup: {
+            inline_keyboard: [
+              [
+                {
+                  text: '✅ Acknowledge Receipt',
+                  callback_data: `ack:${dispatch.id}`,
+                },
+              ],
+            ],
+          },
         }),
       });
 

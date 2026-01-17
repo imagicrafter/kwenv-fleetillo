@@ -18,6 +18,8 @@ export type ChannelDispatchStatus =
   | 'pending' // Not yet attempted
   | 'sending' // Currently sending
   | 'delivered' // Successfully delivered
+  | 'viewed' // Viewed by driver (e.g. email open)
+  | 'acknowledged' // Explicitly acknowledged by driver
   | 'failed'; // Delivery failed
 
 // Dispatch entity
@@ -30,6 +32,8 @@ export interface Dispatch {
   metadata?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
+  driverName?: string;
+  routeName?: string;
 }
 
 // Channel dispatch entity
@@ -56,6 +60,13 @@ export interface DispatchRow {
   metadata: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
+  drivers?: {
+    first_name: string;
+    last_name: string;
+  } | null;
+  routes?: {
+    route_name: string;
+  } | null;
 }
 
 export interface ChannelDispatchRow {

@@ -93,14 +93,11 @@ class DispatchClient {
         const params = new URLSearchParams();
         if (filters.limit) params.append('limit', filters.limit);
         if (filters.offset) params.append('offset', filters.offset);
-        if (filters.driverId) params.append('driverId', filters.driverId);
+        if (filters.driverId) params.append('driver_id', filters.driverId);
+        if (filters.routeId) params.append('route_id', filters.routeId);
         if (filters.status) params.append('status', filters.status);
-        if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
-        if (filters.dateTo) params.append('dateTo', filters.dateTo);
 
-        // NOTE: This endpoint might need to be implemented in the dispatch service
-        // For now, we'll try to call it.
-        return this._request(`/dispatch/history?${params.toString()}`);
+        return this._request(`/dispatch?${params.toString()}`);
     }
 
     /**

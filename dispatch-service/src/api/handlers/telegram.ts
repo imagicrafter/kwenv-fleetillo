@@ -37,6 +37,23 @@ interface TelegramUpdate {
     date: number;
     text?: string;
   };
+  callback_query?: {
+    id: string;
+    from: {
+      id: number;
+      is_bot: boolean;
+      first_name: string;
+      username?: string;
+    };
+    message?: {
+      message_id: number;
+      chat: {
+        id: number;
+        type: string;
+      };
+    };
+    data?: string;
+  };
 }
 
 /**
@@ -183,6 +200,57 @@ async function sendErrorMessage(chatId: string, message: string): Promise<void> 
 }
 
 /**
+ * Answer a Telegram callback query to stop the loading animation
+ */
+async function answerCallbackQuery(callbackQueryId: string, text: string): Promise<void> {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  if (!token) return;
+
+  try {
+    await fetch(`https://api.telegram.org/bot${token}/answerCallbackQuery`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        callback_query_id: callbackQueryId,
+        text: text,
+      }),
+    });
+  } catch (error) {
+    logger.error('Failed to answer callback query', { error });
+  }
+}
+
+/**
+ * Acknowledge a dispatch in the database
+ */
+async function acknowledgeDispatch(dispatchId: string, chatId?: string, username?: string): Promise<void> {
+  const client = getSupabaseClient();
+  const timestamp = new Date().toISOString();
+
+  // Update channel_dispatches status to 'acknowledged'
+  const { error } = await client
+    .from('channel_dispatches')
+    .update({
+      status: 'acknowledged',
+      updated_at: timestamp,
+    })
+    .eq('dispatch_id', dispatchId)
+    .eq('channel', 'telegram');
+
+  if (error) {
+    logger.error('Failed to acknowledge dispatch', { dispatchId, error });
+  } else {
+    logger.info('Dispatch acknowledged via Telegram', { dispatchId, chatId, username });
+
+    // Also update main dispatch status to 'acknowledged' if not already
+    await client
+      .from('dispatches')
+      .update({ status: 'acknowledged', updated_at: timestamp })
+      .eq('id', dispatchId);
+  }
+}
+
+/**
  * Handle incoming Telegram webhook updates
  *
  * POST /api/v1/telegram/webhook
@@ -198,6 +266,31 @@ export function createTelegramWebhookHandler() {
 
     // Always respond 200 OK to Telegram (required by webhook spec)
     res.status(200).json({ ok: true });
+
+    // Handle callback queries (button clicks)
+    if (update.callback_query) {
+      const { id, data, message, from } = update.callback_query;
+      const chatId = message?.chat.id.toString();
+
+      logger.debug('Received Telegram callback query', {
+        callbackId: id,
+        chatId,
+        data,
+        username: from.username,
+      });
+
+      if (data?.startsWith('ack:')) {
+        const dispatchId = data.split(':')[1];
+        if (dispatchId) {
+          await acknowledgeDispatch(dispatchId, chatId, from.username);
+          await answerCallbackQuery(id, '✅ Dispatch acknowledged!');
+
+          // Optional: Update the message text to show it's acknowledged?
+          // For now, the toast notification ("Dispatch acknowledged!") is enough.
+        }
+      }
+      return;
+    }
 
     // Only process private messages with text
     if (!update.message?.text || update.message.chat.type !== 'private') {

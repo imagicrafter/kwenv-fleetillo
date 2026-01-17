@@ -135,7 +135,7 @@
                     Routes
                 </a>
 
-                <a href="#" class="nav-item">
+                <a href="dispatch.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -235,10 +235,11 @@
 
                     <div class="filter-group"
                         style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 150px; max-width: 250px;">
-                        <label style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Client</label>
+                        <label
+                            style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Customer</label>
                         <select id="filter-client"
                             style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); color: var(--text-primary); padding: 8px; border-radius: 6px; width: 100%;">
-                            <option value="">All Clients</option>
+                            <option value="">All Customers</option>
                             <!-- Populated by JS -->
                         </select>
                     </div>
@@ -399,8 +400,9 @@
                     <input type="hidden" id="booking-id">
 
                     <div class="form-group" style="position: relative;">
-                        <label>Client *</label>
-                        <input type="text" id="client-search" placeholder="Search client by name..." autocomplete="off">
+                        <label>Customer *</label>
+                        <input type="text" id="client-search" placeholder="Search customer by name..."
+                            autocomplete="off">
                         <input type="hidden" id="client-id">
                         <div id="client-search-results"
                             style="display: none; position: absolute; width: 100%; top: 100%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; z-index: 10; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
@@ -474,7 +476,7 @@
                         </div>
                         <div id="location-client-hint"
                             style="display: none; margin-top: 4px; font-size: 0.8rem; color: var(--text-secondary);">
-                            Select a client first to filter locations
+                            Select a customer first to filter locations
                         </div>
                     </div>
                     <div class="form-row">

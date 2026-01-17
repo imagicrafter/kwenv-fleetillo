@@ -101,6 +101,8 @@ function rowToDispatch(row: DispatchRow): Dispatch {
     metadata: row.metadata ?? undefined,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
+    driverName: row.drivers ? `${row.drivers.first_name} ${row.drivers.last_name}` : undefined,
+    routeName: row.routes ? row.routes.route_name : undefined,
   };
 }
 
@@ -552,4 +554,144 @@ export async function createChannelDispatchBatch(
   });
 
   return channelDispatches;
+}
+
+/**
+ * Filter options for listing dispatches
+ */
+export interface ListDispatchesFilters {
+  status?: DispatchStatus;
+  driverId?: string;
+  routeId?: string;
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * Retrieves a list of dispatches with optional filters
+ *
+ * @param filters - Filter options
+ * @returns Array of dispatch entities and total count
+ */
+export async function listDispatches(
+  filters: ListDispatchesFilters = {}
+): Promise<{ dispatches: Dispatch[]; total: number }> {
+  const client = getSupabaseClient();
+  const { status, driverId, routeId, limit = 50, offset = 0 } = filters;
+
+  logger.debug('Listing dispatches', { filters });
+
+  let query = client
+    .from('dispatches')
+    .select('*, drivers(first_name, last_name), routes(route_name)', { count: 'exact' });
+
+  if (status) {
+    query = query.eq('status', status);
+  }
+  if (driverId) {
+    query = query.eq('driver_id', driverId);
+  }
+  if (routeId) {
+    query = query.eq('route_id', routeId);
+  }
+
+  // Order by created_at desc (newest first)
+  query = query.order('created_at', { ascending: false });
+
+  // Pagination
+  query = query.range(offset, offset + limit - 1);
+
+  const { data, count, error } = await query;
+
+  if (error) {
+    logger.error('Failed to list dispatches', {
+      filters,
+      error: error.message,
+    });
+    throw new RepositoryError(
+      `Failed to list dispatches: ${error.message}`,
+      RepositoryErrorCodes.QUERY_FAILED,
+      error
+    );
+  }
+
+  return {
+    dispatches: (data as DispatchRow[]).map(rowToDispatch),
+    total: count || 0,
+  };
+}
+
+/**
+ * Dispatch statistics
+ */
+export interface DispatchStats {
+  total: number;
+  active: number;
+  success: number;
+  failed: number;
+  pending: number;
+}
+
+/**
+ * Retrieves statistics about dispatches
+ *
+ * @returns Dispatch statistics
+ */
+export async function getDispatchStats(): Promise<DispatchStats> {
+  const client = getSupabaseClient();
+
+  logger.debug('Fetching dispatch statistics');
+
+  // We can't do a single simple query for all stats without multiple round trips or a stored procedure/view.
+  // For now, let's just get the counts matching our status buckets.
+  // Ideally, we'd use a raw SQL query or a view for performance.
+
+  const { data, error } = await client
+    .from('dispatches')
+    .select('status');
+
+  if (error) {
+    logger.error('Failed to fetch dispatch stats', {
+      error: error.message,
+    });
+    throw new RepositoryError(
+      `Failed to fetch dispatch stats: ${error.message}`,
+      RepositoryErrorCodes.QUERY_FAILED,
+      error
+    );
+  }
+
+  const stats: DispatchStats = {
+    total: data.length,
+    active: 0,
+    success: 0,
+    failed: 0,
+    pending: 0,
+  };
+
+  for (const row of data) {
+    const status = row.status as DispatchStatus;
+    switch (status) {
+      case 'sending':
+      case 'partial': // Treat partial as active/warning? Or maybe active? Let's say active for now if it's not fully done?
+        // Actually partial usually means some failed, some succeeded.
+        // The requirement says: Active Dispatches, Success Rate, Pending, Failed.
+        stats.active++;
+        break;
+      case 'delivered':
+        stats.success++;
+        break;
+      case 'failed':
+        stats.failed++;
+        break;
+      case 'pending':
+        stats.pending++;
+        break;
+    }
+  }
+  // 'partial' logic check: if 'partial' is considered 'active' or 'warning', adjust.
+  // For now let's map 'partial' to 'active' as it's not fully successful or failed.
+  // Or maybe we treat it as its own thing, but the dashboard cards requested are specific.
+
+  return stats;
 }

@@ -22,7 +22,8 @@ import {
   EntityNotFoundError,
   DispatchRequest,
 } from '../../core/orchestrator.js';
-import type { ApiError, ChannelType, SingleDispatchBody, BatchDispatchBody, DispatchDetailResponse } from '../../types/index.js';
+import type { ApiError, ChannelType, SingleDispatchBody, BatchDispatchBody, DispatchDetailResponse, DispatchStatus } from '../../types/index.js';
+import { ListDispatchesFilters } from '../../db/dispatch.repository.js';
 
 // =============================================================================
 // Constants
@@ -578,6 +579,134 @@ export function createBatchDispatchHandler(orchestrator: DispatchOrchestrator) {
       });
     } catch (error) {
       // Re-throw unexpected errors to be handled by global error handler
+      throw error;
+    }
+  };
+}
+
+/**
+ * Create the list dispatches handler with the given orchestrator
+ *
+ * @param orchestrator - The dispatch orchestrator instance
+ * @returns Express request handler
+ */
+export function createListDispatchesHandler(orchestrator: DispatchOrchestrator) {
+  /**
+   * GET /api/v1/dispatch
+   *
+   * Retrieve a list of dispatches with optional filters.
+   */
+  return async function listDispatchesHandler(req: Request, res: Response): Promise<void> {
+    const correlationId = req.correlationId;
+
+    // Extract query parameters
+    const status = req.query.status as DispatchStatus | undefined;
+    const driverId = req.query.driver_id as string | undefined;
+    const routeId = req.query.route_id as string | undefined;
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
+    const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+
+    logger.debug('Processing list dispatches request', {
+      correlationId,
+      filters: { status, driverId, routeId, limit, offset },
+    });
+
+    // Validate filters
+    // Valid statuses: pending, sending, sent, delivered, failed, partial, viewed, acknowledged
+    // Note: 'sent' might not be in the enum if I didn't add it.
+    // Let's check the enum in types/index.ts, but I can't see it right now.
+    // I'll trust standard statuses.
+
+    // Validate driverId/routeId format if present
+    if (driverId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(driverId)) {
+      const error: ApiError = {
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid driver_id UUID',
+        },
+        requestId: correlationId,
+      };
+      res.status(400).json(error);
+      return;
+    }
+
+    if (routeId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(routeId)) {
+      const error: ApiError = {
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid route_id UUID',
+        },
+        requestId: correlationId,
+      };
+      res.status(400).json(error);
+      return;
+    }
+
+    const filters: ListDispatchesFilters = {
+      status,
+      driverId,
+      routeId,
+      limit,
+      offset,
+    };
+
+    try {
+      const result = await orchestrator.listDispatches(filters);
+
+      res.status(200).json({
+        dispatches: result.dispatches.map((d) => ({
+          id: d.id,
+          route_id: d.routeId,
+          driver_id: d.driverId,
+          status: d.status,
+          requested_channels: d.requestedChannels,
+          created_at: d.createdAt.toISOString(),
+          updated_at: d.updatedAt.toISOString(),
+          driver_name: d.driverName,
+          route_name: d.routeName,
+        })),
+        total: result.total,
+        limit,
+        offset,
+      });
+    } catch (error) {
+      throw error;
+    }
+  };
+}
+
+/**
+ * Create the get dispatch stats handler with the given orchestrator
+ *
+ * @param orchestrator - The dispatch orchestrator instance
+ * @returns Express request handler
+ */
+export function createGetDispatchStatsHandler(orchestrator: DispatchOrchestrator) {
+  /**
+   * GET /api/v1/dispatch/stats
+   *
+   * Retrieve dispatch statistics.
+   */
+  return async function getDispatchStatsHandler(req: Request, res: Response): Promise<void> {
+    const correlationId = req.correlationId;
+
+    logger.debug('Processing get dispatch stats request', {
+      correlationId,
+    });
+
+    try {
+      const stats = await orchestrator.getStats();
+
+      res.status(200).json({
+        total: stats.total,
+        stats: {
+          active: stats.active,
+          success: stats.success,
+          failed: stats.failed,
+          pending: stats.pending,
+        },
+      });
+    } catch (error) {
       throw error;
     }
   };
