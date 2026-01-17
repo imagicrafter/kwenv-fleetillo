@@ -1,0 +1,142 @@
+# OptiRoute App Spec - STANDALONE MODE
+# Two separate services: web app and dispatch service
+# Use this for production deployments requiring scalability
+
+name: optiroute-web
+region: nyc
+services:
+# Main Web Application
+- name: web
+  github:
+    repo: imagicrafter/optiroute
+    branch: main
+    deploy_on_push: true
+  source_dir: /
+  build_command: npm install && npm run build && cd web-launcher && npm install
+  run_command: node web-launcher/server.js
+  http_port: 8080
+  instance_size_slug: apps-s-1vcpu-1gb
+  instance_count: 1
+  envs:
+  # Deployment mode
+  - key: DISPATCH_MODE
+    value: standalone
+    scope: RUN_TIME
+  # URL to the dispatch service (for API calls from web)
+  - key: DISPATCH_SERVICE_URL
+    value: ${dispatch.INTERNAL_URL}
+    scope: RUN_TIME
+  # Supabase Configuration
+  - key: SUPABASE_URL
+    value: https://vtaufnxworztolfdwlll.supabase.co
+    scope: RUN_TIME
+  - key: SUPABASE_KEY
+    value: ***REMOVED_SUPABASE_ANON***
+    scope: RUN_TIME
+  - key: SUPABASE_SERVICE_ROLE_KEY
+    value: ***REMOVED_SUPABASE_SECRET***
+    scope: RUN_TIME
+  - key: SUPABASE_SCHEMA
+    value: routeiq
+    scope: RUN_TIME
+  # Google Maps
+  - key: GOOGLE_MAPS_API_KEY
+    value: ***REMOVED_GOOGLE_MAPS_KEY***
+    scope: RUN_TIME
+  # App Configuration
+  - key: DEMO_PASSWORD
+    value: demo123
+    scope: RUN_TIME
+  - key: SESSION_SECRET
+    value: ***REMOVED_SESSION_SECRET***
+    scope: RUN_TIME
+  - key: NODE_ENV
+    value: production
+    scope: RUN_TIME
+
+# Dispatch Service - Scalable notification service
+- name: dispatch
+  github:
+    repo: imagicrafter/optiroute
+    branch: main
+    deploy_on_push: true
+  source_dir: /dispatch-service
+  build_command: npm install && npm run build
+  run_command: npm start
+  http_port: 3001
+  instance_size_slug: apps-s-1vcpu-0.5gb
+  instance_count: 1
+  envs:
+  # Supabase Configuration
+  - key: SUPABASE_URL
+    value: https://vtaufnxworztolfdwlll.supabase.co
+    scope: RUN_TIME
+  - key: SUPABASE_KEY
+    value: ***REMOVED_SUPABASE_SECRET***
+    scope: RUN_TIME
+  - key: SUPABASE_SCHEMA
+    value: routeiq
+    scope: RUN_TIME
+  # Service Configuration
+  - key: PORT
+    value: "3001"
+    scope: RUN_TIME
+  - key: DISPATCH_API_KEYS
+    type: SECRET
+    scope: RUN_TIME
+  - key: TELEGRAM_BOT_TOKEN
+    type: SECRET
+    scope: RUN_TIME
+  - key: EMAIL_PROVIDER
+    value: resend
+    scope: RUN_TIME
+  - key: RESEND_API_KEY
+    type: SECRET
+    scope: RUN_TIME
+  - key: EMAIL_FROM_ADDRESS
+    value: dispatch@optiroute.imagicrafterai.com
+    scope: RUN_TIME
+  - key: EMAIL_FROM_NAME
+    value: OptiRoute Dispatch
+    scope: RUN_TIME
+  - key: NODE_ENV
+    value: production
+    scope: RUN_TIME
+  health_check:
+    http_path: /api/v1/health
+    initial_delay_seconds: 10
+    period_seconds: 30
+    timeout_seconds: 5
+    success_threshold: 1
+    failure_threshold: 3
+
+ingress:
+  rules:
+  - component:
+      name: web
+    match:
+      path:
+        prefix: /
+  - component:
+      name: dispatch
+    match:
+      path:
+        prefix: /dispatch
+    cors:
+      allow_origins:
+      - prefix: "*"
+      allow_methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+      allow_headers:
+      - Content-Type
+      - Authorization
+      - X-API-Key
+      - X-Correlation-ID
+
+domains:
+- domain: optiroute.imagicrafterai.com
+  type: PRIMARY

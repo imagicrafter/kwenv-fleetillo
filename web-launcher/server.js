@@ -703,11 +703,30 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../shared/public', 'index.html'));
 });
 
-app.listen(PORT, () => {
-    const url = `http://localhost:${PORT}`;
-    console.log(`Server running at ${url}`);
+// =============================================================================
+// Dispatch Service Integration (Embedded Mode)
+// =============================================================================
+const { initializeDispatch } = require('./dispatch-integration');
 
-    // Auto-open browser
-    const start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open');
-    require('child_process').exec(start + ' ' + url);
-});
+// Start server with optional dispatch integration
+(async () => {
+    // Initialize embedded dispatch service if DISPATCH_MODE=embedded
+    try {
+        await initializeDispatch(app);
+    } catch (error) {
+        console.error('[Server] Failed to initialize dispatch integration:', error.message);
+    }
+
+    // Start listening
+    app.listen(PORT, () => {
+        const url = `http://localhost:${PORT}`;
+        console.log(`Server running at ${url}`);
+        console.log(`Dispatch Mode: ${process.env.DISPATCH_MODE || 'standalone (default)'}`);
+
+        // Auto-open browser (only in development)
+        if (process.env.NODE_ENV !== 'production') {
+            const start = (process.platform == 'darwin' ? 'open' : process.platform == 'win32' ? 'start' : 'xdg-open');
+            require('child_process').exec(start + ' ' + url);
+        }
+    });
+})();

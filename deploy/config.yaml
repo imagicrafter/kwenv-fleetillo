@@ -1,0 +1,26 @@
+# OptiRoute Deployment Configuration
+#
+# This file controls how the application is deployed.
+# Modify these settings based on your deployment requirements.
+
+# Deployment mode:
+#   - embedded: Dispatch service runs inside web-launcher (single service, lower cost)
+#   - standalone: Dispatch service runs as separate app (scalable, higher cost)
+mode: embedded
+
+# Environment name (used for logging and identification)
+environment: development
+
+# Digital Ocean App Platform settings
+digitalocean:
+  app_id: f7b5791e-3ddf-4b13-9fbf-30665a117025
+  region: nyc
+
+# Feature flags
+features:
+  # Enable Telegram dispatch notifications
+  telegram_enabled: true
+  # Enable Email dispatch notifications
+  email_enabled: true
+  # Enable driver self-registration via Telegram webhook
+  telegram_registration: true
