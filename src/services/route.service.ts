@@ -340,12 +340,41 @@ export async function getRoutes(
 
       if (vehiclesData) {
         const vehicleMap = new Map(vehiclesData.map(v => [v.id, v]));
+
+        // Collect driver IDs to fetch names
+        const driverIds = [...new Set(vehiclesData
+          .filter(v => v.assigned_driver_id)
+          .map(v => v.assigned_driver_id))] as string[];
+
+        let driverMap = new Map<string, { firstName: string, lastName: string }>();
+
+        if (driverIds.length > 0) {
+          const { data: driversData } = await supabase
+            .from('drivers')
+            .select('id, first_name, last_name')
+            .in('id', driverIds);
+
+          if (driversData) {
+            driverMap = new Map(driversData.map(d => [
+              d.id,
+              { firstName: d.first_name, lastName: d.last_name }
+            ]));
+          }
+        }
+
         routes.forEach(route => {
           if (route.vehicleId) {
             const vehicle = vehicleMap.get(route.vehicleId);
             if (vehicle) {
               route.vehicleName = vehicle.name;
               route.driverId = vehicle.assigned_driver_id ?? undefined;
+
+              if (vehicle.assigned_driver_id) {
+                const driver = driverMap.get(vehicle.assigned_driver_id);
+                if (driver) {
+                  route.driverName = `${driver.firstName} ${driver.lastName}`;
+                }
+              }
             }
           }
         });

@@ -47,6 +47,8 @@ export interface OptimizedRouteBatch {
     optimizedOrder: number[];
     totalDistanceMeters: number;
     totalDurationSeconds: number;
+    plannedStartTime?: string;
+    plannedEndTime?: string;
     warnings?: string[];
 }
 /**

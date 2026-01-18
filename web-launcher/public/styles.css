@@ -1142,3 +1142,26 @@ textarea {
     padding-top: 16px;
     border-top: 1px solid var(--border-subtle);
 }
+/* Confirmation Modal Styling */
+.confirmation-modal .modal-content {
+    max-width: 420px;
+    width: 90%;
+    display: flex;
+    flex-direction: column;
+}
+
+.confirmation-modal .modal-header {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 1rem;
+}
+
+.confirmation-modal .modal-header h3 {
+    font-size: 1.2rem;
+}
+
+.confirmation-modal .modal-body {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}

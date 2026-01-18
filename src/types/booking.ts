@@ -141,6 +141,7 @@ export interface Booking extends Timestamps {
   locationName?: string;
   locationLatitude?: number;
   locationLongitude?: number;
+  routeCode?: string;
 }
 
 /**
@@ -416,6 +417,7 @@ export function rowToBooking(row: BookingRow): Booking {
     locationName: (row as any).locations?.name,
     locationLatitude: row.locations?.latitude ?? undefined,
     locationLongitude: row.locations?.longitude ?? undefined,
+    routeCode: (row as any).routes?.route_code ?? undefined,
   };
 }
 

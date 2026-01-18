@@ -334,7 +334,7 @@ export async function getBookings(
     // Use admin client if available to bypass RLS policies
     const supabase = getAdminSupabaseClient() || getSupabaseClient();
 
-    let query = supabase.from(BOOKINGS_TABLE).select('*, clients(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)', { count: 'exact' });
+    let query = supabase.from(BOOKINGS_TABLE).select('*, clients(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code)', { count: 'exact' });
 
     // Apply filters
     if (!filters?.includeDeleted) {
@@ -486,7 +486,7 @@ export async function getBookings(
 /**
  * Updates an existing booking
  */
-export async function updateBooking(input: UpdateBookingInput): Promise<Result<Booking>> {
+export async function updateBooking(input: UpdateBookingInput): Promise<Result<Booking & { routeWasInvalidated?: boolean; invalidatedRouteId?: string }>> {
   logger.debug('Updating booking', { id: input.id });
 
   // Only validate core required fields if entity references are being changed
@@ -531,6 +531,23 @@ export async function updateBooking(input: UpdateBookingInput): Promise<Result<B
     };
   }
 
+  // --- Route-affecting change detection ---
+  // Check if this booking is on a route and if the update affects route logistics
+  let routeWasInvalidated = false;
+  let invalidatedRouteId: string | undefined;
+
+  if (existing.routeId) {
+    const routeAffectingFieldsChanged = detectRouteAffectingChanges(existing, input);
+    if (routeAffectingFieldsChanged) {
+      invalidatedRouteId = existing.routeId;
+      routeWasInvalidated = true;
+      logger.info('Route-affecting change detected, will flag route for recalculation', {
+        bookingId: input.id,
+        routeId: invalidatedRouteId,
+      });
+    }
+  }
+
   try {
     // Use admin client if available to bypass RLS policies
     const supabase = getAdminSupabaseClient() || getSupabaseClient();
@@ -569,10 +586,36 @@ export async function updateBooking(input: UpdateBookingInput): Promise<Result<B
       };
     }
 
+    // If route was invalidated, flag it for recalculation
+    if (routeWasInvalidated && invalidatedRouteId) {
+      const { error: routeFlagError } = await supabase
+        .from('routes')
+        .update({
+          needs_recalculation: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', invalidatedRouteId)
+        .is('deleted_at', null);
+
+      if (routeFlagError) {
+        logger.error('Failed to flag route for recalculation', { routeId: invalidatedRouteId, error: routeFlagError });
+        // Don't fail the booking update, but log the issue
+      } else {
+        logger.info('Route flagged for recalculation', { routeId: invalidatedRouteId });
+      }
+    }
+
     const booking = convertRowToBooking(data as BookingRow);
     logger.info('Booking updated successfully', { bookingId: booking.id });
 
-    return { success: true, data: booking };
+    return {
+      success: true,
+      data: {
+        ...booking,
+        routeWasInvalidated,
+        invalidatedRouteId,
+      },
+    };
   } catch (error) {
     logger.error('Unexpected error updating booking', error);
     return {
@@ -585,6 +628,61 @@ export async function updateBooking(input: UpdateBookingInput): Promise<Result<B
     };
   }
 }
+
+/**
+ * Detects if the update contains changes to fields that affect route logistics
+ */
+function detectRouteAffectingChanges(existing: Booking, input: UpdateBookingInput): boolean {
+  // Helper to normalize dates for comparison
+  const normalizeDate = (d: Date | string | undefined): string | undefined => {
+    if (!d) return undefined;
+    if (typeof d === 'string') return d.split('T')[0];
+    return d.toISOString().split('T')[0];
+  };
+
+  // Check scheduledDate change
+  if (input.scheduledDate !== undefined) {
+    const existingDate = normalizeDate(existing.scheduledDate);
+    const newDate = normalizeDate(input.scheduledDate);
+    if (existingDate !== newDate) {
+      logger.debug('Route-affecting change: scheduledDate', { existing: existingDate, new: newDate });
+      return true;
+    }
+  }
+
+  // Check locationId change
+  if (input.locationId !== undefined && input.locationId !== existing.locationId) {
+    logger.debug('Route-affecting change: locationId', { existing: existing.locationId, new: input.locationId });
+    return true;
+  }
+
+  // Check service latitude/longitude change
+  if (input.serviceLatitude !== undefined && input.serviceLatitude !== existing.serviceLatitude) {
+    logger.debug('Route-affecting change: serviceLatitude', { existing: existing.serviceLatitude, new: input.serviceLatitude });
+    return true;
+  }
+  if (input.serviceLongitude !== undefined && input.serviceLongitude !== existing.serviceLongitude) {
+    logger.debug('Route-affecting change: serviceLongitude', { existing: existing.serviceLongitude, new: input.serviceLongitude });
+    return true;
+  }
+
+  // Check estimatedDurationMinutes change
+  if (input.estimatedDurationMinutes !== undefined && input.estimatedDurationMinutes !== existing.estimatedDurationMinutes) {
+    logger.debug('Route-affecting change: estimatedDurationMinutes', { existing: existing.estimatedDurationMinutes, new: input.estimatedDurationMinutes });
+    return true;
+  }
+
+  // Check status change to cancelled or completed (booking effectively removed from route)
+  if (input.status !== undefined && (input.status === 'cancelled' || input.status === 'completed')) {
+    if (existing.status !== input.status) {
+      logger.debug('Route-affecting change: status to cancelled/completed', { existing: existing.status, new: input.status });
+      return true;
+    }
+  }
+
+  return false;
+}
+
 
 /**
  * Soft deletes a booking by setting deleted_at timestamp

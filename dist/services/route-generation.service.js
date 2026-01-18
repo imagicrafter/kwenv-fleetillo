@@ -233,6 +233,111 @@ async function optimizeBatchRoute(batch, options) {
     const totalDistanceMeters = optimalRoute.distanceMeters;
     const durationMatch = optimalRoute.duration?.match(/^(\d+)s$/);
     const totalDurationSeconds = durationMatch && durationMatch[1] ? parseInt(durationMatch[1], 10) : 0;
+    // Calculate Planned Start and End Times
+    let plannedStartTime;
+    let plannedEndTime;
+    // Helper to parse "HH:MM:SS" to seconds from midnight
+    const timeToSeconds = (timeStr) => {
+        const [h, m, s] = timeStr.split(':').map(Number);
+        return (h || 0) * 3600 + (m || 0) * 60 + (s || 0);
+    };
+    // Helper to format seconds from midnight to "HH:MM:SS"
+    const secondsToTime = (totalSeconds) => {
+        let seconds = Math.max(0, totalSeconds);
+        const h = Math.floor(seconds / 3600) % 24;
+        seconds %= 3600;
+        const m = Math.floor(seconds / 60);
+        const s = Math.round(seconds % 60);
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    };
+    // Reconstruct the visit sequence to identify first and last bookings
+    // Note: logic mirrors the construction of 'intermediates' input
+    let sortedBookings = [];
+    // Logic to determine sequence based on options
+    if (options.departureLocation) {
+        // Departure is Custom (Not a booking)
+        // All bookings are considered intermediates (or destination)
+        // If returnToStart is TRUE: All bookings are intermediates.
+        // If returnToStart is FALSE: All bookings except last are intermediates. Last is Destination.
+        if (options.returnToStart) {
+            // All bookings are intermediates.
+            // ordered by optimizedOrder indices
+            sortedBookings = optimizedOrder.map(idx => batch.bookings[idx]);
+        }
+        else {
+            // Last booking is DESTINATION.
+            // intermediates = batch.bookings.slice(0, -1)
+            // optimizedOrder indices refer to this slice
+            const intermediateBookings = batch.bookings.slice(0, -1);
+            const sortedIntermediates = optimizedOrder.map(idx => intermediateBookings[idx]);
+            // Append the destination booking (fixed at end)
+            sortedBookings = [...sortedIntermediates, batch.bookings[batch.bookings.length - 1]];
+        }
+    }
+    else {
+        // ORIGIN is Booking[0]
+        // If returnToStart is TRUE: Destination is Origin. Intermediates = Booking[1...Last]
+        // If returnToStart is FALSE: Destination is Booking[Last]. Intermediates = Booking[1...Last-1]
+        const firstBooking = batch.bookings[0]; // Fixed Origin
+        if (options.returnToStart) {
+            // Intermediates = batch.bookings.slice(1) assuming purely circular? 
+            // Wait, 'intermediates' loop: i = 1 to endIdx.
+            // If returnToStart, endIdx = length. So Intermediates = Booking[1]...Booking[Last].
+            const intermediatesList = batch.bookings.slice(1);
+            const sortedIntermediates = optimizedOrder.map(idx => intermediatesList[idx]);
+            sortedBookings = [firstBooking, ...sortedIntermediates];
+        }
+        else {
+            // Destination is Fixed Last.
+            // Intermediates = Booking[1]...Booking[Last-1]
+            if (batch.bookings.length > 2) {
+                const intermediatesList = batch.bookings.slice(1, -1);
+                const sortedIntermediates = optimizedOrder.map(idx => intermediatesList[idx]);
+                sortedBookings = [firstBooking, ...sortedIntermediates, batch.bookings[batch.bookings.length - 1]];
+            }
+            else {
+                // Only 2 bookings: Origin and Destination. No intermediates.
+                sortedBookings = [...batch.bookings];
+            }
+        }
+    }
+    // Identify First Visit Booking
+    const firstVisitBooking = sortedBookings[0];
+    if (firstVisitBooking && firstVisitBooking.scheduledStartTime) {
+        const firstStartSeconds = timeToSeconds(firstVisitBooking.scheduledStartTime);
+        // Travel Time to First Visit
+        // Leg 0 is Origin -> First Visit.
+        const firstLeg = optimalRoute.legs[0];
+        const travelToFirstSeconds = firstLeg && firstLeg.duration
+            ? parseInt(firstLeg.duration.replace('s', ''), 10)
+            : 0;
+        // Planned Start = Scheduled Start - Travel Time
+        plannedStartTime = secondsToTime(firstStartSeconds - travelToFirstSeconds);
+    }
+    // Identify Last Visit Booking
+    const lastVisitBooking = sortedBookings[sortedBookings.length - 1];
+    if (lastVisitBooking && lastVisitBooking.scheduledStartTime) {
+        const lastStartSeconds = timeToSeconds(lastVisitBooking.scheduledStartTime);
+        const serviceDurationSeconds = (lastVisitBooking.estimatedDurationMinutes || 30) * 60;
+        // Travel Time from Last Visit to Destination
+        // Last Leg?
+        // If returnToStart, Route ends at Origin. Last leg is LastBooking -> Origin.
+        // If NOT returnToStart, Route ends at LastBooking?
+        // If Route ends at LastBooking, travel time after service is 0.
+        let travelFromLastSeconds = 0;
+        if (options.returnToStart) {
+            const lastLeg = optimalRoute.legs[optimalRoute.legs.length - 1];
+            travelFromLastSeconds = lastLeg && lastLeg.duration
+                ? parseInt(lastLeg.duration.replace('s', ''), 10)
+                : 0;
+        }
+        plannedEndTime = secondsToTime(lastStartSeconds + serviceDurationSeconds + travelFromLastSeconds);
+    }
+    else if (plannedStartTime) {
+        // Fallback: Start + Total Duration
+        const startSeconds = timeToSeconds(plannedStartTime);
+        plannedEndTime = secondsToTime(startSeconds + totalDurationSeconds);
+    }
     logger.info('Successfully optimized route for batch', {
         vehicleId: batch.vehicleId,
         serviceId: batch.serviceId,
@@ -251,6 +356,8 @@ async function optimizeBatchRoute(batch, options) {
             optimizedOrder,
             totalDistanceMeters,
             totalDurationSeconds,
+            plannedStartTime,
+            plannedEndTime,
             warnings: optimalRoute.warnings,
         },
     };

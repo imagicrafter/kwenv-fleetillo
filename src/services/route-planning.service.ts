@@ -18,7 +18,12 @@ import { getBookings, updateBooking } from './booking.service.js';
 import { getVehicles } from './vehicle.service.js';
 import { getServices } from './service.service.js';
 import type { Vehicle } from '../types/vehicle.js';
-import { createRoute } from './route.service.js';
+import {
+    getRouteSettings,
+} from './settings.service.js';
+import {
+    createRoute,
+} from './route.service.js';
 import { getLocationById } from './location.service.js';
 import { getVehiclePrimaryLocation } from './vehicle-location.service.js';
 import { getAdminSupabaseClient, getSupabaseClient } from './supabase.js';
@@ -440,8 +445,9 @@ async function optimizeBatch(
         destinationLocation?: { latitude: number; longitude: number };
         returnToStart?: boolean;
         routingPreference?: 'TRAFFIC_UNAWARE' | 'TRAFFIC_AWARE';
+        startTime?: string;
     }
-): Promise<Result<{ route: GoogleRoute; optimizedOrder: number[] }>> {
+): Promise<Result<{ route: GoogleRoute; optimizedOrder: number[]; plannedStartTime?: string; plannedEndTime?: string }>> {
     if (bookings.length === 0) {
         return {
             success: false,
@@ -491,7 +497,10 @@ async function optimizeBatch(
     // If we have an explicit destination, all bookings are intermediates; otherwise exclude last if not returning
     const endIdx = options.destinationLocation || options.returnToStart ? bookings.length : bookings.length - 1;
 
+    // Helper: Map intermediate index back to booking
+    const intermediateBookings: Booking[] = [];
     for (let i = startIdx; i < endIdx; i++) {
+        intermediateBookings.push(bookings[i]!);
         intermediates.push(bookingToWaypoint(bookings[i]!));
     }
 
@@ -545,11 +554,136 @@ async function optimizeBatch(
     const optimalRoute = response.routes[0]!;
     const optimizedOrder = optimalRoute.optimizedIntermediateWaypointIndex || [];
 
+    // --- Time Calculation Logic ---
+
+    // Helper to parse "HH:MM:SS" to seconds from midnight
+    const timeToSeconds = (timeStr: string): number => {
+        const [h, m, s] = timeStr.split(':').map(Number);
+        return (h || 0) * 3600 + (m || 0) * 60 + (s || 0);
+    };
+
+    // Helper to format seconds from midnight to "HH:MM:SS"
+    const secondsToTime = (totalSeconds: number): string => {
+        let seconds = Math.max(0, totalSeconds);
+        const h = Math.floor(seconds / 3600) % 24;
+        seconds %= 3600;
+        const m = Math.floor(seconds / 60);
+        const s = Math.round(seconds % 60);
+        return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    };
+
+    const durationMatch = optimalRoute.duration?.match(/^(\d+)s$/);
+    const totalDurationSeconds = durationMatch && durationMatch[1] ? parseInt(durationMatch[1], 10) : 0;
+
+    let plannedStartTime: string | undefined;
+    let plannedEndTime: string | undefined;
+
+    // Reconstruct visit sequence
+    // First visited booking from the intermediate list
+    let firstVisitedBooking: Booking | undefined;
+    let lastVisitBooking: Booking | undefined;
+
+    if (intermediates.length > 0 && optimizedOrder.length > 0) {
+        // Use optimized order to find first visited intermediate
+        const firstIntermediateIdx = optimizedOrder[0];
+        if (firstIntermediateIdx !== undefined) {
+            firstVisitedBooking = intermediateBookings[firstIntermediateIdx];
+        }
+
+        const lastIntermediateIdx = optimizedOrder[optimizedOrder.length - 1];
+        if (lastIntermediateIdx !== undefined) {
+            lastVisitBooking = intermediateBookings[lastIntermediateIdx];
+        }
+    } else if (intermediates.length > 0) {
+        // No optimization (or 1 item?), assuming sequential
+        firstVisitedBooking = intermediateBookings[0];
+        lastVisitBooking = intermediateBookings[intermediateBookings.length - 1];
+    }
+
+    // Use explicit start time if provided (Standardized behavior)
+    // Otherwise fall back to existing logic (though essentially we want to enforce this)
+    if (options.startTime) {
+        // Ensure seconds part if missing
+        const parts = options.startTime.split(':');
+        if (parts.length === 2) {
+            plannedStartTime = `${options.startTime}:00`;
+        } else {
+            plannedStartTime = options.startTime;
+        }
+    } else {
+        // Legacy fallback logic
+        // Determine First Visit for Start Time calculation
+        if (options.departureLocation) {
+            // Origin is depot. Route starts by traveling to firstVisitedBooking.
+            if (firstVisitedBooking && firstVisitedBooking.scheduledStartTime) {
+                const firstStartSeconds = timeToSeconds(firstVisitedBooking.scheduledStartTime);
+                // Leg 0 is Origin -> First Visited Booking
+                const firstLeg = optimalRoute.legs ? optimalRoute.legs[0] : undefined;
+                const travelToFirstSeconds = firstLeg && firstLeg.duration
+                    ? parseInt(firstLeg.duration.replace('s', ''), 10)
+                    : 0;
+                plannedStartTime = secondsToTime(firstStartSeconds - travelToFirstSeconds);
+            }
+        } else {
+            // Origin is a booking (bookings[0]).
+            // Start time is that booking's scheduled start time.
+            const originBooking = bookings[0];
+            if (originBooking && originBooking.scheduledStartTime) {
+                plannedStartTime = originBooking.scheduledStartTime;
+            }
+        }
+    }
+
+    // Determine Last Visit for End Time calculation
+    // Final destination:
+    // If destinationLocation provided: Last Leg ends there. Previous stop was last visited booking (or last intermediate).
+    // If returnToStart: Last Leg ends at Origin. Previous stop was last visited booking.
+    // If neither: Last booking IS the destination.
+
+    // If we have explicit destination or returnToStart, the last visited booking is the last intermediate.
+    // If using bookings as destination (normal flow), last booking is destination.
+
+    let referenceBookingForEnd: Booking | undefined;
+    if (options.destinationLocation || options.returnToStart) {
+        // Considers last visited intermediate as the last service point
+        referenceBookingForEnd = lastVisitBooking;
+        // Note: If no intermediates, what happens? e.g. Origin -> Destination directly.
+    } else {
+        // Last booking is the destination
+        referenceBookingForEnd = bookings[bookings.length - 1];
+    }
+
+    if (referenceBookingForEnd && referenceBookingForEnd.scheduledStartTime) {
+        const lastStartSeconds = timeToSeconds(referenceBookingForEnd.scheduledStartTime);
+        const serviceDurationSeconds = (referenceBookingForEnd.estimatedDurationMinutes || 30) * 60;
+
+        let travelFromLastSeconds = 0;
+        // Logic: find travel time from reference booking to final destination
+        // If reference is destination (normal flow), travel is 0.
+        // If reference is last intermediate (returnToStart/customDest), travel is last leg.
+
+        if (options.destinationLocation || options.returnToStart) {
+            const lastLeg = optimalRoute.legs ? optimalRoute.legs[optimalRoute.legs.length - 1] : undefined;
+            travelFromLastSeconds = lastLeg && lastLeg.duration
+                ? parseInt(lastLeg.duration.replace('s', ''), 10)
+                : 0;
+        }
+
+        plannedEndTime = secondsToTime(lastStartSeconds + serviceDurationSeconds + travelFromLastSeconds);
+
+    } else if (plannedStartTime) {
+        // Fallback
+        const startSeconds = timeToSeconds(plannedStartTime);
+        plannedEndTime = secondsToTime(startSeconds + totalDurationSeconds);
+    }
+
     return {
         success: true,
         data: {
             route: optimalRoute,
             optimizedOrder,
+            plannedStartTime,
+            plannedEndTime,
         },
     };
 }
@@ -869,6 +1003,10 @@ export async function previewRoutePlan(
 export async function planRoutes(
     input: PlanRoutesInput
 ): Promise<Result<PlanRoutesResponse>> {
+    // Fetch route settings to get configured day start time
+    const settingsResult = await getRouteSettings();
+    const dayStartTime = settingsResult.success && settingsResult.data ? settingsResult.data.schedule.dayStartTime : '08:00';
+
     logger.info('Starting route planning', {
         routeDate: input.routeDate,
         serviceId: input.serviceId,
@@ -1166,6 +1304,7 @@ export async function planRoutes(
                 destinationLocation: batchDestinationLocation,
                 returnToStart: shouldReturnToStart,
                 routingPreference: input.routingPreference,
+                startTime: dayStartTime, // Pass dayStartTime to optimizeBatch
             });
 
             if (!optimizeResult.success) {
@@ -1176,7 +1315,7 @@ export async function planRoutes(
                 continue;
             }
 
-            const { route: googleRoute, optimizedOrder } = optimizeResult.data!;
+            const { route: googleRoute, optimizedOrder, plannedStartTime, plannedEndTime } = optimizeResult.data!;
 
             // Build ordered bookings from optimized route
             // Note: optimizedOrder contains indices into the INTERMEDIATES array, not the batch array
@@ -1316,6 +1455,19 @@ export async function planRoutes(
                 routeCode: await generateUniqueRouteCode(routeDate),
                 vehicleId: vehicle.id,
                 routeDate,
+                plannedStartTime: plannedStartTime || '08:00:00',
+                plannedEndTime: plannedEndTime || (() => {
+                    const startBase = plannedStartTime || '08:00:00';
+                    const [h, m, s] = startBase.split(':').map(Number);
+                    const startSeconds = (h || 0) * 3600 + (m || 0) * 60 + (s || 0);
+                    const totalSeconds = startSeconds + ((finalTotalTravelMinutes + calculatedTotalServiceMinutes) * 60);
+
+                    const endH = Math.floor(totalSeconds / 3600) % 24;
+                    const remSeconds = totalSeconds % 3600;
+                    const endM = Math.floor(remSeconds / 60);
+                    const endS = remSeconds % 60;
+                    return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}:${String(endS).padStart(2, '0')}`;
+                })(),
                 totalDistanceKm: totalDistanceMeters / 1000,
                 // Total duration = Travel (from Google) + Service (Calculated)
                 totalDurationMinutes: finalTotalTravelMinutes + calculatedTotalServiceMinutes,

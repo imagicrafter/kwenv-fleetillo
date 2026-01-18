@@ -353,6 +353,59 @@
             border-top: 1px solid var(--border-color);
             z-index: 20;
         }
+
+        /* Action Buttons & Tooltips */
+        .action-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin: 0 2px;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .action-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Tooltip */
+        .action-btn::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 4px 8px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            margin-bottom: 8px;
+            z-index: 100;
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            font-weight: 500;
+        }
+
+        .action-btn:hover::after {
+            opacity: 1;
+        }
     </style>
 </head>
 
@@ -541,8 +594,7 @@
                     <input type="text" placeholder="Search routes..." id="search-input">
                 </div>
                 <div class="actions">
-                    <button class="btn-primary" id="plan-routes-btn">🗓️ Plan Routes</button>
-                    <button class="btn-icon">⚙️</button>
+                    <button class="btn-primary" id="plan-routes-btn">+ Route</button>
                 </div>
             </header>
 
@@ -578,7 +630,7 @@
                                 <th>Route Name / Code</th>
                                 <th>Date / Time</th>
                                 <th>Distance / Duration</th>
-                                <th>Stops / Score</th>
+                                <th>Stops</th>
                                 <th>Status</th>
                                 <th>Cost</th>
                                 <th>Actions</th>
@@ -688,9 +740,35 @@
     </div>
 
     <script src="preload.js"></script>
+    <script src="confirmation-modal.js"></script>
     <script>
         const tableBody = document.getElementById('routes-table-body');
         let allRoutes = [];
+        let userTimeZone = 'America/Chicago'; // Default
+
+        // Load settings on startup
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                if (window.electronAPI && window.electronAPI.settings) {
+                    const settings = await window.electronAPI.settings.getRouteSettings();
+                    if (settings && settings.schedule && settings.schedule.timeZone) {
+                        userTimeZone = settings.schedule.timeZone;
+                    }
+                }
+                // Determine if we need to call loadRoutes() here or if it's called elsewhere
+                // Based on file review, loadRoutes calls exist but maybe not on DOMContentLoaded in this script block.
+                // However, the original code had NO DOMContentLoaded listener for data.
+                // It likely relied on manual calls or script execution.
+                // But wait, line 1106 calls loadRoutes() inside deleteRoute.
+                // Where is the initial load?
+                // Probably at the end of the script or invoked by <body onload>.
+                // I will just add the settings fetch.
+                loadRoutes(); // Ensure routes load after settings
+            } catch (e) {
+                console.error("Failed to load settings:", e);
+                loadRoutes(); // Fallback load
+            }
+        });
 
         // Format date for display - handles both Date objects and YYYY-MM-DD strings
         function formatDate(dateInput) {
@@ -722,7 +800,31 @@
         // Format time for display
         function formatTime(timeStr) {
             if (!timeStr) return '';
-            return timeStr.substring(0, 5);
+
+            // Parse HH:MM:SS
+            const [hours, minutes] = timeStr.split(':');
+            let h = parseInt(hours, 10);
+            const m = minutes;
+            const ampm = h >= 12 ? 'PM' : 'AM';
+
+            h = h % 12;
+            h = h ? h : 12; // the hour '0' should be '12'
+
+            // Get Zone Abbreviation
+            let zoneAbbr = '';
+            try {
+                // Use a dummy date to get the timezone name for the selected zone
+                const parts = new Intl.DateTimeFormat('en-US', {
+                    timeZone: userTimeZone,
+                    timeZoneName: 'short'
+                }).formatToParts(new Date());
+                const zonePart = parts.find(p => p.type === 'timeZoneName');
+                if (zonePart) zoneAbbr = ' ' + zonePart.value;
+            } catch (e) {
+                // Fallback or invalid zone
+            }
+
+            return `${h}:${m} ${ampm}${zoneAbbr}`;
         }
 
         // Render routes table
@@ -763,11 +865,7 @@
                 const durationDisplay = `${hours}h ${minutes}m`;
 
                 // Opt Score
-                let scoreColor = '#8b949e';
-                const score = route.optimizationScore || 0;
-                if (score > 90) scoreColor = '#3fb950';
-                else if (score > 70) scoreColor = '#d29922';
-                else if (score > 0) scoreColor = '#f85149';
+                // Score logic removed
 
                 row.innerHTML = `
                     <td>
@@ -785,18 +883,43 @@
                     </td>
                     <td>
                         <div style="font-weight: 600;">${route.totalStops || 0}</div>
-                        <div style="font-size: 0.7rem; color: ${scoreColor};" title="Optimization Score">Score: ${score || 'N/A'}</div>
                     </td>
-                    <td><span class="status-badge" style="${statusStyle}">${(route.status || 'unknown').replace('_', ' ')}</span></td>
+                    <td><span class="status-badge" style="${statusStyle}">${(route.status || 'unknown').replace('_', ' ')}</span>${route.needsRecalculation ? '<span class="status-badge" style="color: #d29922; border-color: rgba(210,153,34,0.3); background-color: rgba(210,153,34,0.15); margin-left: 6px;" data-tooltip="This route needs to be re-planned due to booking changes"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="vertical-align: middle; margin-right: 2px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>Needs Re-plan</span>' : ''}</td>
                     <td>
                         <div>${costDisplay}</div>
                         <div style="font-size: 0.7rem; color: var(--text-secondary);">${costLabel}</div>
                     </td>
                     <td>
-                    <td>
-                        <button type="button" class="action-btn" onclick="dispatchRoute('${route.id}', '${route.driverId || route.assignedDriverId}'); return false;" title="Dispatch Route">📡</button>
-                        <button type="button" class="action-btn" onclick="viewRoute('${route.id}'); return false;" title="View on Map">🗺️</button>
-                        <button type="button" class="action-btn" onclick="deleteRoute('${route.id}'); return false;" title="Delete">🗑️</button>
+                        <div style="display: flex; gap: 4px;">
+                            ${route.needsRecalculation ? `<button type="button" class="action-btn" style="color: #d29922; border-color: rgba(210,153,34,0.3);" onclick="replanRoute('${route.routeDate}', '${route.id}'); return false;" data-tooltip="Re-plan Route">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="23 4 23 10 17 10"></polyline>
+                                    <polyline points="1 20 1 14 7 14"></polyline>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                </svg>
+                            </button>` : '<div style="width: 32px;"></div>'}
+                            <button type="button" class="action-btn" onclick="dispatchRoute('${route.id}', '${route.driverId || route.assignedDriverId}'); return false;" data-tooltip="Dispatch Route">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                </svg>
+                            </button>
+                            <button type="button" class="action-btn" onclick="viewRoute('${route.id}'); return false;" data-tooltip="View on Map">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                                    <line x1="8" y1="2" x2="8" y2="18"></line>
+                                    <line x1="16" y1="6" x2="16" y2="22"></line>
+                                </svg>
+                            </button>
+                            <button type="button" class="action-btn" onclick="deleteRoute('${route.id}'); return false;" data-tooltip="Delete Route">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                                </svg>
+                            </button>
+                        </div>
                     </td>
                 `;
                 tableBody.appendChild(row);
@@ -1103,8 +1226,9 @@
 
 
         // Delete route
+        // Delete route
         async function deleteRoute(id) {
-            if (!confirm('Are you sure you want to delete this route?')) return;
+            if (!await showConfirm('Are you sure you want to delete this route?', 'Delete Route', 'Delete', 'Cancel')) return;
 
             try {
                 await window.electronAPI.routes.delete(id);
@@ -1706,6 +1830,71 @@
                 } else {
                     alert('Dispatch failed: ' + error.message);
                 }
+            }
+        }
+
+        // Replan a route that needs recalculation
+        async function replanRoute(routeDate, routeId) {
+            const confirmed = await showConfirm(
+                'Re-plan Route',
+                'This will delete the existing route and re-plan it with the updated bookings. The bookings will be temporarily unassigned during replanning. Continue?',
+                'Re-plan Now',
+                'Cancel'
+            );
+
+            if (!confirmed) return;
+
+            try {
+                // Show loading indicator
+                const statusMsg = document.createElement('div');
+                statusMsg.id = 'replan-status';
+                statusMsg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card-bg); padding: 24px 32px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); z-index: 10001; text-align: center;';
+                statusMsg.innerHTML = '<div style="font-size: 1.2rem; margin-bottom: 8px;">Re-planning route...</div><div style="color: var(--text-secondary);">This may take a moment</div>';
+                document.body.appendChild(statusMsg);
+
+                // Delete the old route first (this will unassign bookings)
+                const deleteResult = await window.electronAPI.routes.delete(routeId);
+                if (!deleteResult.success) {
+                    throw new Error(deleteResult.error?.message || 'Failed to delete existing route');
+                }
+
+                // Format the date for planning
+                const planDate = typeof routeDate === 'string' ? routeDate : new Date(routeDate).toISOString().split('T')[0];
+
+                // Trigger route planning for the date
+                const planResult = await window.electronAPI.routes.planRoutes({
+                    targetDate: planDate,
+                    routingPreference: 'TRAFFIC_UNAWARE' // Default preference
+                });
+
+                // Remove loading indicator
+                const statusEl = document.getElementById('replan-status');
+                if (statusEl) statusEl.remove();
+
+                if (planResult.success) {
+                    const summary = planResult.data?.summary;
+                    await showConfirm(
+                        'Route Re-planned Successfully',
+                        `Created ${summary?.routesCreated || 1} route(s) with ${summary?.assignedBookings || 0} bookings.`,
+                        'OK',
+                        null
+                    );
+                    loadRoutes(); // Refresh the routes list
+                } else {
+                    throw new Error(planResult.error?.message || 'Failed to plan routes');
+                }
+            } catch (error) {
+                // Remove loading indicator
+                const statusEl = document.getElementById('replan-status');
+                if (statusEl) statusEl.remove();
+
+                console.error('Error replanning route:', error);
+                await showConfirm(
+                    'Re-plan Failed',
+                    `Error: ${error.message}`,
+                    'OK',
+                    null
+                );
             }
         }
 

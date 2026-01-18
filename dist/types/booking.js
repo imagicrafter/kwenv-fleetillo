@@ -84,6 +84,7 @@ function rowToBooking(row) {
         locationName: row.locations?.name,
         locationLatitude: row.locations?.latitude ?? undefined,
         locationLongitude: row.locations?.longitude ?? undefined,
+        routeCode: row.routes?.route_code ?? undefined,
     };
 }
 /**

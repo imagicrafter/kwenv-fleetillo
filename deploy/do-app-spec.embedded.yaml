@@ -75,6 +75,58 @@ services:
     success_threshold: 1
     failure_threshold: 3
 
+# Scheduled Jobs for Background Tasks
+jobs:
+- name: dispatch-scheduler
+  github:
+    repo: imagicrafter/optiroute
+    branch: feature/dispatch-service
+    deploy_on_push: true
+  source_dir: /
+  build_command: npm install && npm run build
+  run_command: node dist/jobs/dispatch-scheduler.js
+  instance_size_slug: apps-s-1vcpu-0.5gb
+  instance_count: 1
+  kind: POST_DEPLOY
+  envs:
+  - key: SUPABASE_URL
+    value: ${web.SUPABASE_URL}
+    scope: RUN_TIME
+  - key: SUPABASE_KEY
+    value: ${web.SUPABASE_KEY}
+    scope: RUN_TIME
+  - key: SUPABASE_SERVICE_ROLE_KEY
+    value: ${web.SUPABASE_SERVICE_ROLE_KEY}
+    scope: RUN_TIME
+  - key: SUPABASE_SCHEMA
+    value: ${web.SUPABASE_SCHEMA}
+    scope: RUN_TIME
+
+- name: end-of-day
+  github:
+    repo: imagicrafter/optiroute
+    branch: feature/dispatch-service
+    deploy_on_push: true
+  source_dir: /
+  build_command: npm install && npm run build
+  run_command: node dist/jobs/end-of-day.js
+  instance_size_slug: apps-s-1vcpu-0.5gb
+  instance_count: 1
+  kind: POST_DEPLOY
+  envs:
+  - key: SUPABASE_URL
+    value: ${web.SUPABASE_URL}
+    scope: RUN_TIME
+  - key: SUPABASE_KEY
+    value: ${web.SUPABASE_KEY}
+    scope: RUN_TIME
+  - key: SUPABASE_SERVICE_ROLE_KEY
+    value: ${web.SUPABASE_SERVICE_ROLE_KEY}
+    scope: RUN_TIME
+  - key: SUPABASE_SCHEMA
+    value: ${web.SUPABASE_SCHEMA}
+    scope: RUN_TIME
+
 domains:
 - domain: optiroute.imagicrafterai.com
   type: PRIMARY

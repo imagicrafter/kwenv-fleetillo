@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,7 +36,7 @@
             border: 1px solid var(--border-color);
             width: 100%;
             max-width: 360px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
             text-align: center;
         }
 
@@ -51,16 +52,21 @@
         }
 
         .logo-icon {
-            background: linear-gradient(135deg, #1f6feb 0%, #58a6ff 100%);
-            color: white;
+            /* background: linear-gradient(135deg, #1f6feb 0%, #58a6ff 100%); */
+            /* color: white; */
             width: 40px;
             height: 40px;
-            border-radius: 8px;
+            /* border-radius: 8px; */
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 800;
-            font-size: 1.2rem;
+            /* font-weight: 800; */
+            /* font-size: 1.2rem; */
+        }
+
+        .logo-icon svg {
+            width: 100%;
+            height: 100%;
         }
 
         .input-group {
@@ -128,35 +134,43 @@
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
+            border: 3px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             border-top-color: #fff;
             animation: spin 1s ease-in-out infinite;
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
+
 <body>
     <div class="login-card">
         <div class="logo">
-            <div class="logo-icon">OR</div>
             OptiRoute
+            <svg width="40" height="40" fill="none" stroke="#3fb950" viewBox="0 0 24 24" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="6" cy="19" r="3" />
+                <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
+                <circle cx="18" cy="5" r="3" />
+            </svg>
         </div>
-        
+
         <form id="login-form">
             <div class="input-group">
                 <label for="access-code">Access Code</label>
                 <input type="password" id="access-code" placeholder="Enter demo access code" required autofocus>
             </div>
-            
+
             <button type="submit" id="login-btn">
                 <span id="btn-text">Enter Demo</span>
                 <span id="btn-spinner" class="spinner" style="display: none;"></span>
             </button>
-            
+
             <div id="error-msg" class="error-message">Invalid access code</div>
         </form>
     </div>
@@ -171,7 +185,7 @@
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             const password = input.value;
             if (!password) return;
 
@@ -202,7 +216,7 @@
                 errorMsg.style.display = 'block';
                 input.value = '';
                 input.focus();
-                
+
                 // Reset styling
                 btn.disabled = false;
                 btnText.style.display = 'inline';
@@ -212,4 +226,5 @@
         });
     </script>
 </body>
+
 </html>

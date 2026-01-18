@@ -12,6 +12,7 @@ if (!window.electronAPI) {
         routes: createProxy('routes'),
         geocoding: createProxy('geocoding'),
         activities: createProxy('activities'),
+        settings: createProxy('settings'),
         config: {
             getGoogleMapsApiKey: () => callRpc('config', 'getGoogleMapsApiKey', [])
         }

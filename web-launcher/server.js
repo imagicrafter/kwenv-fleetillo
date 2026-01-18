@@ -175,6 +175,7 @@ const activityService = require(`${SERVICE_PATH}/activity.service.js`);
 const settingsService = require(`${SERVICE_PATH}/settings.service.js`);
 const supabaseService = require(`${SERVICE_PATH}/supabase.js`);
 const csvService = require(`${SERVICE_PATH}/csv.service.js`);
+const dispatchJobService = require(`${SERVICE_PATH}/dispatch-job.service.js`);
 
 // Initialize Supabase
 supabaseService.initializeSupabase({
@@ -320,6 +321,19 @@ const rpcMap = {
         update: settingsService.updateSetting,
         updateMultiple: settingsService.updateSettings,
         getRoutePlanningParams: settingsService.getRoutePlanningParams
+    },
+    dispatchJobs: {
+        getAll: dispatchJobService.dispatchJobService.getDispatchJobs,
+        getById: dispatchJobService.dispatchJobService.getDispatchJobById,
+        create: dispatchJobService.dispatchJobService.createDispatchJob,
+        cancel: dispatchJobService.dispatchJobService.cancelDispatchJob,
+        execute: dispatchJobService.dispatchJobService.executeDispatchJob,
+        removeDriver: (data) => {
+            return dispatchJobService.dispatchJobService.removeDriverFromJob(data.jobId, data.driverId);
+        },
+        getDriversInActiveJobs: dispatchJobService.dispatchJobService.getDriversInActiveJobs,
+        checkDriverConflicts: dispatchJobService.dispatchJobService.checkDriverConflicts,
+        getPendingDue: dispatchJobService.dispatchJobService.getPendingJobsDue
     }
 };
 

@@ -40,7 +40,10 @@ export declare function getBookings(filters?: BookingFilters, pagination?: Pagin
 /**
  * Updates an existing booking
  */
-export declare function updateBooking(input: UpdateBookingInput): Promise<Result<Booking>>;
+export declare function updateBooking(input: UpdateBookingInput): Promise<Result<Booking & {
+    routeWasInvalidated?: boolean;
+    invalidatedRouteId?: string;
+}>>;
 /**
  * Soft deletes a booking by setting deleted_at timestamp
  */

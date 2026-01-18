@@ -96,6 +96,7 @@ export interface Booking extends Timestamps {
     locationName?: string;
     locationLatitude?: number;
     locationLongitude?: number;
+    routeCode?: string;
 }
 /**
  * Database row representation (snake_case as stored in Supabase)
