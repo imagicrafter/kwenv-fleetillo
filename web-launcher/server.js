@@ -51,10 +51,12 @@ app.use(cors());
 if (process.env.ALLOW_IFRAME === 'true') {
     console.log('[Config] Iframe embedding ENABLED');
     app.use((req, res, next) => {
-        // Remove restrictive frame headers
+        // Remove restrictive frame headers that might be set elsewhere
         res.removeHeader('X-Frame-Options');
-        // Set permissive Content-Security-Policy for frames
-        res.setHeader('Content-Security-Policy', "frame-ancestors *");
+        // Set permissive headers for iframe embedding
+        // Use explicit schemes as '*' alone can be interpreted strictly
+        res.setHeader('Content-Security-Policy', "frame-ancestors 'self' https: http:");
+        res.setHeader('X-Frame-Options', 'ALLOWALL');
         next();
     });
 } else {
