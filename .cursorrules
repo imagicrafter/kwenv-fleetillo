@@ -33,3 +33,23 @@ All AI tools (Claude Code CLI, Google Antigravity, Cursor, etc.) should:
 - Use branch format `issue/N-description`
 - Commit with `#N:` prefix
 - Log progress via `gh issue comment`
+
+## ⚠️ CRITICAL: Infrastructure Protection
+
+**NEVER modify production infrastructure without explicit user approval:**
+
+1. **DigitalOcean Apps**: Do NOT use `apps-update` or `apps-create-app-from-spec` without:
+   - First exporting the COMPLETE current spec and showing it to the user
+   - Getting explicit approval for the specific changes
+   - ONLY adding/modifying the specific fields needed, preserving ALL existing config
+   - **Secrets cannot be read from the API - they will be overwritten with placeholders if you replace the spec**
+
+2. **Database Changes**: Do NOT run migrations, schema changes, or destructive DB operations without user approval.
+
+3. **Environment Variables**: When adding env vars to live apps, ALWAYS use the DigitalOcean console UI, or ask the user to do it manually. API updates replace the entire env var list.
+
+4. **If you must modify infrastructure programmatically**:
+   - Explain exactly what will change
+   - List what will be preserved
+   - Warn about any potential data loss (especially secrets)
+   - Wait for explicit "proceed" from user
