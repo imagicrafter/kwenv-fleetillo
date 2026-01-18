@@ -10,6 +10,14 @@
 - Merge the branch back to `main` only after verification.
 - Always prefix commit messages with the issue number (e.g., "#1: Add feature...").
 
+## Context Gathering (New Sessions)
+- **If you are in a new session and lack sufficient context about the codebase or the issue you are about to work on**, you MUST run the `/context-gathering` workflow (`.agent/workflows/context-gathering.md`) before proceeding.
+- Sufficient context means you understand:
+  - The project structure (key directories, services, and UI files).
+  - The specific issue requirements (from `gh issue view`).
+  - Relevant code areas related to the issue.
+- If any of the above is unclear, run the context-gathering workflow.
+
 ## General
 - Use the `gh` CLI for all GitHub interactions.
 - Keep `task.md` in sync with GitHub issues.
