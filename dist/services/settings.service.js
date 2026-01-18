@@ -92,6 +92,11 @@ async function getRouteSettings() {
             trafficBufferPercent: raw[settings_js_1.SettingKeys.ROUTING_TRAFFIC_BUFFER_PERCENT] || settings_js_1.DEFAULT_SETTINGS.routing.trafficBufferPercent,
             defaultServiceDurationMinutes: raw[settings_js_1.SettingKeys.ROUTING_DEFAULT_SERVICE_DURATION] || settings_js_1.DEFAULT_SETTINGS.routing.defaultServiceDurationMinutes,
         },
+        dashboard: {
+            showChatbot: raw[settings_js_1.SettingKeys.DASHBOARD_SHOW_CHATBOT] !== undefined
+                ? Boolean(raw[settings_js_1.SettingKeys.DASHBOARD_SHOW_CHATBOT])
+                : settings_js_1.DEFAULT_SETTINGS.dashboard.showChatbot,
+        },
     };
     return { success: true, data: settings };
 }
@@ -206,6 +211,8 @@ function getDefaultValue(key) {
             return settings_js_1.DEFAULT_COST_SETTINGS.dieselPricePerGallon;
         case settings_js_1.SettingKeys.COSTS_INCLUDE_TRAFFIC_BUFFER:
             return settings_js_1.DEFAULT_COST_SETTINGS.includeTrafficBuffer;
+        case settings_js_1.SettingKeys.DASHBOARD_SHOW_CHATBOT:
+            return settings_js_1.DEFAULT_SETTINGS.dashboard.showChatbot;
         default:
             return null;
     }

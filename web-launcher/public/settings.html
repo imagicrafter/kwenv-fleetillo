@@ -460,14 +460,39 @@
                 <div class="settings-container">
                     <!-- Tab Navigation -->
                     <div class="tabs">
-                        <button class="tab-btn active" onclick="switchTab('planning')">Planning</button>
+                        <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+                        <button class="tab-btn" onclick="switchTab('planning')">Planning</button>
                         <button class="tab-btn" onclick="switchTab('fleet')">Fleet</button>
                         <button class="tab-btn" onclick="switchTab('routes')">Routes</button>
                         <button class="tab-btn" onclick="switchTab('data')">Data</button>
                     </div>
 
+                    <!-- Dashboard Tab (Content) -->
+                    <div id="tab-dashboard" class="tab-content active">
+                        <div class="settings-section">
+                            <h3>
+                                <span class="icon">📊</span>
+                                Dashboard Display
+                            </h3>
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Show Chatbot Agent</div>
+                                    <div class="setting-description">Enable the AI assistant on the dashboard. When
+                                        disabled, an application overview will be shown instead.</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <input type="checkbox" id="dashboard-show-chatbot" checked
+                                            style="width: 18px; height: 18px;">
+                                        <span style="color: var(--text-secondary);">Enabled</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Planning Tab (Content) -->
-                    <div id="tab-planning" class="tab-content active">
+                    <div id="tab-planning" class="tab-content">
                         <!-- Work Schedule Section -->
                         <div class="settings-section">
                             <h3>
@@ -804,6 +829,11 @@
 
                         document.getElementById('traffic-buffer').value = settings.routing.trafficBufferPercent || 20;
                         document.getElementById('default-service-duration').value = settings.routing.defaultServiceDurationMinutes || 30;
+
+                        // Dashboard
+                        if (settings.dashboard) {
+                            document.getElementById('dashboard-show-chatbot').checked = settings.dashboard.showChatbot !== false;
+                        }
                     }
 
                     // Cost Settings (load from allSettings if available)
@@ -920,6 +950,9 @@
             try {
                 // Collect values
                 const settingsToUpdate = {
+                    // Dashboard
+                    'dashboard.showChatbot': document.getElementById('dashboard-show-chatbot').checked,
+
                     // Schedule
                     'schedule.dayStartTime': document.getElementById('day-start-time').value,
                     'schedule.dayEndTime': document.getElementById('day-end-time').value,

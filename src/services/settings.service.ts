@@ -108,6 +108,11 @@ export async function getRouteSettings(): Promise<Result<RouteSettings>> {
             trafficBufferPercent: (raw[SettingKeys.ROUTING_TRAFFIC_BUFFER_PERCENT] as number) || DEFAULT_SETTINGS.routing.trafficBufferPercent,
             defaultServiceDurationMinutes: (raw[SettingKeys.ROUTING_DEFAULT_SERVICE_DURATION] as number) || DEFAULT_SETTINGS.routing.defaultServiceDurationMinutes,
         },
+        dashboard: {
+            showChatbot: raw[SettingKeys.DASHBOARD_SHOW_CHATBOT] !== undefined
+                ? Boolean(raw[SettingKeys.DASHBOARD_SHOW_CHATBOT])
+                : DEFAULT_SETTINGS.dashboard.showChatbot,
+        },
     };
 
     return { success: true, data: settings };
@@ -248,6 +253,8 @@ function getDefaultValue(key: SettingKey): unknown {
             return DEFAULT_COST_SETTINGS.dieselPricePerGallon;
         case SettingKeys.COSTS_INCLUDE_TRAFFIC_BUFFER:
             return DEFAULT_COST_SETTINGS.includeTrafficBuffer;
+        case SettingKeys.DASHBOARD_SHOW_CHATBOT:
+            return DEFAULT_SETTINGS.dashboard.showChatbot;
         default:
             return null;
     }

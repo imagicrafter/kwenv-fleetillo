@@ -313,6 +313,50 @@ npm install && npm run build && cd web-launcher && npm install && cd ../dispatch
 node web-launcher/server.js
 ```
 
+### Scheduled Jobs
+
+OptiRoute uses DigitalOcean App Platform scheduled jobs for background automation:
+
+| Job | Schedule | Purpose |
+|-----|----------|---------|
+| `dispatch-scheduler` | Every 15 min | Processes pending dispatch jobs at their scheduled time |
+| `end-of-day` | Hourly | Marks dispatched routes as completed after `dayEndTime` |
+
+#### How Jobs Work
+
+1. **dispatch-scheduler**: Runs every 15 minutes to check for pending dispatch jobs whose `scheduled_time` has passed. When found, it:
+   - Finds the next planned route for each driver in the job
+   - Updates route status from `planned` → `dispatched`
+   - Records which routes were dispatched
+
+2. **end-of-day**: Runs hourly and checks if the current time has passed `settings.schedule.dayEndTime`. If so, it:
+   - Finds all routes with status `dispatched` for today
+   - Updates them to `completed`
+   - Marks associated bookings as completed
+
+#### Viewing Job Runs
+
+Jobs will appear in the DigitalOcean control panel under **Apps → [Your App] → Jobs** after their first scheduled execution. You can:
+- View job run history and logs
+- Manually trigger a job run
+- Edit the schedule via Settings
+
+#### Configuration
+
+Jobs are defined in `deploy/do-app-spec.embedded.yaml`:
+
+```yaml
+jobs:
+- name: dispatch-scheduler
+  kind: SCHEDULED
+  schedule:
+    cron: "*/15 * * * *"
+    time_zone: America/Chicago
+  run_command: node dist/jobs/dispatch-scheduler.js
+```
+
+
+
 ## Dispatch Service
 
 The dispatch service enables sending route assignments to drivers via Telegram and Email.

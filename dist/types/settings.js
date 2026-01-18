@@ -20,6 +20,8 @@ exports.SettingKeys = {
     COSTS_GASOLINE_PRICE_PER_GALLON: 'costs.gasolinePricePerGallon',
     COSTS_DIESEL_PRICE_PER_GALLON: 'costs.dieselPricePerGallon',
     COSTS_INCLUDE_TRAFFIC_BUFFER: 'costs.includeTrafficBuffer',
+    // Dashboard settings
+    DASHBOARD_SHOW_CHATBOT: 'dashboard.showChatbot',
 };
 // Default settings
 exports.DEFAULT_SETTINGS = {
@@ -32,6 +34,9 @@ exports.DEFAULT_SETTINGS = {
         avgTravelSpeed: 30, // km/h
         trafficBufferPercent: 20,
         defaultServiceDurationMinutes: 30,
+    },
+    dashboard: {
+        showChatbot: true,
     },
 };
 // Default cost settings

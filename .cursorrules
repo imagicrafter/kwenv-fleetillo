@@ -1,0 +1,14 @@
+# OptiRoute Agent Rules
+
+## GitHub Issue Workflow
+1. **Always Check Issues**: At the start of every session, run `gh issue list` to identify active tasks.
+2. **Track Work**: All work must be associated with a GitHub issue.
+   - If a relevant issue exists, reference it.
+   - If new work is requested, create a new issue first using `gh issue create`.
+3. **Update Status**: Use `gh issue comment` to log progress and `gh issue close` when completed.
+4. **Link Commits**: Prefix commit messages with the issue number (e.g., "#12 Fix login bug").
+
+## General
+- Use the `gh` CLI for all GitHub interactions.
+- Keep `task.md` in sync with GitHub issues.
+- Always read `.agent/workflows/issues.md` if managing issues.

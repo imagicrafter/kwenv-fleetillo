@@ -13,6 +13,7 @@ export declare const SettingKeys: {
     readonly COSTS_GASOLINE_PRICE_PER_GALLON: "costs.gasolinePricePerGallon";
     readonly COSTS_DIESEL_PRICE_PER_GALLON: "costs.dieselPricePerGallon";
     readonly COSTS_INCLUDE_TRAFFIC_BUFFER: "costs.includeTrafficBuffer";
+    readonly DASHBOARD_SHOW_CHATBOT: "dashboard.showChatbot";
 };
 export type SettingKey = (typeof SettingKeys)[keyof typeof SettingKeys];
 export type UnitSystem = 'imperial' | 'metric';
@@ -39,6 +40,9 @@ export interface RouteSettings {
         avgTravelSpeed: number;
         trafficBufferPercent: number;
         defaultServiceDurationMinutes: number;
+    };
+    dashboard: {
+        showChatbot: boolean;
     };
 }
 export interface CostSettings {
