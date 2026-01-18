@@ -23,7 +23,9 @@
       "Bash(doctl apps spec get:*)",
       "Bash(doctl apps logs:*)",
       "Bash(doctl apps create-deployment:*)",
-      "WebFetch(domain:developers.googleblog.com)"
+      "WebFetch(domain:developers.googleblog.com)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)"
     ]
   },
   "hooks": {

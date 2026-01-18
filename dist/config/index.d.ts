@@ -11,7 +11,7 @@ export interface SupabaseConfig {
  * Google Maps API configuration
  */
 export interface GoogleMapsConfig {
-    apiKey: string;
+    apiKey?: string;
 }
 /**
  * Application configuration

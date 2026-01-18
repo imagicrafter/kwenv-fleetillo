@@ -74,7 +74,7 @@ function createConfig() {
             schema: getOptionalEnv('SUPABASE_SCHEMA', 'optiroute'),
         },
         googleMaps: {
-            apiKey: getRequiredEnv('GOOGLE_MAPS_API_KEY'),
+            apiKey: process.env.GOOGLE_MAPS_API_KEY,
         },
         api: {
             prefix: getOptionalEnv('API_PREFIX', '/api'),
@@ -89,7 +89,7 @@ exports.config = createConfig();
 /**
  * List of required environment variables for validation
  */
-const REQUIRED_ENV_VARS = ['SUPABASE_URL', 'SUPABASE_KEY', 'GOOGLE_MAPS_API_KEY'];
+const REQUIRED_ENV_VARS = ['SUPABASE_URL', 'SUPABASE_KEY'];
 /**
  * Validates that required configuration is present
  * Note: Uses console.error directly to avoid circular dependency with logger

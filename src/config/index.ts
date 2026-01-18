@@ -22,7 +22,7 @@ export interface SupabaseConfig {
  * Google Maps API configuration
  */
 export interface GoogleMapsConfig {
-  apiKey: string;
+  apiKey?: string;
 }
 
 /**
@@ -103,7 +103,7 @@ function createConfig(): AppConfig {
       schema: getOptionalEnv('SUPABASE_SCHEMA', 'optiroute'),
     },
     googleMaps: {
-      apiKey: getRequiredEnv('GOOGLE_MAPS_API_KEY'),
+      apiKey: process.env.GOOGLE_MAPS_API_KEY,
     },
     api: {
       prefix: getOptionalEnv('API_PREFIX', '/api'),
@@ -120,7 +120,7 @@ export const config: AppConfig = createConfig();
 /**
  * List of required environment variables for validation
  */
-const REQUIRED_ENV_VARS = ['SUPABASE_URL', 'SUPABASE_KEY', 'GOOGLE_MAPS_API_KEY'] as const;
+const REQUIRED_ENV_VARS = ['SUPABASE_URL', 'SUPABASE_KEY'] as const;
 
 /**
  * Validates that required configuration is present
