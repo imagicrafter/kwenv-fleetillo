@@ -49,14 +49,22 @@ app.use(cors());
 
 // Allow iframe embedding when ALLOW_IFRAME=true
 if (process.env.ALLOW_IFRAME === 'true') {
-    console.log('[Config] Iframe embedding ENABLED');
+    console.log('[Config] Iframe embedding ENABLED - removing all frame restrictions');
     app.use((req, res, next) => {
-        // Remove restrictive frame headers that might be set elsewhere
+        // Intercept the response to remove any frame-related headers
+        const originalSetHeader = res.setHeader.bind(res);
+        res.setHeader = function (name, value) {
+            // Block any X-Frame-Options or CSP headers from being set
+            if (name.toLowerCase() === 'x-frame-options') return this;
+            if (name.toLowerCase() === 'content-security-policy' &&
+                typeof value === 'string' && value.includes('frame-ancestors')) {
+                return this;
+            }
+            return originalSetHeader(name, value);
+        };
+        // Also explicitly remove them if they exist
         res.removeHeader('X-Frame-Options');
-        // Set permissive headers for iframe embedding
-        // Use explicit schemes as '*' alone can be interpreted strictly
-        res.setHeader('Content-Security-Policy', "frame-ancestors 'self' https: http:");
-        res.setHeader('X-Frame-Options', 'ALLOWALL');
+        res.removeHeader('Content-Security-Policy');
         next();
     });
 } else {
