@@ -1,12 +1,14 @@
-# OptiRoute Agent Rules
-
-## GitHub Issue Workflow
-1. **Always Check Issues**: At the start of every session, run `gh issue list` to identify active tasks.
-2. **Track Work**: All work must be associated with a GitHub issue.
-   - If a relevant issue exists, reference it.
-   - If new work is requested, create a new issue first using `gh issue create`.
-3. **Update Status**: Use `gh issue comment` to log progress and `gh issue close` when completed.
-4. **Link Commits**: Prefix commit messages with the issue number (e.g., "#12 Fix login bug").
+# GitHub Issues Workflow
+- ALWAYS check for open issues at the start of a session using `gh issue list`.
+- All work MUST be tracked via a GitHub issue.
+- If the user asks for something new, create an issue for it first using `gh issue create`.
+- **CRITICAL: ALWAYS create a new branch for the issue before starting work.**
+  - Format: `issue/[number]-[short-description]` (e.g., `issue/1-chatbot-visibility`)
+  - NEVER commit directly to `main` for issue work.
+- When working on an issue, use `gh issue comment [number] --body "..."` to log progress.
+- When completing a task, close the issue using `gh issue close [number]`.
+- Merge the branch back to `main` only after verification.
+- Always prefix commit messages with the issue number (e.g., "#1: Add feature...").
 
 ## General
 - Use the `gh` CLI for all GitHub interactions.
