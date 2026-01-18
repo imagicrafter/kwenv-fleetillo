@@ -17,6 +17,7 @@
   - The specific issue requirements (from `gh issue view`).
   - Relevant code areas related to the issue.
 - If any of the above is unclear, run the context-gathering workflow.
+- **If the GitHub issue lacks sufficient detail to achieve a high level of success, ASK the user clarifying questions BEFORE proceeding with implementation.** Do not guess or make assumptions about ambiguous requirements.
 
 ## General
 - Use the `gh` CLI for all GitHub interactions.
