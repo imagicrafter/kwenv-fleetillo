@@ -87,7 +87,10 @@ jobs:
   run_command: node dist/jobs/dispatch-scheduler.js
   instance_size_slug: apps-s-1vcpu-0.5gb
   instance_count: 1
-  kind: POST_DEPLOY
+  kind: SCHEDULED
+  schedule:
+    cron: "*/15 * * * *"
+    time_zone: America/Chicago
   envs:
   - key: SUPABASE_URL
     value: ${web.SUPABASE_URL}
@@ -112,7 +115,10 @@ jobs:
   run_command: node dist/jobs/end-of-day.js
   instance_size_slug: apps-s-1vcpu-0.5gb
   instance_count: 1
-  kind: POST_DEPLOY
+  kind: SCHEDULED
+  schedule:
+    cron: "0 * * * *"
+    time_zone: America/Chicago
   envs:
   - key: SUPABASE_URL
     value: ${web.SUPABASE_URL}
