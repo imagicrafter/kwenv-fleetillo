@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [2026-01-18] - Issue #4: Fix dispatch-scheduler startup failure
+
+### Fixed
+- Made `GOOGLE_MAPS_API_KEY` optional in config so scheduled jobs (dispatch-scheduler, end-of-day) that don't use Google Maps API can run without the key configured.
+
+---
+
 ## [Unreleased]
 
 ### Added
