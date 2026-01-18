@@ -1,3 +1,16 @@
+# 🚨 CRITICAL: Branch Protection
+
+**NEVER commit directly to `main` branch.** This is a production-critical rule.
+
+Before ANY code changes:
+1. Create branch: `git checkout -b issue/[N]-[description]`
+2. Make changes and commit to the branch
+3. Merge to main only after work is complete
+
+Violating this rule can cause production impacts. A pre-commit hook will block direct commits to main.
+
+---
+
 # GitHub Issues Workflow
 
 All work MUST be tracked via GitHub issues. Follow `.agent/workflows/context-gathering.md` for the complete workflow.
