@@ -21,6 +21,7 @@ git pull origin main
 ```
 
 ### 1.3 List Open Issues
+// turbo
 ```bash
 gh issue list --state open --json number,title,labels
 ```
@@ -28,11 +29,13 @@ gh issue list --state open --json number,title,labels
 ### 1.4 Select or Create Issue
 - If an existing issue matches the task, note its number
 - If not, create one:
+  // turbo
   ```bash
   gh issue create --title "Task Title" --body "Description"
   ```
 
 ### 1.5 Read Issue Details
+// turbo
 ```bash
 gh issue view [ISSUE_NUMBER]
 ```
@@ -45,6 +48,7 @@ git checkout -b issue/[ISSUE_NUMBER]-[short-kebab-description]
 **CRITICAL**: Never commit directly to `main` for issue work.
 
 ### 1.7 Log Start of Work
+// turbo
 ```bash
 gh issue comment [ISSUE_NUMBER] --body "Starting work on this issue. Branch: issue/[ISSUE_NUMBER]-[description]"
 ```
@@ -115,6 +119,7 @@ EOF
 ```
 
 ### 3.3 Post Plan to Issue
+// turbo
 ```bash
 gh issue comment [ISSUE_NUMBER] --body-file .claude/plans/issue-[NUMBER]-plan.md
 ```
@@ -146,6 +151,7 @@ npm run build
 ```
 
 ### 4.3 Log Progress (for long tasks)
+// turbo
 ```bash
 gh issue comment [ISSUE_NUMBER] --body "Progress update: [what's done, what's remaining]"
 ```
@@ -179,6 +185,7 @@ git push origin main
 ```
 
 ### 5.4 Close Issue
+// turbo
 ```bash
 gh issue close [ISSUE_NUMBER] --comment "Completed. Merged into main. See CHANGELOG.md for details."
 ```

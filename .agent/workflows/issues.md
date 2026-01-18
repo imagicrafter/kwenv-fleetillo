@@ -7,6 +7,7 @@ For the complete workflow, see **`.agent/workflows/context-gathering.md`**.
 
 ## Common Commands
 
+// turbo-all
 ```bash
 # List open issues
 gh issue list --state open --json number,title,labels
