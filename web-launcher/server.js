@@ -46,6 +46,20 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 app.use(cors());
+
+// Allow iframe embedding when ALLOW_IFRAME=true
+if (process.env.ALLOW_IFRAME === 'true') {
+    console.log('[Config] Iframe embedding ENABLED');
+    app.use((req, res, next) => {
+        // Remove restrictive frame headers
+        res.removeHeader('X-Frame-Options');
+        // Set permissive Content-Security-Policy for frames
+        res.setHeader('Content-Security-Policy', "frame-ancestors *");
+        next();
+    });
+} else {
+    console.log('[Config] Iframe embedding DISABLED (default)');
+}
 app.use(cookieParser());
 app.use(session({
     secret: process.env.SESSION_SECRET || 'optiroute-demo-secret',

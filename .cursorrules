@@ -1,25 +1,35 @@
 # GitHub Issues Workflow
-- ALWAYS check for open issues at the start of a session using `gh issue list`.
-- All work MUST be tracked via a GitHub issue.
-- If the user asks for something new, create an issue for it first using `gh issue create`.
-- **CRITICAL: ALWAYS create a new branch for the issue before starting work.**
-  - Format: `issue/[number]-[short-description]` (e.g., `issue/1-chatbot-visibility`)
-  - NEVER commit directly to `main` for issue work.
-- When working on an issue, use `gh issue comment [number] --body "..."` to log progress.
-- When completing a task, close the issue using `gh issue close [number]`.
-- Merge the branch back to `main` only after verification.
-- Always prefix commit messages with the issue number (e.g., "#1: Add feature...").
 
-## Context Gathering (New Sessions)
-- **If you are in a new session and lack sufficient context about the codebase or the issue you are about to work on**, you MUST run the `/context-gathering` workflow (`.agent/workflows/context-gathering.md`) before proceeding.
-- Sufficient context means you understand:
-  - The project structure (key directories, services, and UI files).
-  - The specific issue requirements (from `gh issue view`).
-  - Relevant code areas related to the issue.
-- If any of the above is unclear, run the context-gathering workflow.
-- **If the GitHub issue lacks sufficient detail to achieve a high level of success, ASK the user clarifying questions BEFORE proceeding with implementation.** Do not guess or make assumptions about ambiguous requirements.
+All work MUST be tracked via GitHub issues. Follow `.agent/workflows/context-gathering.md` for the complete workflow.
 
-## General
-- Use the `gh` CLI for all GitHub interactions.
-- Keep `task.md` in sync with GitHub issues.
-- Always read `.agent/workflows/issues.md` if managing issues.
+## Quick Rules
+- **Start of session**: `gh issue list` to check open issues
+- **New work**: Create issue first with `gh issue create`
+- **Before coding**: Create branch `issue/[N]-[description]` - NEVER commit to `main`
+- **During work**: Log progress with `gh issue comment [N] --body "..."`
+- **Commits**: Prefix with issue number (e.g., `#1: Add feature...`)
+- **Completion**: Merge to main, close issue, update CHANGELOG
+
+## New Sessions
+If you lack context about the codebase or issue, follow the **Issue Workflow** in `.agent/workflows/context-gathering.md`. This covers:
+- Phase 1: Issue selection & branch setup
+- Phase 2: Context gathering
+- Phase 3: Implementation planning
+- Phase 4: Execution
+- Phase 5: Completion
+
+**Ask clarifying questions** if the issue lacks sufficient detail.
+
+## Planning (Complex Issues)
+- **Claude Code CLI**: Use plan mode - plans auto-save to `.claude/plans/` and post to GitHub issues
+- **Other AI tools**: Manually create `.claude/plans/issue-N-plan.md` and post with `gh issue comment`
+- Plans are archived to `.claude/plans/archive/` with timestamps
+- External reviews (Gemini/Codex CLI) also post to issues if available
+- Search past plans: `grep -r "keyword" .claude/plans/archive/`
+
+## Tool Consistency
+All AI tools (Claude Code CLI, Google Antigravity, Cursor, etc.) should:
+- Store plans in `.claude/plans/`
+- Use branch format `issue/N-description`
+- Commit with `#N:` prefix
+- Log progress via `gh issue comment`
