@@ -61,17 +61,27 @@ if (process.env.ALLOW_IFRAME === 'true') {
     console.log('[Config] Iframe embedding DISABLED (default)');
 }
 app.use(cookieParser());
+
+// Determine cookie settings based on iframe mode
+const isIframeMode = process.env.ALLOW_IFRAME === 'true';
+const isProduction = process.env.NODE_ENV === 'production';
+
 app.use(session({
     secret: process.env.SESSION_SECRET || 'optiroute-demo-secret',
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === 'production',
+        secure: isProduction, // Must be true for SameSite=none
         httpOnly: true,
-        sameSite: 'lax',
+        // SameSite=none allows cookies in cross-origin iframes, but requires secure=true
+        sameSite: isIframeMode ? 'none' : 'lax',
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
 }));
+
+if (isIframeMode) {
+    console.log('[Config] Session cookies set for iframe mode (SameSite=none)');
+}
 app.use(express.json());
 // Auth Middleware
 const requireAuth = (req, res, next) => {
