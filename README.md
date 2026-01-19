@@ -1,10 +1,10 @@
-# OptiRoute
+# Fleetillo
 
 A route planning and management system for service-based businesses built with TypeScript, Electron, and Supabase.
 
 ## Overview
 
-OptiRoute helps service-based businesses efficiently manage their daily operations by providing:
+Fleetillo helps service-based businesses efficiently manage their daily operations by providing:
 
 - **Customer Management** - Maintain a comprehensive client database with service addresses
 - **Service Catalog** - Manage services with configurable average service times
@@ -36,8 +36,8 @@ OptiRoute helps service-based businesses efficiently manage their daily operatio
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/imagicrafter/optiroute.git
-   cd optiroute
+   git clone https://github.com/imagicrafter/fleetillo.git
+   cd fleetillo
    ```
 
 2. **Install dependencies:**

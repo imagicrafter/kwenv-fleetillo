@@ -1,5 +1,5 @@
 /**
- * Driver-related type definitions for OptiRoute application
+ * Driver-related type definitions for Fleetillo application
  */
 
 import type { ID, Timestamps } from './index.js';

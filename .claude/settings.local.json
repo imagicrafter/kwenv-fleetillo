@@ -37,7 +37,9 @@
       "Bash(gh issue comment:*)",
       "Bash(mkdir -p .claude/plans:*)",
       "Bash(mkdir -p .agent/plans:*)",
-      "Bash(xargs sed:*)"
+      "Bash(xargs sed:*)",
+      "Bash(code .claude/plans/issue-8-security-audit/requirements.md)",
+      "Bash(code --command \"markdown.showPreview\")"
     ]
   },
   "hooks": {

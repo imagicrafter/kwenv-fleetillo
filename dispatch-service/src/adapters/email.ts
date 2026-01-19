@@ -68,7 +68,7 @@ export function getEmailProvider(): EmailProvider {
  */
 export function isEmailConfigured(): boolean {
   const provider = getEmailProvider();
-  
+
   if (provider === 'sendgrid') {
     const apiKey = process.env.SENDGRID_API_KEY;
     return !!apiKey && apiKey.trim().length > 0;
@@ -83,23 +83,23 @@ export function isEmailConfigured(): boolean {
  */
 function getEmailConfig(): EmailConfig | null {
   const provider = getEmailProvider();
-  
+
   let apiKey: string | undefined;
   if (provider === 'sendgrid') {
     apiKey = process.env.SENDGRID_API_KEY;
   } else {
     apiKey = process.env.RESEND_API_KEY;
   }
-  
+
   if (!apiKey || apiKey.trim().length === 0) {
     return null;
   }
-  
+
   return {
     provider,
     apiKey: apiKey.trim(),
-    fromEmail: process.env.EMAIL_FROM_ADDRESS || 'dispatch@optiroute.com',
-    fromName: process.env.EMAIL_FROM_NAME || 'OptiRoute Dispatch',
+    fromEmail: process.env.EMAIL_FROM_ADDRESS || 'dispatch@fleetillo.com',
+    fromName: process.env.EMAIL_FROM_NAME || 'Fleetillo Dispatch',
   };
 }
 
@@ -261,13 +261,13 @@ export class EmailAdapter implements ChannelAdapter {
     try {
       // Build email subject
       const subject = `Route Assignment: ${route.name} - ${route.date}`;
-      
+
       // Use template as HTML content
       const htmlContent = template;
 
       // Send via configured provider
       let result: { success: boolean; messageId?: string; error?: string };
-      
+
       if (config.provider === 'sendgrid') {
         result = await sendViaSendGrid(config, driver.email!, subject, htmlContent);
       } else {
@@ -336,7 +336,7 @@ export class EmailAdapter implements ChannelAdapter {
    */
   async healthCheck(): Promise<HealthStatus> {
     const config = getEmailConfig();
-    
+
     if (!config) {
       return {
         healthy: false,
@@ -360,8 +360,8 @@ export class EmailAdapter implements ChannelAdapter {
             message: 'SendGrid API connected',
           };
         } else {
-          const errorText = response.status === 401 
-            ? 'Invalid API key' 
+          const errorText = response.status === 401
+            ? 'Invalid API key'
             : `API error: ${response.status}`;
           return {
             healthy: false,
@@ -383,8 +383,8 @@ export class EmailAdapter implements ChannelAdapter {
             message: 'Resend API connected',
           };
         } else {
-          const errorText = response.status === 401 
-            ? 'Invalid API key' 
+          const errorText = response.status === 401
+            ? 'Invalid API key'
             : `API error: ${response.status}`;
           return {
             healthy: false,

@@ -1,5 +1,5 @@
 {
-  "name": "optiroute",
+  "name": "fleetillo",
   "version": "1.0.0",
   "description": "RouteIQ - A TypeScript-based route planning and management system",
   "main": "dist/index.js",

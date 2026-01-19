@@ -82,7 +82,7 @@ export interface ChannelDispatchRow {
   updated_at: string;
 }
 
-// Driver entity (from main OptiRoute app)
+// Driver entity (from main Fleetillo app)
 export interface Driver {
   id: string;
   firstName: string;
@@ -94,7 +94,7 @@ export interface Driver {
   status: 'active' | 'inactive';
 }
 
-// Route entity (from main OptiRoute app)
+// Route entity (from main Fleetillo app)
 export interface Route {
   id: string;
   name: string;
@@ -109,7 +109,7 @@ export interface Route {
   driverId?: string;
 }
 
-// Vehicle entity (from main OptiRoute app)
+// Vehicle entity (from main Fleetillo app)
 export interface Vehicle {
   id: string;
   name: string;
@@ -118,7 +118,7 @@ export interface Vehicle {
   model?: string;
 }
 
-// Booking entity (from main OptiRoute app)
+// Booking entity (from main Fleetillo app)
 export interface Booking {
   id: string;
   routeId: string;

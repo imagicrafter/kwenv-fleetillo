@@ -1,7 +1,7 @@
 {
-    "name": "optiroute-web",
+    "name": "fleetillo-web",
     "version": "1.0.0",
-    "description": "Web launcher for OptiRoute",
+    "description": "Web launcher for Fleetillo",
     "main": "server.js",
     "scripts": {
         "start": "node server.js",

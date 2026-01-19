@@ -1,7 +1,7 @@
 {
   "name": "dispatch-service",
   "version": "1.0.0",
-  "description": "OptiRoute Dispatch Service - Route assignment notifications via Telegram and Email",
+  "description": "Fleetillo Dispatch Service - Route assignment notifications via Telegram and Email",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",

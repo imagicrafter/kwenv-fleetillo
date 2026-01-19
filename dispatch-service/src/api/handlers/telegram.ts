@@ -76,7 +76,7 @@ async function getBotUsername(): Promise<string | null> {
 
   // Mock for development/testing
   if (token === 'test-token' || token.startsWith('test-')) {
-    return 'OptiRouteTestBot';
+    return 'FleetFusionBot';
   }
 
   try {
@@ -154,7 +154,7 @@ async function sendWelcomeMessage(chatId: string, driverName: string): Promise<v
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token) return;
 
-  const message = `🎉 *Welcome to OptiRoute Dispatch, ${driverName}!*
+  const message = `🎉 *Welcome to Fleetillo Dispatch, ${driverName}!*
 
 Your Telegram is now linked to your driver account.
 
@@ -315,7 +315,7 @@ export function createTelegramWebhookHandler() {
         // /start without driver ID - show help message
         await sendErrorMessage(
           chatId,
-          `👋 *Welcome to OptiRoute Dispatch Bot!*
+          `👋 *Welcome to Fleetillo Dispatch Bot!*
 
 To link your Telegram account, please use the registration link provided by your dispatcher.
 
@@ -564,8 +564,8 @@ export function createSendRegistrationEmailHandler() {
     const emailProvider = process.env.EMAIL_PROVIDER?.toLowerCase() || 'sendgrid';
     const resendKey = process.env.RESEND_API_KEY;
     const sendgridKey = process.env.SENDGRID_API_KEY || process.env.EMAIL_API_KEY;
-    const fromAddress = process.env.EMAIL_FROM_ADDRESS || 'dispatch@optiroute.com';
-    const fromName = process.env.EMAIL_FROM_NAME || 'OptiRoute Dispatch';
+    const fromAddress = process.env.EMAIL_FROM_ADDRESS || 'dispatch@fleetillo.com';
+    const fromName = process.env.EMAIL_FROM_NAME || 'Fleetillo Dispatch';
 
     // Check if the appropriate email provider is configured
     const apiKey = emailProvider === 'resend' ? resendKey : sendgridKey;
@@ -600,7 +600,7 @@ export function createSendRegistrationEmailHandler() {
           body: JSON.stringify({
             from: `${fromName} <${fromAddress}>`,
             to: [driverEmail],
-            subject: 'Register Your Telegram for Route Dispatches - OptiRoute',
+            subject: 'Register Your Telegram for Route Dispatches - Fleetillo',
             html: htmlContent,
             text: textContent,
           }),
@@ -621,7 +621,7 @@ export function createSendRegistrationEmailHandler() {
           body: JSON.stringify({
             personalizations: [{ to: [{ email: driverEmail, name: driverFullName }] }],
             from: { email: fromAddress, name: fromName },
-            subject: 'Register Your Telegram for Route Dispatches - OptiRoute',
+            subject: 'Register Your Telegram for Route Dispatches - Fleetillo',
             content: [
               { type: 'text/plain', value: textContent },
               { type: 'text/html', value: htmlContent },
@@ -683,11 +683,11 @@ function buildRegistrationEmailHtml(
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Register Your Telegram - OptiRoute</title>
+  <title>Register Your Telegram - Fleetillo</title>
 </head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
   <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-    <h1 style="color: white; margin: 0; font-size: 24px;">📍 OptiRoute Dispatch</h1>
+    <h1 style="color: white; margin: 0; font-size: 24px;">📍 Fleetillo Dispatch</h1>
   </div>
 
   <div style="background: #ffffff; padding: 30px; border: 1px solid #e0e0e0; border-top: none; border-radius: 0 0 10px 10px;">
@@ -729,7 +729,7 @@ function buildRegistrationEmailHtml(
   </div>
 
   <div style="text-align: center; padding: 20px; font-size: 12px; color: #999;">
-    <p>This email was sent by OptiRoute Dispatch System</p>
+    <p>This email was sent by Fleetillo Dispatch System</p>
   </div>
 </body>
 </html>
@@ -762,7 +762,7 @@ HOW TO REGISTER:
 If you have any questions, please contact your dispatcher.
 
 ---
-This email was sent by OptiRoute Dispatch System
+This email was sent by Fleetillo Dispatch System
 `;
 }
 

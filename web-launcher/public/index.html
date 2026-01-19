@@ -654,7 +654,7 @@
         // Chat configuration - will be updated when Gradient agent is deployed
         const CHAT_CONFIG = {
             // Deployed Gradient Agent Endpoint
-            endpoint: 'https://agents.do-ai.run/e7b58fd7-d32f-4d4c-bee0-adf3a7d0d8db/optiroute-support/run',
+            endpoint: 'https://agents.do-ai.run/e7b58fd7-d32f-4d4c-bee0-adf3a7d0d8db/fleetfusion-support/run',
             apiKey: '',   // Security Note: In production, do not expose this key. Use a backend proxy.
             enabled: true
         };
@@ -667,7 +667,7 @@
             const sendBtn = document.getElementById('chat-send-btn');
 
             // Load history from session storage
-            const savedHistory = sessionStorage.getItem('optiroute_chat_history');
+            const savedHistory = sessionStorage.getItem('fleetillo_chat_history');
             if (savedHistory) {
                 try {
                     conversationHistory = JSON.parse(savedHistory);
@@ -700,7 +700,7 @@
         }
 
         function saveChatHistory() {
-            sessionStorage.setItem('optiroute_chat_history', JSON.stringify(conversationHistory));
+            sessionStorage.setItem('fleetillo_chat_history', JSON.stringify(conversationHistory));
         }
 
         async function handleSendMessage() {
