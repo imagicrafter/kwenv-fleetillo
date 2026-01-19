@@ -25,7 +25,19 @@
       "Bash(doctl apps create-deployment:*)",
       "WebFetch(domain:developers.googleblog.com)",
       "Bash(git pull:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh label create:*)",
+      "Bash(gh issue edit:*)",
+      "Bash(grep:*)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(gh issue view:*)",
+      "Bash(gh label delete:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(gh issue comment:*)",
+      "Bash(mkdir -p .claude/plans:*)",
+      "Bash(mkdir -p .agent/plans:*)",
+      "Bash(xargs sed:*)"
     ]
   },
   "hooks": {
@@ -42,6 +54,11 @@
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/review-plan.sh",
             "timeout": 120
+          },
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/open-plan-preview.sh",
+            "timeout": 10
           }
         ]
       }

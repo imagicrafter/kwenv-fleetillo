@@ -17,8 +17,8 @@ if [[ -z "$file_path" ]]; then
     exit 0
 fi
 
-# Only process files in .claude/plans/ (but not in archive/ or reviews/)
-if [[ "$file_path" != *".claude/plans/"* ]] || [[ "$file_path" == *"/archive/"* ]] || [[ "$file_path" == *"/reviews/"* ]]; then
+# Only process files in .claude/plans/issue-*/ (actual plans, not templates/archive/reviews)
+if [[ "$file_path" != *".claude/plans/issue-"* ]] || [[ "$file_path" == *"/archive/"* ]] || [[ "$file_path" == *"/reviews/"* ]] || [[ "$file_path" == *"/templates/"* ]]; then
     exit 0
 fi
 

@@ -55,7 +55,7 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 2.5rem;
+    margin-bottom: 1rem;
     padding-top: 1rem;
     /* Space for traffic lights on mac */
 }
@@ -87,7 +87,7 @@ body {
     gap: 2px;
     flex: 1;
     overflow-y: auto;
-    padding-top: 1rem;
+    padding-top: 0.5rem;
 }
 
 .menu-header {
