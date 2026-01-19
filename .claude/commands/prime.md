@@ -1,6 +1,6 @@
 # Context Priming Command
 
-Read these files to understand the OptiRoute system:
+Read these files to understand the Fleetillo system:
 
 ## Essential Context
 
@@ -37,7 +37,7 @@ You should understand:
 ### Data Model
 - **Tables**: clients, services, locations, vehicles, bookings, routes, drivers
 - **Patterns**: Soft delete via `deleted_at`, snake_case DB / camelCase TypeScript
-- **Schema**: `optiroute` schema in Supabase
+- **Schema**: `routeiq` schema in Supabase
 
 ### Key Components
 - **src/services/**: Business logic services
@@ -80,5 +80,5 @@ You should understand:
 - `SUPABASE_URL` - Supabase project URL
 - `SUPABASE_KEY` - Supabase anon key
 - `SUPABASE_SERVICE_ROLE_KEY` - Service role key
-- `SUPABASE_SCHEMA` - Schema name (optiroute)
+- `SUPABASE_SCHEMA` - Schema name (routeiq)
 - `GOOGLE_MAPS_API_KEY` - Google Maps API key
