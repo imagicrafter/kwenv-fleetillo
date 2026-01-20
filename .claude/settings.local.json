@@ -39,7 +39,14 @@
       "Bash(mkdir -p .agent/plans:*)",
       "Bash(xargs sed:*)",
       "Bash(code .claude/plans/issue-8-security-audit/requirements.md)",
-      "Bash(code --command \"markdown.showPreview\")"
+      "Bash(code --command \"markdown.showPreview\")",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(git fetch:*)",
+      "Bash(git rebase:*)",
+      "Bash(git cherry-pick:*)",
+      "Bash(ls:*)"
     ]
   },
   "hooks": {
