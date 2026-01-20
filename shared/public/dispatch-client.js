@@ -9,9 +9,12 @@ class DispatchClient {
 
     /**
      * Helper for making authenticated requests
+     * @param {string} endpoint - API endpoint
+     * @param {Object} options - fetch options
+     * @param {string} altBaseUrl - Optional alternative base URL (e.g., '/api/v1' for main API)
      */
-    async _request(endpoint, options = {}) {
-        const url = `${this.baseUrl}${endpoint}`;
+    async _request(endpoint, options = {}, altBaseUrl = null) {
+        const url = altBaseUrl ? `${altBaseUrl}${endpoint}` : `${this.baseUrl}${endpoint}`;
         const headers = {
             'Content-Type': 'application/json',
             ...options.headers
@@ -124,6 +127,77 @@ class DispatchClient {
             method: 'POST',
             body: JSON.stringify({ driverId })
         });
+    }
+
+    // ===== Dispatch Job Methods =====
+
+    /**
+     * Create a new dispatch job
+     * @param {Object} payload { driverIds: string[], scheduledTime: string, name?: string }
+     */
+    async createDispatchJob(payload) {
+        return this._request('/dispatch-jobs', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        }, '/api/v1');
+    }
+
+    /**
+     * Get dispatch jobs
+     * @param {Object} filters { status?, driverId? }
+     */
+    async getDispatchJobs(filters = {}) {
+        const params = new URLSearchParams();
+        if (filters.status) params.append('status', filters.status);
+        if (filters.driverId) params.append('driverId', filters.driverId);
+        return this._request(`/dispatch-jobs?${params.toString()}`, {}, '/api/v1');
+    }
+
+    /**
+     * Get drivers currently in active dispatch jobs
+     * @returns {Promise<string[]>} Array of driver IDs
+     */
+    async getActiveDriverIds() {
+        const result = await this._request('/dispatch-jobs/active-drivers', {}, '/api/v1');
+        return result.data || [];
+    }
+
+    /**
+     * Cancel a dispatch job
+     * @param {string} jobId
+     */
+    async cancelDispatchJob(jobId) {
+        return this._request(`/dispatch-jobs/${jobId}/cancel`, {
+            method: 'POST'
+        }, '/api/v1');
+    }
+
+    /**
+     * Helper for making requests to either dispatch or main API
+     * @private
+     */
+    async _requestAlt(endpoint, options = {}, altBaseUrl = null) {
+        const url = altBaseUrl ? `${altBaseUrl}${endpoint}` : `${this.baseUrl}${endpoint}`;
+        const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers
+        };
+
+        try {
+            const response = await fetch(url, { ...options, headers });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error?.message || `Request failed: ${response.status} ${response.statusText}`);
+            }
+
+            if (response.status === 204) return null;
+
+            return await response.json();
+        } catch (error) {
+            console.error(`API Error (${endpoint}):`, error);
+            throw error;
+        }
     }
 }
 

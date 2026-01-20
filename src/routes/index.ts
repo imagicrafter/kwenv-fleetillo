@@ -4,6 +4,7 @@ import bookingRoutes from './booking.routes.js';
 import serviceRoutes from './service.routes.js';
 import vehicleRoutes from './vehicle.routes.js';
 import routeRoutes from './route.routes.js';
+import dispatchJobRoutes from './dispatch-job.routes.js';
 
 const router = Router();
 
@@ -26,6 +27,9 @@ router.use('/vehicles', vehicleRoutes);
 
 // Route routes
 router.use('/routes', routeRoutes);
+
+// Dispatch job routes
+router.use('/dispatch-jobs', dispatchJobRoutes);
 
 // Root API endpoint
 router.get('/', (_req, res) => {
