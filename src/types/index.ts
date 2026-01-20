@@ -8,8 +8,8 @@ export * from './logger.js';
 // Re-export error types
 export * from './errors.js';
 
-// Re-export client types
-export * from './client.js';
+// Re-export customer types
+export * from './customer.js';
 
 // Re-export service types
 export * from './service.js';

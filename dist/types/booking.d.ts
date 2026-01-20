@@ -1,5 +1,5 @@
 /**
- * Booking-related type definitions for RouteIQ application
+ * Booking-related type definitions for Fleetillo application
  */
 import type { ID, Timestamps } from './index.js';
 /**
@@ -47,11 +47,10 @@ export interface BookingServiceItem {
  */
 export interface Booking extends Timestamps {
     id: ID;
-    clientId: ID;
+    customerId: ID;
     serviceId?: ID;
     serviceIds: ID[];
     serviceItems: BookingServiceItem[];
-    vehicleId?: ID;
     routeId?: ID;
     locationId?: ID;
     stopOrder?: number;
@@ -83,13 +82,13 @@ export interface Booking extends Timestamps {
     specialInstructions?: string;
     internalNotes?: string;
     cancellationReason?: string;
-    clientNotified: boolean;
+    customerNotified: boolean;
     reminderSent: boolean;
     confirmationSent: boolean;
     tags?: string[];
     deletedAt?: Date;
-    clientName?: string;
-    clientEmail?: string;
+    customerName?: string;
+    customerEmail?: string;
     serviceName?: string;
     serviceCode?: string;
     serviceAverageDurationMinutes?: number;
@@ -103,11 +102,10 @@ export interface Booking extends Timestamps {
  */
 export interface BookingRow {
     id: string;
-    client_id: string;
+    customer_id: string;
     service_id: string | null;
     service_ids: string[] | null;
     service_items: BookingServiceItem[] | null;
-    vehicle_id: string | null;
     route_id: string | null;
     location_id: string | null;
     stop_order: number | null;
@@ -137,14 +135,14 @@ export interface BookingRow {
     special_instructions: string | null;
     internal_notes: string | null;
     cancellation_reason: string | null;
-    client_notified: boolean;
+    customer_notified: boolean;
     reminder_sent: boolean;
     confirmation_sent: boolean;
     tags: string[] | null;
     created_at: string;
     updated_at: string;
     deleted_at: string | null;
-    clients?: {
+    customers?: {
         name: string;
         email?: string;
     } | null;
@@ -163,14 +161,13 @@ export interface BookingRow {
  * Input for creating a new booking
  */
 export interface CreateBookingInput {
-    clientId: ID;
+    customerId: ID;
     serviceId?: ID;
     serviceItems?: BookingServiceItem[];
     serviceIds?: ID[];
     bookingType: BookingType;
     scheduledDate: Date | string;
     scheduledStartTime: string;
-    vehicleId?: ID;
     routeId?: ID;
     locationId?: ID;
     stopOrder?: number;
@@ -195,7 +192,7 @@ export interface CreateBookingInput {
     priority?: BookingPriority;
     specialInstructions?: string;
     internalNotes?: string;
-    clientNotified?: boolean;
+    customerNotified?: boolean;
     reminderSent?: boolean;
     confirmationSent?: boolean;
     tags?: string[];
@@ -214,9 +211,8 @@ export interface UpdateBookingInput extends Partial<CreateBookingInput> {
  * Booking filter options for queries
  */
 export interface BookingFilters {
-    clientId?: ID;
+    customerId?: ID;
     serviceId?: ID;
-    vehicleId?: ID;
     routeId?: ID;
     routeIdIsNull?: boolean;
     bookingType?: BookingType;

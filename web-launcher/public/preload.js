@@ -2,9 +2,11 @@
 // Replaces the Electron preload script with fetch calls to the Node.js server
 
 if (!window.electronAPI) {
+    const customersProxy = createProxy('customers');
     window.electronAPI = {
         bookings: createProxy('bookings'),
-        clients: createProxy('clients'),
+        customers: customersProxy,
+        clients: customersProxy, // Backward compatibility alias
         services: createProxy('services'),
         locations: createProxy('locations'),
         vehicles: createProxy('vehicles'),

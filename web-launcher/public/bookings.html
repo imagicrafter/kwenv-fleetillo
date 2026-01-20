@@ -425,7 +425,7 @@
                         <label>Customer *</label>
                         <input type="text" id="client-search" placeholder="Search customer by name..."
                             autocomplete="off">
-                        <input type="hidden" id="client-id">
+                        <input type="hidden" id="customer-id">
                         <div id="client-search-results"
                             style="display: none; position: absolute; width: 100%; top: 100%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; z-index: 10; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
                         </div>
@@ -1827,7 +1827,7 @@
                         searchTerm: term,
                         scheduledDateFrom: filterDateFrom.value || undefined,
                         scheduledDateTo: filterDateTo.value || undefined,
-                        clientId: filterClient.value || undefined,
+                        customerId: filterClient.value || undefined,
                         vehicleId: filterVehicle.value || undefined,
                         routeId: filterRoute.value || undefined,
                         status: filterStatus.value || undefined
@@ -1913,7 +1913,7 @@
                         <td>
                             <div style="font-family: monospace; font-weight: 600;">${booking.bookingNumber || 'N/A'}</div>
                         </td>
-                        <td>${booking.clientName || 'Unknown Client'}</td>
+                        <td>${booking.customerName || 'Unknown Customer'}</td>
                         <td>
                             <div><strong>${(booking.serviceItems && booking.serviceItems.length > 0) ? booking.serviceItems[0].name : (booking.serviceName || 'Unknown Service')}</strong>${(booking.serviceItems && booking.serviceItems.length > 1) ? ' <span style="font-size:0.8em; color:var(--text-secondary);">+' + (booking.serviceItems.length - 1) + ' more</span>' : ''}</div>
                             <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: capitalize;">${(booking.bookingType || '').replace('_', ' ')}</div>
@@ -1968,7 +1968,7 @@
             }
 
             const clientSearchInput = document.getElementById('client-search');
-            const clientIdInput = document.getElementById('client-id');
+            const clientIdInput = document.getElementById('customer-id');
             const clientSearchResults = document.getElementById('client-search-results');
             const selectedClientDisplay = document.getElementById('selected-client-display');
             const selectedClientName = document.getElementById('selected-client-name');
@@ -2347,18 +2347,18 @@
                     const notesField = document.getElementById('special-instructions');
                     if (notesField) notesField.value = booking.specialInstructions || '';
 
-                    // Populate Client
-                    if (booking.clientId) {
-                        if (booking.clientName) {
-                            selectClient({ id: booking.clientId, name: booking.clientName, email: booking.clientEmail });
+                    // Populate Customer
+                    if (booking.customerId) {
+                        if (booking.customerName) {
+                            selectClient({ id: booking.customerId, name: booking.customerName, email: booking.customerEmail });
                         } else {
                             try {
-                                const clientData = await window.electronAPI.clients.getById(booking.clientId);
-                                const client = clientData.data || clientData;
-                                selectClient({ id: booking.clientId, name: client.name || 'Unknown Client' });
+                                const customerData = await window.electronAPI.customers.getById(booking.customerId);
+                                const customer = customerData.data || customerData;
+                                selectClient({ id: booking.customerId, name: customer.name || 'Unknown Customer' });
                             } catch (e) {
-                                console.error('Failed to fetch client details', e);
-                                selectClient({ id: booking.clientId, name: 'Unknown Client' });
+                                console.error('Failed to fetch customer details', e);
+                                selectClient({ id: booking.customerId, name: 'Unknown Customer' });
                             }
                         }
                     } else {
@@ -2539,7 +2539,7 @@
                 }
 
                 const bookingData = {
-                    clientId: clientIdInput.value || null,
+                    customerId: clientIdInput.value || null,
                     locationId: locationIdInput.value || null,
                     // serviceId: serviceIdInput.value, // Removed single service ID
                     serviceIds: selectedServices.map(s => s.id),
@@ -2995,7 +2995,7 @@
                     if (location) {
                         // Check if location belongs to the resolved customer
                         const customer = row.resolvedEntities?.customer;
-                        if (customer && location.clientId !== customer.id) {
+                        if (customer && location.customerId !== customer.id) {
                             row.errors.locationName = 'Wrong customer';
                         } else {
                             row.resolvedEntities.location = location;
@@ -3128,7 +3128,7 @@
                     }
                     // Filter locations by customer
                     options = cachedLocations
-                        .filter(l => l.clientId === customer.id)
+                        .filter(l => l.customerId === customer.id)
                         .map(l => ({ id: l.id, name: l.name }));
 
                     if (options.length === 0) {
@@ -3271,7 +3271,7 @@
                         const location = row.resolvedEntities.location;
 
                         const bookingData = {
-                            clientId: customer.id,
+                            customerId: customer.id,
                             serviceId: service.id, // Required for join/display logic
                             serviceItems: [{
                                 serviceId: service.id,

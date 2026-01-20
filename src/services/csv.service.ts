@@ -12,7 +12,7 @@ import { isValidUUID } from '../middleware/validation.js';
  */
 export interface CSVBookingRow {
   // Required fields
-  clientId: string;
+  customerId: string;
   bookingType: string;
   scheduledDate: string;
 
@@ -60,7 +60,7 @@ export interface CSVParseResult {
 /**
  * Required CSV columns
  */
-const REQUIRED_COLUMNS = ['clientId', 'bookingType', 'scheduledDate'];
+const REQUIRED_COLUMNS = ['customerId', 'bookingType', 'scheduledDate'];
 
 /**
  * Valid booking type values
@@ -192,10 +192,10 @@ export function validateCSVRow(row: CSVBookingRow, rowNumber: number): Result<Cr
   const errors: string[] = [];
 
   // Validate required fields
-  if (!row.clientId || row.clientId.trim() === '') {
-    errors.push('clientId is required');
-  } else if (!isValidUUID(row.clientId.trim())) {
-    errors.push(`clientId must be a valid UUID (got: ${row.clientId})`);
+  if (!row.customerId || row.customerId.trim() === '') {
+    errors.push('customerId is required');
+  } else if (!isValidUUID(row.customerId.trim())) {
+    errors.push(`customerId must be a valid UUID (got: ${row.customerId})`);
   }
 
   if (!row.bookingType || row.bookingType.trim() === '') {
@@ -300,7 +300,7 @@ export function validateCSVRow(row: CSVBookingRow, rowNumber: number): Result<Cr
 
   // Build the CreateBookingInput object
   const bookingInput: CreateBookingInput = {
-    clientId: row.clientId.trim(),
+    customerId: row.customerId.trim(),
     bookingType: row.bookingType.trim() as BookingType,
     scheduledDate: row.scheduledDate.trim(),
     scheduledStartTime: row.scheduledStartTime?.trim()

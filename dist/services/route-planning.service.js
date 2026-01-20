@@ -1175,14 +1175,12 @@ async function planRoutes(input) {
             vehiclesUsed.add(vehicle.id);
             routeIndex++;
             // Update bookings with route ID, stop order, and timestamps
-            // Also set vehicleId for backward compatibility during transition
             let stopOrderIdx = 1;
             for (const update of bookingUpdates) {
                 const updateResult = await (0, booking_service_js_1.updateBooking)({
                     id: update.id,
-                    routeId: createdRoute.id, // NEW: Assign to route
-                    stopOrder: stopOrderIdx, // NEW: Set stop order within route
-                    vehicleId: vehicle.id, // DEPRECATED: Keep for backward compatibility
+                    routeId: createdRoute.id,
+                    stopOrder: stopOrderIdx,
                     status: 'scheduled',
                     scheduledStartTime: update.start,
                     scheduledEndTime: update.end

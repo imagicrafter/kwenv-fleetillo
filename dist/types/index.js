@@ -21,8 +21,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./logger.js"), exports);
 // Re-export error types
 __exportStar(require("./errors.js"), exports);
-// Re-export client types
-__exportStar(require("./client.js"), exports);
+// Re-export customer types
+__exportStar(require("./customer.js"), exports);
 // Re-export service types
 __exportStar(require("./service.js"), exports);
 // Re-export vehicle types

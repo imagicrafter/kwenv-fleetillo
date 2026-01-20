@@ -3,20 +3,20 @@
  * Export all models from this file for convenient imports
  */
 
-// Re-export client types and utilities
+// Re-export customer types and utilities
 export type {
-  Client,
-  ClientRow,
-  CreateClientInput,
-  UpdateClientInput,
-  ClientFilters,
-  ClientStatus,
+  Customer,
+  CustomerRow,
+  CreateCustomerInput,
+  UpdateCustomerInput,
+  CustomerFilters,
+  CustomerStatus,
   Address,
   GeoLocation,
   ContactInfo,
-} from '../types/client.js';
+} from '../types/customer.js';
 
-export { rowToClient, clientInputToRow } from '../types/client.js';
+export { rowToCustomer, customerInputToRow } from '../types/customer.js';
 
 // Re-export booking types and utilities
 export type {

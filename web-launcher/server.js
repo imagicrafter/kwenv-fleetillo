@@ -196,7 +196,7 @@ const imageUpload = multer({
 // We assume web-launcher is at routeIQ-typescript/web-launcher and dist is at routeIQ-typescript/dist
 const SERVICE_PATH = path.resolve(__dirname, '../dist/services');
 
-const clientService = require(`${SERVICE_PATH}/client.service.js`);
+const customerService = require(`${SERVICE_PATH}/customer.service.js`);
 const serviceService = require(`${SERVICE_PATH}/service.service.js`);
 const bookingService = require(`${SERVICE_PATH}/booking.service.js`);
 const locationService = require(`${SERVICE_PATH}/location.service.js`);
@@ -223,12 +223,12 @@ supabaseService.initializeSupabase({
 // RPC Dispatcher
 // Map namespace + method to actual service function
 const rpcMap = {
-    clients: {
-        getAll: clientService.getClients,
-        create: clientService.createClient,
-        update: clientService.updateClient,
-        delete: clientService.deleteClient,
-        getById: clientService.getClient,
+    customers: {
+        getAll: customerService.getCustomers,
+        create: customerService.createCustomer,
+        update: customerService.updateCustomer,
+        delete: customerService.deleteCustomer,
+        getById: customerService.getCustomer,
         count: async (filters) => {
             try {
                 // Direct query to bypass potential service layer issues
@@ -236,7 +236,7 @@ const rpcMap = {
                 const admin = getAdminSupabaseClient();
 
                 // Using head: false and limit(1) to reliably get count without header stripping issues on DO
-                let query = admin.from('clients').select('id', { count: 'exact', head: false }).limit(1);
+                let query = admin.from('customers').select('id', { count: 'exact', head: false }).limit(1);
 
                 if (filters && filters.status) {
                     query = query.eq('status', filters.status);
@@ -252,13 +252,13 @@ const rpcMap = {
                 if (error) {
                     console.error('Direct count failed:', error);
                     // Fallback to service if direct fails
-                    return clientService.countClients(filters);
+                    return customerService.countCustomers(filters);
                 }
 
                 return { success: true, data: count || 0 };
             } catch (err) {
                 console.error('Direct count exception:', err);
-                return clientService.countClients(filters);
+                return customerService.countCustomers(filters);
             }
         }
     },

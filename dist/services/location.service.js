@@ -3,13 +3,13 @@
  * Location Service
  *
  * Provides CRUD operations and business logic for managing locations
- * in the RouteIQ application.
+ * in the Fleetillo application.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createLocation = createLocation;
 exports.getLocationById = getLocationById;
 exports.getAllLocations = getAllLocations;
-exports.getClientLocations = getClientLocations;
+exports.getCustomerLocations = getCustomerLocations;
 exports.updateLocation = updateLocation;
 exports.deleteLocation = deleteLocation;
 const supabase_js_1 = require("./supabase.js");
@@ -34,8 +34,8 @@ function getConnection() {
 function rowToLocation(row) {
     return {
         id: row.id,
-        clientId: row.client_id,
-        clientName: row.clients?.name,
+        customerId: row.customer_id,
+        customerName: row.customers?.name,
         name: row.name,
         locationType: row.location_type,
         addressLine1: row.address_line1,
@@ -58,8 +58,8 @@ function rowToLocation(row) {
  */
 function inputToRow(input) {
     const row = {};
-    if ('clientId' in input)
-        row.client_id = input.clientId;
+    if ('customerId' in input)
+        row.customer_id = input.customerId;
     if ('name' in input)
         row.name = input.name;
     if ('locationType' in input)
@@ -90,14 +90,14 @@ function inputToRow(input) {
  * Creates a new location
  */
 async function createLocation(input) {
-    logger.debug('Creating location', { name: input.name, clientId: input.clientId });
+    logger.debug('Creating location', { name: input.name, customerId: input.customerId });
     try {
         const supabase = getConnection();
         const rowData = inputToRow(input);
         const { data, error } = await supabase
             .from(LOCATIONS_TABLE)
             .insert(rowData)
-            .select('*, clients(name)')
+            .select('*, customers(name)')
             .single();
         if (error)
             throw error;
@@ -116,7 +116,7 @@ async function getLocationById(id) {
         const supabase = getConnection();
         const { data, error } = await supabase
             .from(LOCATIONS_TABLE)
-            .select('*, clients(name)')
+            .select('*, customers(name)')
             .eq('id', id)
             .single();
         if (error)
@@ -136,13 +136,13 @@ async function getAllLocations(filters, pagination) {
         const supabase = getConnection();
         let query = supabase
             .from(LOCATIONS_TABLE)
-            .select('*, clients(name)', { count: 'exact' });
+            .select('*, customers(name)', { count: 'exact' });
         query = query.is('deleted_at', null);
         if (filters?.type) {
             query = query.eq('location_type', filters.type);
         }
-        if (filters?.clientId) {
-            query = query.eq('client_id', filters.clientId);
+        if (filters?.customerId) {
+            query = query.eq('customer_id', filters.customerId);
         }
         if (filters?.searchTerm) {
             query = query.or(`name.ilike.%${filters.searchTerm}%,address_line1.ilike.%${filters.searchTerm}%,city.ilike.%${filters.searchTerm}%`);
@@ -155,7 +155,7 @@ async function getAllLocations(filters, pagination) {
         // Apply sorting
         const sortBy = pagination?.sortBy ?? 'created_at';
         const sortOrder = pagination?.sortOrder ?? 'desc';
-        // Note: 'clients(name)' alias sorting might be tricky, sticking to main table columns for now
+        // Note: 'customers(name)' alias sorting might be tricky, sticking to main table columns for now
         query = query.order(sortBy, { ascending: sortOrder === 'asc' });
         const { data, error, count } = await query;
         if (error)
@@ -180,15 +180,15 @@ async function getAllLocations(filters, pagination) {
     }
 }
 /**
- * Gets all locations for a client
+ * Gets all locations for a customer
  */
-async function getClientLocations(clientId) {
+async function getCustomerLocations(customerId) {
     try {
         const supabase = getConnection();
         const { data, error } = await supabase
             .from(LOCATIONS_TABLE)
-            .select('*, clients(name)')
-            .eq('client_id', clientId)
+            .select('*, customers(name)')
+            .eq('customer_id', customerId)
             .is('deleted_at', null)
             .order('is_primary', { ascending: false }); // Primary first
         if (error)
@@ -196,8 +196,8 @@ async function getClientLocations(clientId) {
         return { success: true, data: data.map(rowToLocation) };
     }
     catch (error) {
-        logger.error('Failed to get client locations', error);
-        return { success: false, error: new Error(`Failed to get client locations: ${error.message}`) };
+        logger.error('Failed to get customer locations', error);
+        return { success: false, error: new Error(`Failed to get customer locations: ${error.message}`) };
     }
 }
 /**
@@ -211,7 +211,7 @@ async function updateLocation(input) {
             .from(LOCATIONS_TABLE)
             .update(rowData)
             .eq('id', input.id)
-            .select('*, clients(name)')
+            .select('*, customers(name)')
             .single();
         if (error)
             throw error;

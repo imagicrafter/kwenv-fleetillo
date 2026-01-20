@@ -1,5 +1,5 @@
 /**
- * Booking-related type definitions for RouteIQ application
+ * Booking-related type definitions for Fleetillo application
  */
 
 import type { ID, Timestamps } from './index.js';
@@ -24,7 +24,7 @@ export type BookingStatus =
   | 'in_progress'   // Service currently being performed
   | 'completed'     // Service completed
   | 'cancelled'     // Booking cancelled
-  | 'no_show'       // Client didn't show up
+  | 'no_show'       // Customer didn't show up
   | 'rescheduled';  // Booking was rescheduled
 
 /**
@@ -65,12 +65,11 @@ export interface Booking extends Timestamps {
   id: ID;
 
   // Foreign key references
-  clientId: ID;
+  customerId: ID;
   serviceId?: ID; // DEPRECATED: Use serviceItems and serviceIds instead.
   serviceIds: ID[]; // Array of service IDs for filtering
   serviceItems: BookingServiceItem[]; // JSONB details of services
 
-  vehicleId?: ID; // DEPRECATED: Use routeId instead. Will be removed.
   routeId?: ID; // Route this booking is assigned to (null = unassigned)
   locationId?: ID;
 
@@ -121,8 +120,8 @@ export interface Booking extends Timestamps {
   internalNotes?: string;
   cancellationReason?: string;
 
-  // Client communication
-  clientNotified: boolean;
+  // Customer communication
+  customerNotified: boolean;
   reminderSent: boolean;
   confirmationSent: boolean;
 
@@ -133,8 +132,8 @@ export interface Booking extends Timestamps {
   deletedAt?: Date;
 
   // Joined fields for UI display
-  clientName?: string;
-  clientEmail?: string;
+  customerName?: string;
+  customerEmail?: string;
   serviceName?: string; // DEPRECATED: Use serviceItems
   serviceCode?: string; // DEPRECATED
   serviceAverageDurationMinutes?: number; // DEPRECATED
@@ -151,12 +150,11 @@ export interface BookingRow {
   id: string;
 
   // Foreign key references
-  client_id: string;
+  customer_id: string;
   service_id: string | null; // DEPRECATED
   service_ids: string[] | null;
   service_items: BookingServiceItem[] | null; // JSONB
 
-  vehicle_id: string | null; // DEPRECATED: Use route_id instead
   route_id: string | null; // Route this booking is assigned to
   location_id: string | null;
 
@@ -205,8 +203,8 @@ export interface BookingRow {
   internal_notes: string | null;
   cancellation_reason: string | null;
 
-  // Client communication
-  client_notified: boolean;
+  // Customer communication
+  customer_notified: boolean;
   reminder_sent: boolean;
   confirmation_sent: boolean;
 
@@ -219,7 +217,7 @@ export interface BookingRow {
   deleted_at: string | null;
 
   // Joined fields from Supabase
-  clients?: { name: string; email?: string } | null;
+  customers?: { name: string; email?: string } | null;
   services?: { name: string; code?: string; average_duration_minutes?: number } | null;
   locations?: { name: string; latitude?: number; longitude?: number } | null;
 }
@@ -229,7 +227,7 @@ export interface BookingRow {
  */
 export interface CreateBookingInput {
   // Required fields
-  clientId: ID;
+  customerId: ID;
   serviceId?: ID; // DEPRECATED: Provide serviceItems instead, but kept for backward compat
   serviceItems?: BookingServiceItem[];
   serviceIds?: ID[];
@@ -239,7 +237,6 @@ export interface CreateBookingInput {
   scheduledStartTime: string; // TIME format (HH:MM:SS or HH:MM)
 
   // Optional foreign keys
-  vehicleId?: ID; // DEPRECATED: Use routeId instead
   routeId?: ID; // Route this booking is assigned to
   locationId?: ID;
 
@@ -281,8 +278,8 @@ export interface CreateBookingInput {
   specialInstructions?: string;
   internalNotes?: string;
 
-  // Client communication
-  clientNotified?: boolean;
+  // Customer communication
+  customerNotified?: boolean;
   reminderSent?: boolean;
   confirmationSent?: boolean;
 
@@ -307,9 +304,8 @@ export interface UpdateBookingInput extends Partial<CreateBookingInput> {
  * Booking filter options for queries
  */
 export interface BookingFilters {
-  clientId?: ID;
+  customerId?: ID;
   serviceId?: ID; // Filters by service_ids containing this ID
-  vehicleId?: ID; // DEPRECATED: Use routeId filter instead
   routeId?: ID; // Filter by assigned route
   routeIdIsNull?: boolean; // Filter for unassigned bookings (route_id IS NULL)
   bookingType?: BookingType;
@@ -334,7 +330,7 @@ export function rowToBooking(row: BookingRow): Booking {
     id: row.id,
 
     // Foreign key references
-    clientId: row.client_id,
+    customerId: row.customer_id,
     serviceId: row.service_id ?? undefined, // DEPRECATED
     serviceIds: row.service_ids ?? (row.service_id ? [row.service_id] : []),
     serviceItems: row.service_items ?? (row.service_id && serviceName ? [{
@@ -346,7 +342,6 @@ export function rowToBooking(row: BookingRow): Booking {
       duration: row.estimated_duration_minutes ?? 0
     }] : []),
 
-    vehicleId: row.vehicle_id ?? undefined, // DEPRECATED
     routeId: row.route_id ?? undefined,
     locationId: row.location_id ?? undefined,
 
@@ -395,8 +390,8 @@ export function rowToBooking(row: BookingRow): Booking {
     internalNotes: row.internal_notes ?? undefined,
     cancellationReason: row.cancellation_reason ?? undefined,
 
-    // Client communication
-    clientNotified: row.client_notified,
+    // Customer communication
+    customerNotified: row.customer_notified,
     reminderSent: row.reminder_sent,
     confirmationSent: row.confirmation_sent,
 
@@ -409,8 +404,8 @@ export function rowToBooking(row: BookingRow): Booking {
     deletedAt: row.deleted_at ? new Date(row.deleted_at) : undefined,
 
     // Joined fields for UI
-    clientName: row.clients?.name,
-    clientEmail: row.clients?.email,
+    customerName: row.customers?.name,
+    customerEmail: row.customers?.email,
     serviceName: (row as any).services?.name, // DEPRECATED
     serviceCode: (row as any).services?.code, // DEPRECATED
     serviceAverageDurationMinutes: (row as any).services?.average_duration_minutes, // DEPRECATED
@@ -436,12 +431,11 @@ export function bookingInputToRow(input: CreateBookingInput): Partial<BookingRow
     : null;
 
   return {
-    client_id: input.clientId,
+    customer_id: input.customerId,
     service_id: input.serviceId ?? null, // DEPRECATED: Make nullable
     service_items: input.serviceItems ?? null,
     service_ids: input.serviceIds ?? null,
 
-    vehicle_id: input.vehicleId ?? null,
     location_id: input.locationId ?? null,
 
     booking_number: input.bookingNumber ?? null,
@@ -473,7 +467,7 @@ export function bookingInputToRow(input: CreateBookingInput): Partial<BookingRow
     special_instructions: input.specialInstructions ?? null,
     internal_notes: input.internalNotes ?? null,
 
-    client_notified: input.clientNotified ?? false,
+    customer_notified: input.customerNotified ?? false,
     reminder_sent: input.reminderSent ?? false,
     confirmation_sent: input.confirmationSent ?? false,
 
@@ -489,12 +483,11 @@ export function updateBookingInputToRow(input: UpdateBookingInput): Partial<Book
   const row: Partial<BookingRow> = {};
 
   // Only add fields that are explicitly provided
-  if (input.clientId !== undefined) row.client_id = input.clientId;
+  if (input.customerId !== undefined) row.customer_id = input.customerId;
   if (input.serviceId !== undefined) row.service_id = input.serviceId; // DEPRECATED
   if (input.serviceItems !== undefined) row.service_items = input.serviceItems ?? null;
   if (input.serviceIds !== undefined) row.service_ids = input.serviceIds ?? null;
 
-  if (input.vehicleId !== undefined) row.vehicle_id = input.vehicleId ?? null; // DEPRECATED
   if (input.routeId !== undefined) row.route_id = input.routeId ?? null;
   if (input.stopOrder !== undefined) row.stop_order = input.stopOrder ?? null;
   if (input.locationId !== undefined) row.location_id = input.locationId ?? null;
@@ -541,7 +534,7 @@ export function updateBookingInputToRow(input: UpdateBookingInput): Partial<Book
   if (input.internalNotes !== undefined) row.internal_notes = input.internalNotes ?? null;
 
   // Communication fields
-  if (input.clientNotified !== undefined) row.client_notified = input.clientNotified;
+  if (input.customerNotified !== undefined) row.customer_notified = input.customerNotified;
   if (input.reminderSent !== undefined) row.reminder_sent = input.reminderSent;
   if (input.confirmationSent !== undefined) row.confirmation_sent = input.confirmationSent;
 

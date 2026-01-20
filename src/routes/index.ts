@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import clientRoutes from './client.routes.js';
+import customerRoutes from './customer.routes.js';
 import bookingRoutes from './booking.routes.js';
 import serviceRoutes from './service.routes.js';
 import vehicleRoutes from './vehicle.routes.js';
@@ -14,8 +14,8 @@ const router = Router();
  * Base path: /api/v1
  */
 
-// Client routes
-router.use('/clients', clientRoutes);
+// Customer routes
+router.use('/customers', customerRoutes);
 
 // Booking routes
 router.use('/bookings', bookingRoutes);
@@ -40,12 +40,12 @@ router.get('/', (_req, res) => {
   res.json({
     success: true,
     data: {
-      name: 'RouteIQ API',
+      name: 'Fleetillo API',
       version: '1.0.0',
       description: 'Route planning and management API',
       endpoints: {
         health: '/health',
-        clients: '/api/v1/clients',
+        customers: '/api/v1/customers',
         bookings: '/api/v1/bookings',
         services: '/api/v1/services',
         vehicles: '/api/v1/vehicles',

@@ -2,7 +2,7 @@
  * Booking Service
  *
  * Provides CRUD operations and business logic for managing bookings
- * in the RouteIQ application.
+ * in the Fleetillo application.
  */
 import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
 import type { Booking, CreateBookingInput, UpdateBookingInput, BookingFilters } from '../types/booking.js';

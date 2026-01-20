@@ -22,7 +22,7 @@ const startServer = async () => {
     logger.info('Testing database connection...');
     try {
       const supabase = getSupabaseClient();
-      const { error } = await supabase.from('clients').select('count').limit(0);
+      const { error } = await supabase.from('customers').select('count').limit(0);
       if (error) {
         throw error;
       }

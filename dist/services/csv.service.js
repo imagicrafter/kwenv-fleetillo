@@ -13,7 +13,7 @@ const validation_js_1 = require("../middleware/validation.js");
 /**
  * Required CSV columns
  */
-const REQUIRED_COLUMNS = ['clientId', 'bookingType', 'scheduledDate'];
+const REQUIRED_COLUMNS = ['customerId', 'bookingType', 'scheduledDate'];
 /**
  * Valid booking type values
  */
@@ -127,11 +127,11 @@ function parseTags(tagString) {
 function validateCSVRow(row, rowNumber) {
     const errors = [];
     // Validate required fields
-    if (!row.clientId || row.clientId.trim() === '') {
-        errors.push('clientId is required');
+    if (!row.customerId || row.customerId.trim() === '') {
+        errors.push('customerId is required');
     }
-    else if (!(0, validation_js_1.isValidUUID)(row.clientId.trim())) {
-        errors.push(`clientId must be a valid UUID (got: ${row.clientId})`);
+    else if (!(0, validation_js_1.isValidUUID)(row.customerId.trim())) {
+        errors.push(`customerId must be a valid UUID (got: ${row.customerId})`);
     }
     if (!row.bookingType || row.bookingType.trim() === '') {
         errors.push('bookingType is required');
@@ -210,7 +210,7 @@ function validateCSVRow(row, rowNumber) {
     }
     // Build the CreateBookingInput object
     const bookingInput = {
-        clientId: row.clientId.trim(),
+        customerId: row.customerId.trim(),
         bookingType: row.bookingType.trim(),
         scheduledDate: row.scheduledDate.trim(),
         scheduledStartTime: row.scheduledStartTime?.trim()

@@ -2,7 +2,7 @@
  * Booking Service
  *
  * Provides CRUD operations and business logic for managing bookings
- * in the RouteIQ application.
+ * in the Fleetillo application.
  */
 
 import { getSupabaseClient, getAdminSupabaseClient } from './supabase.js';
@@ -27,7 +27,7 @@ import {
 const logger = createContextLogger('BookingService');
 
 /**
- * Table name for bookings in the routeiq schema
+ * Table name for bookings in the fleetillo schema
  */
 const BOOKINGS_TABLE = 'bookings';
 
@@ -62,13 +62,13 @@ export const BookingErrorCodes = {
  * Validates booking input data
  */
 function validateBookingInput(input: CreateBookingInput): Result<void> {
-  if (!input.clientId || input.clientId.trim().length === 0) {
+  if (!input.customerId || input.customerId.trim().length === 0) {
     return {
       success: false,
       error: new BookingServiceError(
-        'Client ID is required',
+        'Customer ID is required',
         BookingErrorCodes.VALIDATION_FAILED,
-        { field: 'clientId' }
+        { field: 'customerId' }
       ),
     };
   }
@@ -197,7 +197,7 @@ function validateBookingInput(input: CreateBookingInput): Result<void> {
  * Creates a new booking
  */
 export async function createBooking(input: CreateBookingInput): Promise<Result<Booking>> {
-  logger.debug('Creating booking', { clientId: input.clientId, serviceItemsCount: input.serviceItems?.length });
+  logger.debug('Creating booking', { customerId: input.customerId, serviceItemsCount: input.serviceItems?.length });
 
   // Validate input
   const validationResult = validateBookingInput(input);
@@ -235,7 +235,7 @@ export async function createBooking(input: CreateBookingInput): Promise<Result<B
     const { data, error } = await supabase
       .from(BOOKINGS_TABLE)
       .insert(rowData)
-      .select('*, clients(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)')
+      .select('*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)')
       .single();
 
     if (error) {
@@ -279,7 +279,7 @@ export async function getBookingById(id: string): Promise<Result<Booking>> {
 
     const { data, error } = await supabase
       .from(BOOKINGS_TABLE)
-      .select('*, clients(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)')
+      .select('*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)')
       .eq('id', id)
       .is('deleted_at', null)
       .single();
@@ -334,15 +334,15 @@ export async function getBookings(
     // Use admin client if available to bypass RLS policies
     const supabase = getAdminSupabaseClient() || getSupabaseClient();
 
-    let query = supabase.from(BOOKINGS_TABLE).select('*, clients(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code)', { count: 'exact' });
+    let query = supabase.from(BOOKINGS_TABLE).select('*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code)', { count: 'exact' });
 
     // Apply filters
     if (!filters?.includeDeleted) {
       query = query.is('deleted_at', null);
     }
 
-    if (filters?.clientId) {
-      query = query.eq('client_id', filters.clientId);
+    if (filters?.customerId) {
+      query = query.eq('customer_id', filters.customerId);
     }
 
     if (filters?.serviceId) {
@@ -350,11 +350,7 @@ export async function getBookings(
       query = query.contains('service_ids', [filters.serviceId]);
     }
 
-    if (filters?.vehicleId) {
-      query = query.eq('vehicle_id', filters.vehicleId);
-    }
-
-    // Route-based filters (new approach)
+    // Route-based filters
     if (filters?.routeId) {
       query = query.eq('route_id', filters.routeId);
     }
@@ -438,17 +434,17 @@ export async function getBookings(
 
     let bookings = (data as BookingRow[]).map(convertRowToBooking);
 
-    // Client-side filtering for related table fields (client name, service name, location name)
+    // Client-side filtering for related table fields (customer name, service name, location name)
     // since Supabase .or() doesn't support related table columns
     if (searchTerm) {
       bookings = bookings.filter(b => {
         const directMatch =
           b.bookingNumber?.toLowerCase().includes(searchTerm) ||
           b.specialInstructions?.toLowerCase().includes(searchTerm);
-        const clientMatch = b.clientName?.toLowerCase().includes(searchTerm);
+        const customerMatch = b.customerName?.toLowerCase().includes(searchTerm);
         const serviceMatch = b.serviceName?.toLowerCase().includes(searchTerm);
         const locationMatch = b.locationName?.toLowerCase().includes(searchTerm);
-        return directMatch || clientMatch || serviceMatch || locationMatch;
+        return directMatch || customerMatch || serviceMatch || locationMatch;
       });
     }
 
@@ -499,7 +495,7 @@ export async function updateBooking(input: UpdateBookingInput): Promise<Result<B
   const existing = existingResult.data;
 
   const validationInput: CreateBookingInput = {
-    clientId: input.clientId ?? existing.clientId,
+    customerId: input.customerId ?? existing.customerId,
     serviceId: input.serviceId, // Deprecated, but keep if provided
     serviceItems: input.serviceItems ?? existing.serviceItems,
     bookingType: input.bookingType ?? existing.bookingType,
@@ -561,7 +557,7 @@ export async function updateBooking(input: UpdateBookingInput): Promise<Result<B
       .update(rowData)
       .eq('id', id)
       .is('deleted_at', null)
-      .select('*, clients(name, email), services(name, code), locations(name, latitude, longitude)')
+      .select('*, customers(name, email), services(name, code), locations(name, latitude, longitude)')
       .single();
 
     if (error) {
@@ -794,7 +790,7 @@ export async function restoreBooking(id: string): Promise<Result<Booking>> {
       .update({ deleted_at: null })
       .eq('id', id)
       .not('deleted_at', 'is', null)
-      .select('*, clients(name, email), services(name, code), locations(name, latitude, longitude)')
+      .select('*, customers(name, email), services(name, code), locations(name, latitude, longitude)')
       .single();
 
     if (error) {
@@ -900,7 +896,7 @@ export async function getBookingByNumber(bookingNumber: string): Promise<Result<
 
     const { data, error } = await supabase
       .from(BOOKINGS_TABLE)
-      .select('*, clients(name, email), services(name, code), locations(name, latitude, longitude)')
+      .select('*, customers(name, email), services(name, code), locations(name, latitude, longitude)')
       .eq('booking_number', bookingNumber)
       .is('deleted_at', null)
       .single();
@@ -1174,7 +1170,7 @@ export async function bulkCreateBookings(
     const { data, error } = await supabase
       .from(BOOKINGS_TABLE)
       .insert(rowsData)
-      .select('*, clients(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)');
+      .select('*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)');
 
     if (error) {
       logger.error('Failed to bulk create bookings', error);
@@ -1184,10 +1180,10 @@ export async function bulkCreateBookings(
 
       // Check if it's a foreign key violation
       if (error.code === '23503') {
-        // Foreign key violation - likely a clientId or serviceId doesn't exist
+        // Foreign key violation - likely a customerId or serviceId doesn't exist
         errorDetails.push({
           rowNumber: 1, // Can't determine specific row from batch insert
-          message: `Foreign key violation: ${error.message}. Check that all clientId and serviceId values exist.`,
+          message: `Foreign key violation: ${error.message}. Check that all customerId and serviceId values exist.`,
         });
       } else {
         errorDetails.push({

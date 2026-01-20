@@ -1,13 +1,13 @@
 /**
- * Client-related type definitions for RouteIQ application
+ * Customer-related type definitions for Fleetillo application
  */
 
 import type { ID, Timestamps } from './index.js';
 
 /**
- * Client status options
+ * Customer status options
  */
-export type ClientStatus = 'active' | 'inactive' | 'suspended' | 'archived';
+export type CustomerStatus = 'active' | 'inactive' | 'suspended' | 'archived';
 
 /**
  * Address information
@@ -39,9 +39,9 @@ export interface ContactInfo {
 }
 
 /**
- * Client entity representing a customer in the system
+ * Customer entity representing a customer in the system
  */
-export interface Client extends Timestamps {
+export interface Customer extends Timestamps {
   id: ID;
   name: string;
   companyName?: string;
@@ -72,7 +72,7 @@ export interface Client extends Timestamps {
   longitude?: number;
 
   // Status and metadata
-  status: ClientStatus;
+  status: CustomerStatus;
   notes?: string;
   tags?: string[];
 
@@ -83,7 +83,7 @@ export interface Client extends Timestamps {
 /**
  * Database row representation (snake_case as stored in Supabase)
  */
-export interface ClientRow {
+export interface CustomerRow {
   id: string;
   name: string;
   company_name: string | null;
@@ -104,7 +104,7 @@ export interface ClientRow {
   service_country: string | null;
   latitude: number | null;
   longitude: number | null;
-  status: ClientStatus;
+  status: CustomerStatus;
   notes: string | null;
   tags: string[] | null;
   created_at: string;
@@ -113,9 +113,9 @@ export interface ClientRow {
 }
 
 /**
- * Input for creating a new client
+ * Input for creating a new customer
  */
-export interface CreateClientInput {
+export interface CreateCustomerInput {
   name: string;
   companyName?: string;
   email?: string;
@@ -135,23 +135,23 @@ export interface CreateClientInput {
   serviceCountry?: string;
   latitude?: number;
   longitude?: number;
-  status?: ClientStatus;
+  status?: CustomerStatus;
   notes?: string;
   tags?: string[];
 }
 
 /**
- * Input for updating an existing client
+ * Input for updating an existing customer
  */
-export interface UpdateClientInput extends Partial<CreateClientInput> {
+export interface UpdateCustomerInput extends Partial<CreateCustomerInput> {
   id: ID;
 }
 
 /**
- * Client filter options for queries
+ * Customer filter options for queries
  */
-export interface ClientFilters {
-  status?: ClientStatus;
+export interface CustomerFilters {
+  status?: CustomerStatus;
   city?: string;
   state?: string;
   tags?: string[];
@@ -160,9 +160,9 @@ export interface ClientFilters {
 }
 
 /**
- * Converts a database row to a Client entity
+ * Converts a database row to a Customer entity
  */
-export function rowToClient(row: ClientRow): Client {
+export function rowToCustomer(row: CustomerRow): Customer {
   return {
     id: row.id,
     name: row.name,
@@ -194,9 +194,9 @@ export function rowToClient(row: ClientRow): Client {
 }
 
 /**
- * Converts a CreateClientInput to a database row format
+ * Converts a CreateCustomerInput to a database row format
  */
-export function clientInputToRow(input: CreateClientInput): Partial<ClientRow> {
+export function customerInputToRow(input: CreateCustomerInput): Partial<CustomerRow> {
   return {
     name: input.name,
     company_name: input.companyName ?? null,

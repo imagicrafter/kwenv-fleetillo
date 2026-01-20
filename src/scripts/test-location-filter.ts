@@ -34,16 +34,16 @@ async function main() {
         console.log('No locations found in data array.');
         return;
     }
-    const clientId = testLoc.clientId;
-    const clientName = testLoc.clientName;
+    const customerId = testLoc.customerId;
+    const customerName = testLoc.customerName;
     const locName = testLoc.name;
 
-    console.log(`Using Test Location: "${locName}" (Client: ${clientName}, ID: ${clientId})`);
+    console.log(`Using Test Location: "${locName}" (Customer: ${customerName}, ID: ${customerId})`);
 
-    // 2. Test filtering by Client ID only
-    console.log('\n--- Testing Client ID Filter ---');
-    const clientLocs = await getAllLocations({ clientId: clientId! });
-    console.log(`Found ${clientLocs.data?.data.length} locations for client.`);
+    // 2. Test filtering by Customer ID only
+    console.log('\n--- Testing Customer ID Filter ---');
+    const customerLocs = await getAllLocations({ customerId: customerId! });
+    console.log(`Found ${customerLocs.data?.data.length} locations for customer.`);
 
     // 3. Test filtering by Search Term only (partial name)
     const searchTerm = locName.substring(0, 3);
@@ -52,17 +52,17 @@ async function main() {
     console.log(`Found ${searchLocs.data?.data.length} locations matching "${searchTerm}".`);
 
     // 4. Test filtering by BOTH
-    console.log(`\n--- Testing BOTH Filters (Client: ${clientId}, Search: "${searchTerm}") ---`);
-    const bothLocs = await getAllLocations({ clientId: clientId!, searchTerm });
+    console.log(`\n--- Testing BOTH Filters (Customer: ${customerId}, Search: "${searchTerm}") ---`);
+    const bothLocs = await getAllLocations({ customerId: customerId!, searchTerm });
     console.log(`Found ${bothLocs.data?.data.length} locations matching both.`);
 
     // Check if results are correct
-    const invalidResults = bothLocs.data?.data.filter((l: any) => l.clientId !== clientId);
+    const invalidResults = bothLocs.data?.data.filter((l: any) => l.customerId !== customerId);
     if (invalidResults && invalidResults.length > 0) {
-        console.error('FAIL: Found locations for WRONG client!');
-        invalidResults.forEach((l: any) => console.log(` - Bad Match: ${l.name} (Client: ${l.clientId})`));
+        console.error('FAIL: Found locations for WRONG customer!');
+        invalidResults.forEach((l: any) => console.log(` - Bad Match: ${l.name} (Customer: ${l.customerId})`));
     } else {
-        console.log('PASS: All results belong to the correct client.');
+        console.log('PASS: All results belong to the correct customer.');
     }
 }
 
