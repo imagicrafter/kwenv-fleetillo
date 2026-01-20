@@ -116,9 +116,8 @@ export const getAll = async (req: Request, res: Response, next: NextFunction): P
       limit = '20',
       sortBy = 'scheduledDate',
       sortOrder = 'asc',
-      clientId,
+      customerId,
       serviceId,
-      vehicleId,
       bookingType,
       status,
       priority,
@@ -138,9 +137,8 @@ export const getAll = async (req: Request, res: Response, next: NextFunction): P
 
     const filters: BookingFilters = {};
 
-    if (clientId) filters.clientId = clientId as string;
+    if (customerId) filters.customerId = customerId as string;
     if (serviceId) filters.serviceId = serviceId as string;
-    if (vehicleId) filters.vehicleId = vehicleId as string;
     if (bookingType) filters.bookingType = bookingType as 'one_time' | 'recurring';
     if (status) filters.status = status as BookingFilters['status'];
     if (priority) filters.priority = priority as BookingFilters['priority'];
@@ -414,7 +412,7 @@ export const downloadTemplate = async (_req: Request, res: Response, next: NextF
   try {
     // CSV header row with all supported columns
     const headers = [
-      'clientId',
+      'customerId',
       'bookingType',
       'scheduledDate',
       'scheduledStartTime',
@@ -438,7 +436,7 @@ export const downloadTemplate = async (_req: Request, res: Response, next: NextF
 
     // Example row showing expected formats
     const exampleRow = [
-      'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', // clientId (UUID)
+      'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', // customerId (UUID)
       'one_time', // bookingType (one_time or recurring)
       '2026-01-15', // scheduledDate (YYYY-MM-DD)
       '09:00', // scheduledStartTime (HH:MM or HH:MM:SS)

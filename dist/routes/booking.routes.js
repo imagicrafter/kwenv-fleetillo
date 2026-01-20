@@ -72,7 +72,7 @@ router.post('/upload', fileUpload_js_1.uploadCSV, fileUpload_js_1.requireFile, f
  * POST /api/v1/bookings
  * Create a new booking
  */
-router.post('/', (0, validation_js_1.validateRequired)(['clientId', 'serviceId', 'bookingType', 'scheduledDate', 'scheduledStartTime']), bookingController.create);
+router.post('/', (0, validation_js_1.validateRequired)(['customerId', 'serviceId', 'bookingType', 'scheduledDate', 'scheduledStartTime']), bookingController.create);
 /**
  * PUT /api/v1/bookings/:id
  * Update booking

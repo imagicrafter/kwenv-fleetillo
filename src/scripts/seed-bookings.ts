@@ -5,7 +5,7 @@
 
 import 'dotenv/config';
 import { createBooking } from '../services/booking.service.js';
-import { getClients } from '../services/client.service.js';
+import { getCustomers } from '../services/customer.service.js';
 import { getServices } from '../services/service.service.js';
 import { getAllLocations } from '../services/location.service.js';
 import { initializeSupabase } from '../services/supabase.js';
@@ -20,14 +20,14 @@ initializeSupabase({
 async function seedBookings() {
     console.log('Fetching existing data...');
 
-    // Get clients
-    const clientsResult = await getClients({}, { page: 1, limit: 100 });
-    if (!clientsResult.success) {
-        console.error('Error fetching clients:', clientsResult.error);
+    // Get customers
+    const customersResult = await getCustomers({}, { page: 1, limit: 100 });
+    if (!customersResult.success) {
+        console.error('Error fetching customers:', customersResult.error);
         return;
     }
-    if (!clientsResult.data?.data.length) {
-        console.error('No clients returned from database. Check if clients exist and permissions are correct.');
+    if (!customersResult.data?.data.length) {
+        console.error('No customers returned from database. Check if customers exist and permissions are correct.');
         console.log('Environment check:', {
             hasUrl: !!process.env.SUPABASE_URL,
             hasKey: !!process.env.SUPABASE_KEY,
@@ -35,8 +35,8 @@ async function seedBookings() {
         });
         return;
     }
-    const clients = clientsResult.data.data;
-    console.log(`Found ${clients.length} clients`);
+    const customers = customersResult.data.data;
+    console.log(`Found ${customers.length} customers`);
 
     // Get services
     const servicesResult = await getServices({});
@@ -61,25 +61,25 @@ async function seedBookings() {
     }
     console.log(`Found ${locations.length} locations`);
 
-    // Map locations to clients
-    const locationsByClientId = new Map<string, any[]>();
+    // Map locations to customers
+    const locationsByCustomerId = new Map<string, any[]>();
     locations.forEach(loc => {
-        if (loc.clientId) {
-            if (!locationsByClientId.has(loc.clientId)) {
-                locationsByClientId.set(loc.clientId, []);
+        if (loc.customerId) {
+            if (!locationsByCustomerId.has(loc.customerId)) {
+                locationsByCustomerId.set(loc.customerId, []);
             }
-            locationsByClientId.get(loc.clientId)?.push(loc);
+            locationsByCustomerId.get(loc.customerId)?.push(loc);
         }
     });
 
-    // Filter clients that have locations
-    const validClients = clients.filter(c => locationsByClientId.has(c.id) && (locationsByClientId.get(c.id)?.length ?? 0) > 0);
+    // Filter customers that have locations
+    const validCustomers = customers.filter((c: { id: string }) => locationsByCustomerId.has(c.id) && (locationsByCustomerId.get(c.id)?.length ?? 0) > 0);
 
-    if (validClients.length === 0) {
-        console.error('No clients with locations found. Cannot generate valid bookings.');
+    if (validCustomers.length === 0) {
+        console.error('No customers with locations found. Cannot generate valid bookings.');
         return;
     }
-    console.log(`Found ${validClients.length} clients with valid locations`);
+    console.log(`Found ${validCustomers.length} customers with valid locations`);
 
     // Get Filtered Services
     const serviceNames = [
@@ -133,9 +133,9 @@ async function seedBookings() {
         console.log(`\nCreating bookings for ${dateStr}...`);
 
         for (let i = 0; i < 15; i++) {
-            const client = validClients[i % validClients.length]!;
-            const clientLocations = locationsByClientId.get(client.id)!;
-            const location = clientLocations[Math.floor(Math.random() * clientLocations.length)];
+            const customer = validCustomers[i % validCustomers.length]!;
+            const customerLocations = locationsByCustomerId.get(customer.id)!;
+            const location = customerLocations[Math.floor(Math.random() * customerLocations.length)];
 
             // Randomly assign one of the specific services (we checked length > 0 above)
             const service = validServices[Math.floor(Math.random() * validServices.length)]!;
@@ -154,7 +154,7 @@ async function seedBookings() {
             await supabase.from('bookings').delete().eq('booking_number', bookingNumber);
 
             const bookingInput = {
-                clientId: client.id,
+                customerId: customer.id,
                 serviceId: service.id,
                 locationId: location.id,
                 scheduledDate: new Date(dateStr),
@@ -170,7 +170,7 @@ async function seedBookings() {
             const result = await createBooking(bookingInput);
 
             if (result.success) {
-                console.log(`  ✓ Created ${bookingInput.bookingNumber}: ${client.name} @ ${location.name} [${service.name}]`);
+                console.log(`  ✓ Created ${bookingInput.bookingNumber}: ${customer.name} @ ${location.name} [${service.name}]`);
                 successCount++;
             } else {
                 console.error(`  ✗ Failed ${bookingInput.bookingNumber}: ${result.error?.message}`);

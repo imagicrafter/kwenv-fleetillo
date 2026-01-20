@@ -6,17 +6,17 @@ async function seedLegacyBooking() {
     (0, supabase_js_1.initializeSupabase)();
     // Use admin client to bypass RLS
     const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
-    // Get a service and client
+    // Get a service and customer
     const { data: service } = await supabase.from('services').select('*').limit(1).single();
-    const { data: client } = await supabase.from('clients').select('*').limit(1).single();
-    if (!service || !client) {
-        console.error('Need at least one service and client');
+    const { data: customer } = await supabase.from('customers').select('*').limit(1).single();
+    if (!service || !customer) {
+        console.error('Need at least one service and customer');
         (0, process_1.exit)(1);
     }
     // Create a legacy booking with NO serviceItems and $0 price
     const bookingData = {
         booking_number: 'BK-LEGACY-TEST-001',
-        client_id: client.id,
+        customer_id: customer.id,
         service_id: service.id, // Legacy field
         scheduled_date: '2026-02-01',
         scheduled_start_time: '10:00',

@@ -364,15 +364,15 @@
         </div>
       </div>
 
-      <!-- Client & Service Selection -->
+      <!-- Customer & Service Selection -->
       <div class="form-section">
-        <h2>Client & Service</h2>
+        <h2>Customer & Service</h2>
         <div class="form-row">
           <div class="form-group">
-            <label for="clientId">Client <span class="required">*</span></label>
-            <div class="select-wrapper" id="clientSelectWrapper">
-              <select id="clientId" name="clientId" required>
-                <option value="">Loading clients...</option>
+            <label for="customerId">Customer <span class="required">*</span></label>
+            <div class="select-wrapper" id="customerSelectWrapper">
+              <select id="customerId" name="customerId" required>
+                <option value="">Loading customers...</option>
               </select>
               <span class="select-loading"></span>
             </div>
@@ -507,14 +507,14 @@
     const submitBtn = document.getElementById('submitBtn');
     const submitText = document.getElementById('submitText');
     const recurrenceOptions = document.getElementById('recurrenceOptions');
-    const clientSelect = document.getElementById('clientId');
+    const customerSelect = document.getElementById('customerId');
     const serviceSelect = document.getElementById('serviceId');
-    const clientSelectWrapper = document.getElementById('clientSelectWrapper');
+    const customerSelectWrapper = document.getElementById('customerSelectWrapper');
     const serviceSelectWrapper = document.getElementById('serviceSelectWrapper');
 
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
-      loadClients();
+      loadCustomers();
       loadServices();
       setupBookingTypeToggle();
       setDefaultDate();
@@ -527,32 +527,32 @@
       document.getElementById('scheduledDate').min = today;
     }
 
-    // Load clients from API
-    async function loadClients() {
-      clientSelectWrapper.classList.add('loading');
+    // Load customers from API
+    async function loadCustomers() {
+      customerSelectWrapper.classList.add('loading');
       try {
-        const response = await fetch(`${API_BASE}/clients?limit=100`);
+        const response = await fetch(`${API_BASE}/customers?limit=100`);
         const result = await response.json();
 
-        clientSelect.innerHTML = '<option value="">Select a client...</option>';
+        customerSelect.innerHTML = '<option value="">Select a customer...</option>';
 
         if (result.success && result.data) {
-          result.data.forEach(client => {
+          result.data.forEach(customer => {
             const option = document.createElement('option');
-            option.value = client.id;
-            option.textContent = client.companyName
-              ? `${client.name} (${client.companyName})`
-              : client.name;
-            clientSelect.appendChild(option);
+            option.value = customer.id;
+            option.textContent = customer.companyName
+              ? `${customer.name} (${customer.companyName})`
+              : customer.name;
+            customerSelect.appendChild(option);
           });
         } else {
-          clientSelect.innerHTML = '<option value="">No clients available</option>';
+          customerSelect.innerHTML = '<option value="">No customers available</option>';
         }
       } catch (error) {
-        console.error('Error loading clients:', error);
-        clientSelect.innerHTML = '<option value="">Error loading clients</option>';
+        console.error('Error loading customers:', error);
+        customerSelect.innerHTML = '<option value="">Error loading customers</option>';
       } finally {
-        clientSelectWrapper.classList.remove('loading');
+        customerSelectWrapper.classList.remove('loading');
       }
     }
 
@@ -663,7 +663,7 @@
 
       // Build request payload
       const payload = {
-        clientId: formData.get('clientId'),
+        customerId: formData.get('customerId'),
         serviceId: formData.get('serviceId'),
         bookingType: bookingType,
         scheduledDate: formData.get('scheduledDate'),
@@ -731,7 +731,7 @@
       }
 
       // Validate required fields
-      if (!payload.clientId || !payload.serviceId || !payload.scheduledDate || !payload.scheduledStartTime) {
+      if (!payload.customerId || !payload.serviceId || !payload.scheduledDate || !payload.scheduledStartTime) {
         showAlert('Please fill in all required fields.', 'error');
         return;
       }

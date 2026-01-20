@@ -96,7 +96,7 @@ exports.getByNumber = getByNumber;
  */
 const getAll = async (req, res, next) => {
     try {
-        const { page = '1', limit = '20', sortBy = 'scheduledDate', sortOrder = 'asc', clientId, serviceId, vehicleId, bookingType, status, priority, scheduledDateFrom, scheduledDateTo, tags, searchTerm, includeDeleted, } = req.query;
+        const { page = '1', limit = '20', sortBy = 'scheduledDate', sortOrder = 'asc', customerId, serviceId, bookingType, status, priority, scheduledDateFrom, scheduledDateTo, tags, searchTerm, includeDeleted, } = req.query;
         const pagination = {
             page: parseInt(page),
             limit: parseInt(limit),
@@ -104,12 +104,10 @@ const getAll = async (req, res, next) => {
             sortOrder: sortOrder,
         };
         const filters = {};
-        if (clientId)
-            filters.clientId = clientId;
+        if (customerId)
+            filters.customerId = customerId;
         if (serviceId)
             filters.serviceId = serviceId;
-        if (vehicleId)
-            filters.vehicleId = vehicleId;
         if (bookingType)
             filters.bookingType = bookingType;
         if (status)
@@ -375,7 +373,7 @@ const downloadTemplate = async (_req, res, next) => {
     try {
         // CSV header row with all supported columns
         const headers = [
-            'clientId',
+            'customerId',
             'bookingType',
             'scheduledDate',
             'scheduledStartTime',
@@ -398,7 +396,7 @@ const downloadTemplate = async (_req, res, next) => {
         ];
         // Example row showing expected formats
         const exampleRow = [
-            'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', // clientId (UUID)
+            'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', // customerId (UUID)
             'one_time', // bookingType (one_time or recurring)
             '2026-01-15', // scheduledDate (YYYY-MM-DD)
             '09:00', // scheduledStartTime (HH:MM or HH:MM:SS)

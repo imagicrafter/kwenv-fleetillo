@@ -4,7 +4,7 @@
  * Export all services from this file for convenient imports
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.VehicleErrorCodes = exports.VehicleServiceError = exports.countVehicles = exports.restoreVehicle = exports.hardDeleteVehicle = exports.deleteVehicle = exports.updateVehicleStatus = exports.updateVehicleLocation = exports.updateVehicle = exports.getVehiclesByServiceType = exports.getVehicles = exports.getVehicleById = exports.createVehicle = exports.ServiceErrorCodes = exports.ServiceServiceError = exports.countServices = exports.restoreService = exports.hardDeleteService = exports.deleteService = exports.updateService = exports.getServicesByType = exports.getServices = exports.getServiceByCode = exports.getServiceById = exports.createService = exports.ClientErrorCodes = exports.ClientServiceError = exports.countClients = exports.restoreClient = exports.hardDeleteClient = exports.deleteClient = exports.updateClient = exports.getClients = exports.getClientById = exports.createClient = exports.resetApiClient = exports.createApiClient = exports.getApiClient = exports.apiClient = exports.ApiClient = exports.SupabaseErrorCodes = exports.SupabaseServiceError = exports.resetSupabaseClient = exports.isSupabaseInitialized = exports.getConnectionStatus = exports.verifyConnection = exports.getAdminSupabaseClient = exports.getSupabaseClient = exports.initializeAndVerifySupabase = exports.initializeSupabase = void 0;
+exports.VehicleErrorCodes = exports.VehicleServiceError = exports.countVehicles = exports.restoreVehicle = exports.hardDeleteVehicle = exports.deleteVehicle = exports.updateVehicleStatus = exports.updateVehicleLocation = exports.updateVehicle = exports.getVehiclesByServiceType = exports.getVehicles = exports.getVehicleById = exports.createVehicle = exports.ServiceErrorCodes = exports.ServiceServiceError = exports.countServices = exports.restoreService = exports.hardDeleteService = exports.deleteService = exports.updateService = exports.getServicesByType = exports.getServices = exports.getServiceByCode = exports.getServiceById = exports.createService = exports.CustomerErrorCodes = exports.CustomerServiceError = exports.countCustomers = exports.restoreCustomer = exports.hardDeleteCustomer = exports.deleteCustomer = exports.updateCustomer = exports.getCustomers = exports.getCustomerById = exports.createCustomer = exports.resetApiClient = exports.createApiClient = exports.getApiClient = exports.apiClient = exports.ApiClient = exports.SupabaseErrorCodes = exports.SupabaseServiceError = exports.resetSupabaseClient = exports.isSupabaseInitialized = exports.getConnectionStatus = exports.verifyConnection = exports.getAdminSupabaseClient = exports.getSupabaseClient = exports.initializeAndVerifySupabase = exports.initializeSupabase = void 0;
 exports.RouteGenerationErrorCodes = exports.RouteGenerationServiceError = exports.generateOptimizedRoutes = exports.AddressValidationErrorCodes = exports.AddressValidationServiceError = exports.getValidatedCoordinates = exports.isAddressValid = exports.batchValidateAddresses = exports.geocodeWithValidation = exports.standardizeAddress = exports.validateAddressWithDetails = exports.GoogleMapsErrorCodes = exports.GoogleMapsServiceError = exports.getCoordinatesFromAddress = exports.getAddressFromCoordinates = exports.batchGeocodeAddresses = exports.getDistanceMatrix = exports.getPlaceAutocomplete = exports.validateAddress = exports.reverseGeocode = exports.geocodeAddress = exports.BookingErrorCodes = exports.BookingServiceError = exports.countBookings = exports.restoreBooking = exports.hardDeleteBooking = exports.deleteBooking = exports.updateBooking = exports.getBookings = exports.getBookingByNumber = exports.getBookingById = exports.createBooking = exports.DriverErrorCodes = exports.DriverServiceError = exports.getDriverVehicles = exports.unassignDriverFromVehicle = exports.assignDriverToVehicle = exports.getDriverWithVehicle = exports.countDrivers = exports.deleteDriver = exports.updateDriver = exports.getDrivers = exports.getDriverById = exports.createDriver = void 0;
 // Supabase client service
 var supabase_js_1 = require("./supabase.js");
@@ -25,18 +25,18 @@ Object.defineProperty(exports, "apiClient", { enumerable: true, get: function ()
 Object.defineProperty(exports, "getApiClient", { enumerable: true, get: function () { return api_client_js_1.getApiClient; } });
 Object.defineProperty(exports, "createApiClient", { enumerable: true, get: function () { return api_client_js_1.createApiClient; } });
 Object.defineProperty(exports, "resetApiClient", { enumerable: true, get: function () { return api_client_js_1.resetApiClient; } });
-// Client service
-var client_service_js_1 = require("./client.service.js");
-Object.defineProperty(exports, "createClient", { enumerable: true, get: function () { return client_service_js_1.createClient; } });
-Object.defineProperty(exports, "getClientById", { enumerable: true, get: function () { return client_service_js_1.getClientById; } });
-Object.defineProperty(exports, "getClients", { enumerable: true, get: function () { return client_service_js_1.getClients; } });
-Object.defineProperty(exports, "updateClient", { enumerable: true, get: function () { return client_service_js_1.updateClient; } });
-Object.defineProperty(exports, "deleteClient", { enumerable: true, get: function () { return client_service_js_1.deleteClient; } });
-Object.defineProperty(exports, "hardDeleteClient", { enumerable: true, get: function () { return client_service_js_1.hardDeleteClient; } });
-Object.defineProperty(exports, "restoreClient", { enumerable: true, get: function () { return client_service_js_1.restoreClient; } });
-Object.defineProperty(exports, "countClients", { enumerable: true, get: function () { return client_service_js_1.countClients; } });
-Object.defineProperty(exports, "ClientServiceError", { enumerable: true, get: function () { return client_service_js_1.ClientServiceError; } });
-Object.defineProperty(exports, "ClientErrorCodes", { enumerable: true, get: function () { return client_service_js_1.ClientErrorCodes; } });
+// Customer service
+var customer_service_js_1 = require("./customer.service.js");
+Object.defineProperty(exports, "createCustomer", { enumerable: true, get: function () { return customer_service_js_1.createCustomer; } });
+Object.defineProperty(exports, "getCustomerById", { enumerable: true, get: function () { return customer_service_js_1.getCustomerById; } });
+Object.defineProperty(exports, "getCustomers", { enumerable: true, get: function () { return customer_service_js_1.getCustomers; } });
+Object.defineProperty(exports, "updateCustomer", { enumerable: true, get: function () { return customer_service_js_1.updateCustomer; } });
+Object.defineProperty(exports, "deleteCustomer", { enumerable: true, get: function () { return customer_service_js_1.deleteCustomer; } });
+Object.defineProperty(exports, "hardDeleteCustomer", { enumerable: true, get: function () { return customer_service_js_1.hardDeleteCustomer; } });
+Object.defineProperty(exports, "restoreCustomer", { enumerable: true, get: function () { return customer_service_js_1.restoreCustomer; } });
+Object.defineProperty(exports, "countCustomers", { enumerable: true, get: function () { return customer_service_js_1.countCustomers; } });
+Object.defineProperty(exports, "CustomerServiceError", { enumerable: true, get: function () { return customer_service_js_1.CustomerServiceError; } });
+Object.defineProperty(exports, "CustomerErrorCodes", { enumerable: true, get: function () { return customer_service_js_1.CustomerErrorCodes; } });
 // Service service (for service types/offerings)
 var service_service_js_1 = require("./service.service.js");
 Object.defineProperty(exports, "createService", { enumerable: true, get: function () { return service_service_js_1.createService; } });

@@ -1,24 +1,24 @@
 -- ============================================================================
--- OptiRoute Database Schema
--- Schema Name: optiroute
+-- Fleetillo Database Schema
+-- Schema Name: fleetillo
 -- Database: PostgreSQL (via Supabase)
 --
--- This file contains the complete DDL for the OptiRoute application.
+-- This file contains the complete DDL for the Fleetillo application.
 -- Run this script in the Supabase SQL Editor to create all tables.
 -- ============================================================================
 
--- Create the optiroute schema
-CREATE SCHEMA IF NOT EXISTS optiroute;
+-- Create the fleetillo schema
+CREATE SCHEMA IF NOT EXISTS fleetillo;
 
 -- Set search path for the session
-SET search_path TO optiroute, public;
+SET search_path TO fleetillo, public;
 
 -- ============================================================================
--- TABLE: clients
--- Purpose: Stores customer/client information including contact details,
+-- TABLE: customers
+-- Purpose: Stores customer information including contact details,
 --          billing address, service address, and geolocation data.
 -- ============================================================================
-CREATE TABLE optiroute.clients (
+CREATE TABLE fleetillo.customers (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
     company_name VARCHAR(255),
@@ -59,18 +59,18 @@ CREATE TABLE optiroute.clients (
 );
 
 -- Indexes for clients
-CREATE INDEX idx_clients_status ON optiroute.clients(status);
-CREATE INDEX idx_clients_city ON optiroute.clients(city);
-CREATE INDEX idx_clients_deleted_at ON optiroute.clients(deleted_at);
-CREATE INDEX idx_clients_name ON optiroute.clients(name);
-CREATE INDEX idx_clients_email ON optiroute.clients(email);
+CREATE INDEX idx_customers_status ON fleetillo.customers(status);
+CREATE INDEX idx_customers_city ON fleetillo.customers(city);
+CREATE INDEX idx_customers_deleted_at ON fleetillo.customers(deleted_at);
+CREATE INDEX idx_customers_name ON fleetillo.customers(name);
+CREATE INDEX idx_customers_email ON fleetillo.customers(email);
 
 -- ============================================================================
 -- TABLE: services
 -- Purpose: Defines service types offered by the business.
 --          Includes duration estimates, pricing, and scheduling requirements.
 -- ============================================================================
-CREATE TABLE optiroute.services (
+CREATE TABLE fleetillo.services (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
     code VARCHAR(50),                    -- Short code for internal reference
@@ -108,18 +108,18 @@ CREATE TABLE optiroute.services (
 );
 
 -- Indexes for services
-CREATE INDEX idx_services_status ON optiroute.services(status);
-CREATE INDEX idx_services_service_type ON optiroute.services(service_type);
-CREATE INDEX idx_services_code ON optiroute.services(code);
+CREATE INDEX idx_services_status ON fleetillo.services(status);
+CREATE INDEX idx_services_service_type ON fleetillo.services(service_type);
+CREATE INDEX idx_services_code ON fleetillo.services(code);
 
 -- ============================================================================
 -- TABLE: locations
 -- Purpose: Stores all location types including client addresses, depots,
 --          disposal sites, and vehicle home bases.
 -- ============================================================================
-CREATE TABLE optiroute.locations (
+CREATE TABLE fleetillo.locations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    client_id UUID REFERENCES optiroute.clients(id),  -- NULL for non-client locations
+    customer_id UUID REFERENCES fleetillo.customers(id),  -- NULL for non-customer locations
     name VARCHAR(255) NOT NULL,
     location_type VARCHAR(50) NOT NULL
         CHECK (location_type IN ('client', 'depot', 'disposal', 'maintenance', 'home', 'other')),
@@ -149,17 +149,17 @@ CREATE TABLE optiroute.locations (
 );
 
 -- Indexes for locations
-CREATE INDEX idx_locations_client_id ON optiroute.locations(client_id);
-CREATE INDEX idx_locations_location_type ON optiroute.locations(location_type);
-CREATE INDEX idx_locations_city ON optiroute.locations(city);
-CREATE INDEX idx_locations_coordinates ON optiroute.locations(latitude, longitude);
+CREATE INDEX idx_locations_customer_id ON fleetillo.locations(customer_id);
+CREATE INDEX idx_locations_location_type ON fleetillo.locations(location_type);
+CREATE INDEX idx_locations_city ON fleetillo.locations(city);
+CREATE INDEX idx_locations_coordinates ON fleetillo.locations(latitude, longitude);
 
 -- ============================================================================
 -- TABLE: vehicles
 -- Purpose: Stores vehicle information, capabilities, and current status.
 --          Vehicles are linked to services via service_types array.
 -- ============================================================================
-CREATE TABLE optiroute.vehicles (
+CREATE TABLE fleetillo.vehicles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,          -- Display name (e.g., "Truck 1", "Van A")
     description TEXT,
@@ -205,7 +205,7 @@ CREATE TABLE optiroute.vehicles (
 
     -- Assignment
     assigned_driver_id UUID,             -- Future: link to drivers table
-    home_location_id UUID REFERENCES optiroute.locations(id),
+    home_location_id UUID REFERENCES fleetillo.locations(id),
 
     -- Metadata
     notes TEXT,
@@ -218,19 +218,19 @@ CREATE TABLE optiroute.vehicles (
 );
 
 -- Indexes for vehicles
-CREATE INDEX idx_vehicles_status ON optiroute.vehicles(status);
-CREATE INDEX idx_vehicles_service_types ON optiroute.vehicles USING GIN(service_types);
-CREATE INDEX idx_vehicles_home_location ON optiroute.vehicles(home_location_id);
+CREATE INDEX idx_vehicles_status ON fleetillo.vehicles(status);
+CREATE INDEX idx_vehicles_service_types ON fleetillo.vehicles USING GIN(service_types);
+CREATE INDEX idx_vehicles_home_location ON fleetillo.vehicles(home_location_id);
 
 -- ============================================================================
 -- TABLE: vehicle_locations (Junction Table)
 -- Purpose: Links vehicles to their assigned locations (depot, home base, etc.)
 --          A vehicle can have multiple assigned locations.
 -- ============================================================================
-CREATE TABLE optiroute.vehicle_locations (
+CREATE TABLE fleetillo.vehicle_locations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    vehicle_id UUID NOT NULL REFERENCES optiroute.vehicles(id) ON DELETE CASCADE,
-    location_id UUID NOT NULL REFERENCES optiroute.locations(id) ON DELETE CASCADE,
+    vehicle_id UUID NOT NULL REFERENCES fleetillo.vehicles(id) ON DELETE CASCADE,
+    location_id UUID NOT NULL REFERENCES fleetillo.locations(id) ON DELETE CASCADE,
     is_primary BOOLEAN DEFAULT false,    -- Primary/home location for the vehicle
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
@@ -239,22 +239,22 @@ CREATE TABLE optiroute.vehicle_locations (
 );
 
 -- Indexes for vehicle_locations
-CREATE INDEX idx_vehicle_locations_vehicle ON optiroute.vehicle_locations(vehicle_id);
-CREATE INDEX idx_vehicle_locations_location ON optiroute.vehicle_locations(location_id);
+CREATE INDEX idx_vehicle_locations_vehicle ON fleetillo.vehicle_locations(vehicle_id);
+CREATE INDEX idx_vehicle_locations_location ON fleetillo.vehicle_locations(location_id);
 
 -- ============================================================================
 -- TABLE: bookings
--- Purpose: Stores service appointments/bookings linking clients to services.
+-- Purpose: Stores service appointments/bookings linking customers to services.
 --          Supports one-time and recurring bookings.
 -- ============================================================================
-CREATE TABLE optiroute.bookings (
+CREATE TABLE fleetillo.bookings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 
     -- Foreign Keys (required relationships)
-    client_id UUID NOT NULL REFERENCES optiroute.clients(id),
-    service_id UUID NOT NULL REFERENCES optiroute.services(id),
-    vehicle_id UUID REFERENCES optiroute.vehicles(id),     -- Assigned after route planning
-    location_id UUID REFERENCES optiroute.locations(id),   -- Service location
+    customer_id UUID NOT NULL REFERENCES fleetillo.customers(id),
+    service_id UUID NOT NULL REFERENCES fleetillo.services(id),
+    vehicle_id UUID REFERENCES fleetillo.vehicles(id),     -- Assigned after route planning
+    location_id UUID REFERENCES fleetillo.locations(id),   -- Service location
 
     -- Identification
     booking_number VARCHAR(50),          -- Human-readable booking reference
@@ -265,7 +265,7 @@ CREATE TABLE optiroute.bookings (
     recurrence_pattern VARCHAR(20)
         CHECK (recurrence_pattern IN ('daily', 'weekly', 'biweekly', 'monthly', 'quarterly', 'yearly')),
     recurrence_end_date DATE,
-    parent_booking_id UUID REFERENCES optiroute.bookings(id),  -- Link to parent for recurring
+    parent_booking_id UUID REFERENCES fleetillo.bookings(id),  -- Link to parent for recurring
 
     -- Scheduling
     scheduled_date DATE NOT NULL,
@@ -321,28 +321,28 @@ CREATE TABLE optiroute.bookings (
 );
 
 -- Indexes for bookings
-CREATE INDEX idx_bookings_client_id ON optiroute.bookings(client_id);
-CREATE INDEX idx_bookings_service_id ON optiroute.bookings(service_id);
-CREATE INDEX idx_bookings_vehicle_id ON optiroute.bookings(vehicle_id);
-CREATE INDEX idx_bookings_location_id ON optiroute.bookings(location_id);
-CREATE INDEX idx_bookings_scheduled_date ON optiroute.bookings(scheduled_date);
-CREATE INDEX idx_bookings_status ON optiroute.bookings(status);
-CREATE INDEX idx_bookings_booking_number ON optiroute.bookings(booking_number);
-CREATE INDEX idx_bookings_parent ON optiroute.bookings(parent_booking_id);
-CREATE INDEX idx_bookings_date_status ON optiroute.bookings(scheduled_date, status);
+CREATE INDEX idx_bookings_customer_id ON fleetillo.bookings(customer_id);
+CREATE INDEX idx_bookings_service_id ON fleetillo.bookings(service_id);
+CREATE INDEX idx_bookings_vehicle_id ON fleetillo.bookings(vehicle_id);
+CREATE INDEX idx_bookings_location_id ON fleetillo.bookings(location_id);
+CREATE INDEX idx_bookings_scheduled_date ON fleetillo.bookings(scheduled_date);
+CREATE INDEX idx_bookings_status ON fleetillo.bookings(status);
+CREATE INDEX idx_bookings_booking_number ON fleetillo.bookings(booking_number);
+CREATE INDEX idx_bookings_parent ON fleetillo.bookings(parent_booking_id);
+CREATE INDEX idx_bookings_date_status ON fleetillo.bookings(scheduled_date, status);
 
 -- ============================================================================
 -- TABLE: routes
 -- Purpose: Stores planned and executed routes for vehicles.
 --          Contains optimization data and stop sequence.
 -- ============================================================================
-CREATE TABLE optiroute.routes (
+CREATE TABLE fleetillo.routes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     route_name VARCHAR(255) NOT NULL,    -- Display name (e.g., "Route A - 2024-01-15")
     route_code VARCHAR(50),              -- Short code for reference
 
     -- Vehicle Assignment
-    vehicle_id UUID REFERENCES optiroute.vehicles(id),
+    vehicle_id UUID REFERENCES fleetillo.vehicles(id),
 
     -- Date and Time
     route_date DATE NOT NULL,
@@ -401,16 +401,16 @@ CREATE TABLE optiroute.routes (
 );
 
 -- Indexes for routes
-CREATE INDEX idx_routes_vehicle_id ON optiroute.routes(vehicle_id);
-CREATE INDEX idx_routes_route_date ON optiroute.routes(route_date);
-CREATE INDEX idx_routes_status ON optiroute.routes(status);
-CREATE INDEX idx_routes_date_vehicle ON optiroute.routes(route_date, vehicle_id);
+CREATE INDEX idx_routes_vehicle_id ON fleetillo.routes(vehicle_id);
+CREATE INDEX idx_routes_route_date ON fleetillo.routes(route_date);
+CREATE INDEX idx_routes_status ON fleetillo.routes(status);
+CREATE INDEX idx_routes_date_vehicle ON fleetillo.routes(route_date, vehicle_id);
 
 -- ============================================================================
 -- TRIGGER FUNCTION: update_updated_at_column
 -- Purpose: Automatically updates the updated_at timestamp on row updates.
 -- ============================================================================
-CREATE OR REPLACE FUNCTION optiroute.update_updated_at_column()
+CREATE OR REPLACE FUNCTION fleetillo.update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
@@ -419,44 +419,44 @@ END;
 $$ language 'plpgsql';
 
 -- Apply trigger to all tables with updated_at column
-CREATE TRIGGER update_clients_updated_at
-    BEFORE UPDATE ON optiroute.clients
-    FOR EACH ROW EXECUTE FUNCTION optiroute.update_updated_at_column();
+CREATE TRIGGER update_customers_updated_at
+    BEFORE UPDATE ON fleetillo.customers
+    FOR EACH ROW EXECUTE FUNCTION fleetillo.update_updated_at_column();
 
 CREATE TRIGGER update_services_updated_at
-    BEFORE UPDATE ON optiroute.services
-    FOR EACH ROW EXECUTE FUNCTION optiroute.update_updated_at_column();
+    BEFORE UPDATE ON fleetillo.services
+    FOR EACH ROW EXECUTE FUNCTION fleetillo.update_updated_at_column();
 
 CREATE TRIGGER update_locations_updated_at
-    BEFORE UPDATE ON optiroute.locations
-    FOR EACH ROW EXECUTE FUNCTION optiroute.update_updated_at_column();
+    BEFORE UPDATE ON fleetillo.locations
+    FOR EACH ROW EXECUTE FUNCTION fleetillo.update_updated_at_column();
 
 CREATE TRIGGER update_vehicles_updated_at
-    BEFORE UPDATE ON optiroute.vehicles
-    FOR EACH ROW EXECUTE FUNCTION optiroute.update_updated_at_column();
+    BEFORE UPDATE ON fleetillo.vehicles
+    FOR EACH ROW EXECUTE FUNCTION fleetillo.update_updated_at_column();
 
 CREATE TRIGGER update_bookings_updated_at
-    BEFORE UPDATE ON optiroute.bookings
-    FOR EACH ROW EXECUTE FUNCTION optiroute.update_updated_at_column();
+    BEFORE UPDATE ON fleetillo.bookings
+    FOR EACH ROW EXECUTE FUNCTION fleetillo.update_updated_at_column();
 
 CREATE TRIGGER update_routes_updated_at
-    BEFORE UPDATE ON optiroute.routes
-    FOR EACH ROW EXECUTE FUNCTION optiroute.update_updated_at_column();
+    BEFORE UPDATE ON fleetillo.routes
+    FOR EACH ROW EXECUTE FUNCTION fleetillo.update_updated_at_column();
 
 -- ============================================================================
 -- COMMENTS: Table and column documentation
 -- ============================================================================
-COMMENT ON SCHEMA optiroute IS 'OptiRoute application schema for route planning and management';
+COMMENT ON SCHEMA fleetillo IS 'Fleetillo application schema for route planning and management';
 
-COMMENT ON TABLE optiroute.clients IS 'Customer/client records with contact and address information';
-COMMENT ON TABLE optiroute.services IS 'Service type definitions with duration and pricing';
-COMMENT ON TABLE optiroute.locations IS 'All location types: client sites, depots, vehicle bases';
-COMMENT ON TABLE optiroute.vehicles IS 'Fleet vehicles with capabilities and status';
-COMMENT ON TABLE optiroute.vehicle_locations IS 'Junction table linking vehicles to assigned locations';
-COMMENT ON TABLE optiroute.bookings IS 'Service appointments linking clients to services';
-COMMENT ON TABLE optiroute.routes IS 'Planned and executed routes with optimization data';
+COMMENT ON TABLE fleetillo.customers IS 'Customer records with contact and address information';
+COMMENT ON TABLE fleetillo.services IS 'Service type definitions with duration and pricing';
+COMMENT ON TABLE fleetillo.locations IS 'All location types: customer sites, depots, vehicle bases';
+COMMENT ON TABLE fleetillo.vehicles IS 'Fleet vehicles with capabilities and status';
+COMMENT ON TABLE fleetillo.vehicle_locations IS 'Junction table linking vehicles to assigned locations';
+COMMENT ON TABLE fleetillo.bookings IS 'Service appointments linking customers to services';
+COMMENT ON TABLE fleetillo.routes IS 'Planned and executed routes with optimization data';
 
-COMMENT ON COLUMN optiroute.vehicles.service_types IS 'Array of service IDs this vehicle can perform - used for route planning compatibility';
-COMMENT ON COLUMN optiroute.bookings.status IS 'Booking lifecycle: pending -> confirmed -> scheduled -> in_progress -> completed';
-COMMENT ON COLUMN optiroute.routes.stop_sequence IS 'Ordered array of booking UUIDs representing the optimized stop order';
-COMMENT ON COLUMN optiroute.routes.route_geometry IS 'JSONB containing encoded polyline and leg data from Google Routes API';
+COMMENT ON COLUMN fleetillo.vehicles.service_types IS 'Array of service IDs this vehicle can perform - used for route planning compatibility';
+COMMENT ON COLUMN fleetillo.bookings.status IS 'Booking lifecycle: pending -> confirmed -> scheduled -> in_progress -> completed';
+COMMENT ON COLUMN fleetillo.routes.stop_sequence IS 'Ordered array of booking UUIDs representing the optimized stop order';
+COMMENT ON COLUMN fleetillo.routes.route_geometry IS 'JSONB containing encoded polyline and leg data from Google Routes API';

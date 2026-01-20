@@ -53,7 +53,7 @@ router.post(
  */
 router.post(
   '/',
-  validateRequired(['clientId', 'serviceId', 'bookingType', 'scheduledDate', 'scheduledStartTime']),
+  validateRequired(['customerId', 'serviceId', 'bookingType', 'scheduledDate', 'scheduledStartTime']),
   bookingController.create
 );
 

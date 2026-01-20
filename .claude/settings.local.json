@@ -46,7 +46,20 @@
       "Bash(git fetch:*)",
       "Bash(git rebase:*)",
       "Bash(git cherry-pick:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(git -C /Users/justinmartin/github/fleetillo status)",
+      "Bash(git rm:*)",
+      "Bash(npm install:*)",
+      "Bash(decktape reveal:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(gh issue create:*)",
+      "Skill(execute)",
+      "Bash(BRANCH_NAME=\"issue/14-clients-to-customers\")",
+      "Bash(if git show-ref --verify --quiet \"refs/heads/$BRANCH_NAME\")",
+      "Bash(then)",
+      "Bash(elif git show-ref --verify --quiet \"refs/remotes/origin/$BRANCH_NAME\")",
+      "Bash(else)",
+      "Bash(fi)"
     ]
   },
   "hooks": {

@@ -134,15 +134,16 @@ function validateBookingLocation(booking: Booking): boolean {
 }
 
 /**
- * Batches bookings by vehicle ID and service ID
+ * Batches bookings by route ID and service ID
+ * Note: In the new model, bookings are assigned to routes (which have vehicles)
  */
 function batchBookingsByVehicleAndService(bookings: Booking[]): BookingBatch[] {
   const batches = new Map<string, BookingBatch>();
 
   for (const booking of bookings) {
-    // Skip bookings without vehicle assignment
-    if (!booking.vehicleId) {
-      logger.debug('Skipping booking without vehicle assignment', {
+    // Skip bookings without route assignment
+    if (!booking.routeId) {
+      logger.debug('Skipping booking without route assignment', {
         bookingId: booking.id,
         bookingNumber: booking.bookingNumber,
       });
@@ -158,12 +159,12 @@ function batchBookingsByVehicleAndService(bookings: Booking[]): BookingBatch[] {
       continue;
     }
 
-    // Create a composite key: vehicleId:serviceId
-    const batchKey = `${booking.vehicleId}:${booking.serviceId}`;
+    // Create a composite key: routeId:serviceId
+    const batchKey = `${booking.routeId}:${booking.serviceId}`;
 
     if (!batches.has(batchKey)) {
       batches.set(batchKey, {
-        vehicleId: booking.vehicleId,
+        vehicleId: booking.routeId, // Note: This is actually routeId; vehicleId should come from route
         serviceId: booking.serviceId || booking.serviceIds?.[0] || '',
         bookings: [],
       });

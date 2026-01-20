@@ -1,29 +1,29 @@
 import { Request, Response, NextFunction } from 'express';
 import {
-  createClient,
-  getClientById,
-  getClients,
-  updateClient,
-  deleteClient,
-  restoreClient,
-  countClients,
-} from '../services/client.service.js';
-import type { CreateClientInput, UpdateClientInput, ClientFilters } from '../types/client.js';
+  createCustomer,
+  getCustomerById,
+  getCustomers,
+  updateCustomer,
+  deleteCustomer,
+  restoreCustomer,
+  countCustomers,
+} from '../services/customer.service.js';
+import type { CreateCustomerInput, UpdateCustomerInput, CustomerFilters } from '../types/customer.js';
 import type { PaginationParams } from '../types/index.js';
 
 /**
- * Client Controller
- * Handles HTTP requests for client operations
+ * Customer Controller
+ * Handles HTTP requests for customer operations
  */
 
 /**
- * Create a new client
- * POST /api/v1/clients
+ * Create a new customer
+ * POST /api/v1/customers
  */
 export const create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const input: CreateClientInput = req.body;
-    const result = await createClient(input);
+    const input: CreateCustomerInput = req.body;
+    const result = await createCustomer(input);
 
     if (!result.success) {
       res.status(400).json({
@@ -43,8 +43,8 @@ export const create = async (req: Request, res: Response, next: NextFunction): P
 };
 
 /**
- * Get client by ID
- * GET /api/v1/clients/:id
+ * Get customer by ID
+ * GET /api/v1/customers/:id
  */
 export const getById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -53,7 +53,7 @@ export const getById = async (req: Request, res: Response, next: NextFunction): 
       res.status(400).json({ success: false, error: { message: 'ID is required' } });
       return;
     }
-    const result = await getClientById(id);
+    const result = await getCustomerById(id);
 
     if (!result.success) {
       res.status(404).json({
@@ -73,8 +73,8 @@ export const getById = async (req: Request, res: Response, next: NextFunction): 
 };
 
 /**
- * Get all clients with pagination and filters
- * GET /api/v1/clients
+ * Get all customers with pagination and filters
+ * GET /api/v1/customers
  */
 export const getAll = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -93,7 +93,7 @@ export const getAll = async (req: Request, res: Response, next: NextFunction): P
       sortOrder: sortOrder as 'asc' | 'desc',
     };
 
-    const result = await getClients(filters as ClientFilters, pagination);
+    const result = await getCustomers(filters as CustomerFilters, pagination);
 
     if (!result.success) {
       res.status(400).json({
@@ -113,8 +113,8 @@ export const getAll = async (req: Request, res: Response, next: NextFunction): P
 };
 
 /**
- * Update client
- * PUT /api/v1/clients/:id
+ * Update customer
+ * PUT /api/v1/customers/:id
  */
 export const update = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -123,12 +123,12 @@ export const update = async (req: Request, res: Response, next: NextFunction): P
       res.status(400).json({ success: false, error: { message: 'ID is required' } });
       return;
     }
-    const input: UpdateClientInput = {
+    const input: UpdateCustomerInput = {
       id,
       ...req.body,
     };
 
-    const result = await updateClient(input);
+    const result = await updateCustomer(input);
 
     if (!result.success) {
       res.status(400).json({
@@ -148,8 +148,8 @@ export const update = async (req: Request, res: Response, next: NextFunction): P
 };
 
 /**
- * Delete client (soft delete)
- * DELETE /api/v1/clients/:id
+ * Delete customer (soft delete)
+ * DELETE /api/v1/customers/:id
  */
 export const remove = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -158,7 +158,7 @@ export const remove = async (req: Request, res: Response, next: NextFunction): P
       res.status(400).json({ success: false, error: { message: 'ID is required' } });
       return;
     }
-    const result = await deleteClient(id);
+    const result = await deleteCustomer(id);
 
     if (!result.success) {
       res.status(400).json({
@@ -175,8 +175,8 @@ export const remove = async (req: Request, res: Response, next: NextFunction): P
 };
 
 /**
- * Restore deleted client
- * POST /api/v1/clients/:id/restore
+ * Restore deleted customer
+ * POST /api/v1/customers/:id/restore
  */
 export const restore = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -185,7 +185,7 @@ export const restore = async (req: Request, res: Response, next: NextFunction): 
       res.status(400).json({ success: false, error: { message: 'ID is required' } });
       return;
     }
-    const result = await restoreClient(id);
+    const result = await restoreCustomer(id);
 
     if (!result.success) {
       res.status(400).json({
@@ -205,13 +205,13 @@ export const restore = async (req: Request, res: Response, next: NextFunction): 
 };
 
 /**
- * Get client count
- * GET /api/v1/clients/count
+ * Get customer count
+ * GET /api/v1/customers/count
  */
 export const count = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const filters = req.query as ClientFilters;
-    const result = await countClients(filters);
+    const filters = req.query as CustomerFilters;
+    const result = await countCustomers(filters);
 
     if (!result.success) {
       res.status(400).json({

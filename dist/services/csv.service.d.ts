@@ -7,7 +7,7 @@ import type { CreateBookingInput } from '../types/booking.js';
  * Expected CSV columns for booking import
  */
 export interface CSVBookingRow {
-    clientId: string;
+    customerId: string;
     bookingType: string;
     scheduledDate: string;
     serviceIds?: string;

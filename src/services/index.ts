@@ -34,19 +34,19 @@ export {
   type QueryMetrics,
 } from './api-client.js';
 
-// Client service
+// Customer service
 export {
-  createClient,
-  getClientById,
-  getClients,
-  updateClient,
-  deleteClient,
-  hardDeleteClient,
-  restoreClient,
-  countClients,
-  ClientServiceError,
-  ClientErrorCodes,
-} from './client.service.js';
+  createCustomer,
+  getCustomerById,
+  getCustomers,
+  updateCustomer,
+  deleteCustomer,
+  hardDeleteCustomer,
+  restoreCustomer,
+  countCustomers,
+  CustomerServiceError,
+  CustomerErrorCodes,
+} from './customer.service.js';
 
 // Service service (for service types/offerings)
 export {

@@ -4,7 +4,8 @@
 if (!window.electronAPI) {
     window.electronAPI = {
         bookings: createProxy('bookings'),
-        clients: createProxy('clients'),
+        customers: createProxy('customers'),
+        clients: createProxy('customers'), // Backward compatibility alias
         services: createProxy('services'),
         locations: createProxy('locations'),
         vehicles: createProxy('vehicles'),

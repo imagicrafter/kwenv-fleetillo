@@ -449,7 +449,7 @@
                             <tr>
                                 <th>Name/Type</th>
                                 <th>Address</th>
-                                <th>Client (Optional)</th>
+                                <th>Customer (Optional)</th>
                                 <th>City/State</th>
                                 <th>Status</th>
                                 <th>Actions</th>
@@ -520,42 +520,42 @@
                 </div>
 
                 <!-- Client Selection Section -->
-                <div class="form-group" id="client-association-section"
+                <div class="form-group" id="customer-association-section"
                     style="padding: 12px; border: 1px solid var(--border-subtle); border-radius: 8px; background: rgba(0,0,0,0.1);">
-                    <label style="margin-bottom: 8px;">Associated Client</label>
+                    <label style="margin-bottom: 8px;">Associated Customer</label>
                     <div style="display: flex; gap: 16px; margin-bottom: 12px;">
                         <label style="font-weight: normal; cursor: pointer;">
-                            <input type="radio" name="client-mode" value="existing" checked id="mode-existing"> Existing
+                            <input type="radio" name="customer-mode" value="existing" checked id="mode-existing"> Existing
                             Client
                         </label>
                         <label style="font-weight: normal; cursor: pointer;">
-                            <input type="radio" name="client-mode" value="new" id="mode-new"> New Client
+                            <input type="radio" name="customer-mode" value="new" id="mode-new"> New Customer
                         </label>
                     </div>
 
-                    <!-- Existing Client Search -->
-                    <div id="existing-client-section">
+                    <!-- Existing Customer Search -->
+                    <div id="existing-customer-section">
                         <div style="position: relative;">
-                            <input type="text" id="client-search" placeholder="Search client by name, email...">
-                            <input type="hidden" id="selected-client-id">
-                            <div id="client-search-results"
+                            <input type="text" id="customer-search" placeholder="Search customer by name, email...">
+                            <input type="hidden" id="selected-customer-id">
+                            <div id="customer-search-results"
                                 style="display: none; position: absolute; width: 100%; top: 100%; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 6px; z-index: 10; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
                             </div>
                         </div>
-                        <div id="selected-client-display"
+                        <div id="selected-customer-display"
                             style="display: none; margin-top: 8px; padding: 6px 12px; background: rgba(88, 166, 255, 0.1); border-radius: 4px; font-size: 0.9rem; align-items: center; justify-content: space-between;">
-                            <span id="selected-client-name"></span>
-                            <button type="button" id="clear-client-btn"
+                            <span id="selected-customer-name"></span>
+                            <button type="button" id="clear-customer-btn"
                                 style="background:none; border:none; color: var(--text-secondary); cursor: pointer;">✕</button>
                         </div>
                     </div>
 
-                    <!-- New Client Form -->
-                    <div id="new-client-section" style="display: none;">
-                        <input type="text" id="new-client-name" placeholder="Client Name *" style="margin-bottom: 8px;">
+                    <!-- New Customer Form -->
+                    <div id="new-customer-section" style="display: none;">
+                        <input type="text" id="new-customer-name" placeholder="Customer Name *" style="margin-bottom: 8px;">
                         <div class="form-grid" style="gap: 8px;">
-                            <input type="email" id="new-client-email" placeholder="Email">
-                            <input type="tel" id="new-client-phone" placeholder="Phone">
+                            <input type="email" id="new-customer-email" placeholder="Email">
+                            <input type="tel" id="new-customer-phone" placeholder="Phone">
                         </div>
                         <small style="color: var(--text-secondary); display: block; margin-top: 4px;">Location address
                             below will be set as primary address.</small>
@@ -677,17 +677,17 @@
             const countryInput = document.getElementById('country');
 
             // Client Selection Elements
-            const modeExisting = document.getElementById('mode-existing');
-            const modeNew = document.getElementById('mode-new');
-            const sectionExisting = document.getElementById('existing-client-section');
-            const sectionNew = document.getElementById('new-client-section');
-            const clientSearchInput = document.getElementById('client-search');
-            const clientSearchResults = document.getElementById('client-search-results');
-            const selectedClientDisplay = document.getElementById('selected-client-display');
-            const selectedClientName = document.getElementById('selected-client-name');
-            const clearClientBtn = document.getElementById('clear-client-btn');
-            const selectedClientIdInput = document.getElementById('selected-client-id');
-            const newClientName = document.getElementById('new-client-name');
+            const customerModeExisting = document.getElementById('mode-existing');
+            const customerModeNew = document.getElementById('mode-new');
+            const customerSectionExisting = document.getElementById('existing-customer-section');
+            const customerSectionNew = document.getElementById('new-customer-section');
+            const customerSearchInput = document.getElementById('customer-search');
+            const customerSearchResults = document.getElementById('customer-search-results');
+            const selectedCustomerDisplay = document.getElementById('selected-customer-display');
+            const selectedCustomerName = document.getElementById('selected-customer-name');
+            const clearCustomerBtn = document.getElementById('clear-customer-btn');
+            const selectedCustomerIdInput = document.getElementById('selected-customer-id');
+            const newCustomerName = document.getElementById('new-customer-name');
 
 
             let autocompleteTimeout = null;
@@ -714,7 +714,7 @@
             loadLocations();
 
             const locationTypeSelect = document.getElementById('location-type');
-            const clientAssociationSection = document.getElementById('client-association-section');
+            const customerAssociationSection = document.getElementById('customer-association-section');
 
             // ============ ADDRESS AUTOCOMPLETE ============
 
@@ -899,62 +899,62 @@
             // ============ CLIENT SELECTION ============
 
             // Client Mode Toggle
-            function toggleClientMode() {
-                if (modeNew.checked) {
-                    sectionExisting.style.display = 'none';
-                    sectionNew.style.display = 'block';
-                    newClientName.setAttribute('required', 'true');
+            function toggleCustomerMode() {
+                if (customerModeNew.checked) {
+                    customerSectionExisting.style.display = 'none';
+                    customerSectionNew.style.display = 'block';
+                    newCustomerName.setAttribute('required', 'true');
                 } else {
-                    sectionExisting.style.display = 'block';
-                    sectionNew.style.display = 'none';
-                    newClientName.removeAttribute('required');
+                    customerSectionExisting.style.display = 'block';
+                    customerSectionNew.style.display = 'none';
+                    newCustomerName.removeAttribute('required');
                 }
             }
-            modeExisting.addEventListener('change', toggleClientMode);
-            modeNew.addEventListener('change', toggleClientMode);
+            customerModeExisting.addEventListener('change', toggleCustomerMode);
+            customerModeNew.addEventListener('change', toggleCustomerMode);
 
             // Toggle Client Section Visibility based on Type
-            function toggleClientSection() {
+            function toggleCustomerSection() {
                 if (locationTypeSelect.value === 'client') {
-                    clientAssociationSection.style.display = 'block';
-                    toggleClientMode();
+                    customerAssociationSection.style.display = 'block';
+                    toggleCustomerMode();
                 } else {
-                    clientAssociationSection.style.display = 'none';
-                    newClientName.removeAttribute('required');
+                    customerAssociationSection.style.display = 'none';
+                    newCustomerName.removeAttribute('required');
                 }
             }
-            locationTypeSelect.addEventListener('change', toggleClientSection);
+            locationTypeSelect.addEventListener('change', toggleCustomerSection);
 
             // Client Search Logic
-            let clientSearchTimeout;
-            clientSearchInput.addEventListener('input', (e) => {
-                clearTimeout(clientSearchTimeout);
+            let customerSearchTimeout;
+            customerSearchInput.addEventListener('input', (e) => {
+                clearTimeout(customerSearchTimeout);
                 const term = e.target.value.trim();
 
                 if (term.length < 2) {
-                    clientSearchResults.style.display = 'none';
+                    customerSearchResults.style.display = 'none';
                     return;
                 }
 
-                clientSearchTimeout = setTimeout(async () => {
+                customerSearchTimeout = setTimeout(async () => {
                     try {
                         const result = await window.electronAPI.clients.getAll({ searchTerm: term, limit: 5 });
                         const clients = result.data.data || result.data || [];
-                        renderClientResults(clients);
+                        renderCustomerResults(clients);
                     } catch (err) {
                         console.error('Search failed', err);
                     }
                 }, 300);
             });
 
-            function renderClientResults(clients) {
-                clientSearchResults.innerHTML = '';
+            function renderCustomerResults(clients) {
+                customerSearchResults.innerHTML = '';
                 if (clients.length === 0) {
                     const div = document.createElement('div');
                     div.style.padding = '8px 12px';
                     div.style.color = 'var(--text-secondary)';
-                    div.textContent = 'No clients found';
-                    clientSearchResults.appendChild(div);
+                    div.textContent = 'No customers found';
+                    customerSearchResults.appendChild(div);
                 } else {
                     clients.forEach(client => {
                         const div = document.createElement('div');
@@ -965,34 +965,34 @@
                         div.addEventListener('mouseover', () => div.style.backgroundColor = 'rgba(255,255,255,0.05)');
                         div.addEventListener('mouseout', () => div.style.backgroundColor = 'transparent');
                         div.addEventListener('click', () => {
-                            selectClient(client);
+                            selectCustomer(client);
                         });
-                        clientSearchResults.appendChild(div);
+                        customerSearchResults.appendChild(div);
                     });
                 }
-                clientSearchResults.style.display = 'block';
+                customerSearchResults.style.display = 'block';
             }
 
-            function selectClient(client) {
-                selectedClientIdInput.value = client.id;
-                selectedClientName.textContent = client.name;
-                clientSearchInput.style.display = 'none';
-                clientSearchResults.style.display = 'none';
-                selectedClientDisplay.style.display = 'flex';
+            function selectCustomer(client) {
+                selectedCustomerIdInput.value = client.id;
+                selectedCustomerName.textContent = client.name;
+                customerSearchInput.style.display = 'none';
+                customerSearchResults.style.display = 'none';
+                selectedCustomerDisplay.style.display = 'flex';
             }
 
-            clearClientBtn.addEventListener('click', () => {
-                selectedClientIdInput.value = '';
-                selectedClientDisplay.style.display = 'none';
-                clientSearchInput.style.display = 'block';
-                clientSearchInput.value = '';
-                clientSearchInput.focus();
+            clearCustomerBtn.addEventListener('click', () => {
+                selectedCustomerIdInput.value = '';
+                selectedCustomerDisplay.style.display = 'none';
+                customerSearchInput.style.display = 'block';
+                customerSearchInput.value = '';
+                customerSearchInput.focus();
             });
 
             // Close search dropdown on click outside
             document.addEventListener('click', (e) => {
-                if (!e.target.closest('#existing-client-section')) {
-                    clientSearchResults.style.display = 'none';
+                if (!e.target.closest('#existing-customer-section')) {
+                    customerSearchResults.style.display = 'none';
                 }
             });
 
@@ -1150,7 +1150,7 @@
                             <div>${loc.addressLine1} ${coordsIndicator}</div>
                             ${loc.addressLine2 ? `<div style="font-size: 0.8rem; color: var(--text-secondary);">${loc.addressLine2}</div>` : ''}
                         </td>
-                        <td>${loc.clientName ? `<div style="font-weight:500">${loc.clientName}</div>` : (loc.clientId ? `<span style="font-family: monospace; color: var(--text-secondary);">${loc.clientId.substr(0, 8)}...</span>` : '<span style="color: var(--text-secondary);">-</span>')}</td>
+                        <td>${loc.customerName ? `<div style="font-weight:500">${loc.customerName}</div>` : (loc.customerId ? `<span style="font-family: monospace; color: var(--text-secondary);">${loc.customerId.substr(0, 8)}...</span>` : '<span style="color: var(--text-secondary);">-</span>')}</td>
                         <td>${loc.city}, ${loc.state}</td>
                         <td>${loc.isPrimary ? '<span style="color: var(--success); font-size: 0.8rem;">★ Primary</span>' : '-'}</td>
                         <td>
@@ -1216,22 +1216,22 @@
                     document.getElementById('location-type').value = data.locationType || 'client';
 
                     // Client Handling for Edit
-                    modeExisting.checked = true;
+                    customerModeExisting.checked = true;
 
-                    if (data.clientId) {
-                        if (data.clientName) {
-                            selectedClientIdInput.value = data.clientId;
-                            selectedClientName.textContent = data.clientName;
-                            clientSearchInput.style.display = 'none';
-                            selectedClientDisplay.style.display = 'flex';
+                    if (data.customerId) {
+                        if (data.customerName) {
+                            selectedCustomerIdInput.value = data.customerId;
+                            selectedCustomerName.textContent = data.customerName;
+                            customerSearchInput.style.display = 'none';
+                            selectedCustomerDisplay.style.display = 'flex';
                         } else {
-                            selectedClientIdInput.value = data.clientId;
-                            selectedClientName.textContent = `Client ID: ${data.clientId.substr(0, 8)}...`;
-                            clientSearchInput.style.display = 'none';
-                            selectedClientDisplay.style.display = 'flex';
+                            selectedCustomerIdInput.value = data.customerId;
+                            selectedCustomerName.textContent = `Customer ID: ${data.customerId.substr(0, 8)}...`;
+                            customerSearchInput.style.display = 'none';
+                            selectedCustomerDisplay.style.display = 'flex';
                         }
                     } else {
-                        clearClientBtn.click();
+                        clearCustomerBtn.click();
                     }
 
                     // Address handling
@@ -1265,13 +1265,13 @@
                     // Set defaults
                     countryInput.value = 'USA';
                     document.getElementById('location-type').value = 'client';
-                    modeExisting.checked = true;
-                    clearClientBtn.click();
+                    customerModeExisting.checked = true;
+                    clearCustomerBtn.click();
                     latitudeInput.value = '';
                     longitudeInput.value = '';
                     placeIdInput.value = '';
                 }
-                toggleClientSection();
+                toggleCustomerSection();
             }
 
             function closeModal() {
@@ -1310,26 +1310,26 @@
             async function handleFormSubmit(e) {
                 e.preventDefault();
 
-                let finalClientId = selectedClientIdInput.value || null;
-                const isClientType = locationTypeSelect.value === 'client';
+                let finalCustomerId = selectedCustomerIdInput.value || null;
+                const isCustomerType = locationTypeSelect.value === 'client';
 
-                // Handle Existing Client Mode Validation - ONLY if Client Type
-                if (isClientType && modeExisting.checked) {
-                    const searchTerm = clientSearchInput.value.trim();
-                    if (!finalClientId && searchTerm.length > 0) {
-                        alert('Please select a client from the search results or clear the search field.');
+                // Handle Existing Customer Mode Validation - ONLY if Client Type
+                if (isCustomerType && customerModeExisting.checked) {
+                    const searchTerm = customerSearchInput.value.trim();
+                    if (!finalCustomerId && searchTerm.length > 0) {
+                        alert('Please select a customer from the search results or clear the search field.');
                         return;
                     }
                 }
 
-                // Handle New Client Creation - ONLY if Client Type
-                if (isClientType && modeNew.checked) {
-                    const name = document.getElementById('new-client-name').value;
-                    const email = document.getElementById('new-client-email').value;
-                    const phone = document.getElementById('new-client-phone').value;
+                // Handle New Customer Creation - ONLY if Client Type
+                if (isCustomerType && customerModeNew.checked) {
+                    const name = document.getElementById('new-customer-name').value;
+                    const email = document.getElementById('new-customer-email').value;
+                    const phone = document.getElementById('new-customer-phone').value;
 
                     if (!name) {
-                        alert('Client Name is required');
+                        alert('Customer name is required');
                         return;
                     }
 
@@ -1348,25 +1348,25 @@
 
                         const response = await window.electronAPI.clients.create(clientData, { skipLocationCreation: true });
                         if (response && response.id) {
-                            finalClientId = response.id;
+                            finalCustomerId = response.id;
                         } else if (response && response.data && response.data.id) {
-                            finalClientId = response.data.id;
+                            finalCustomerId = response.data.id;
                         } else {
-                            throw new Error('Failed to create client');
+                            throw new Error('Failed to create customer');
                         }
                     } catch (err) {
-                        console.error('Client creation failed:', err);
-                        alert('Failed to create new client: ' + err.message);
+                        console.error('Customer creation failed:', err);
+                        alert('Failed to create new customer: ' + err.message);
                         return;
                     }
-                } else if (!isClientType) {
-                    finalClientId = null;
+                } else if (!isCustomerType) {
+                    finalCustomerId = null;
                 }
 
                 const formData = {
                     name: document.getElementById('location-name').value,
                     locationType: document.getElementById('location-type').value,
-                    clientId: finalClientId,
+                    customerId: finalCustomerId,
                     addressLine1: addressLine1Input.value,
                     addressLine2: addressLine2Input.value || null,
                     city: cityInput.value,

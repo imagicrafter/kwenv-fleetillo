@@ -2,7 +2,7 @@
  * Location Service
  *
  * Provides CRUD operations and business logic for managing locations
- * in the RouteIQ application.
+ * in the Fleetillo application.
  */
 
 import { getSupabaseClient, getAdminSupabaseClient } from './supabase.js';
@@ -21,8 +21,8 @@ const LOCATIONS_TABLE = 'locations';
 
 export interface Location {
     id: string;
-    clientId?: string | null;
-    clientName?: string; // Populated from join
+    customerId?: string | null;
+    customerName?: string; // Populated from join
     name: string;
     locationType: 'client' | 'depot' | 'disposal' | 'maintenance' | 'home' | 'other';
     addressLine1: string;
@@ -56,8 +56,8 @@ function getConnection() {
 function rowToLocation(row: any): Location {
     return {
         id: row.id,
-        clientId: row.client_id,
-        clientName: row.clients?.name,
+        customerId: row.customer_id,
+        customerName: row.customers?.name,
         name: row.name,
         locationType: row.location_type,
         addressLine1: row.address_line1,
@@ -81,7 +81,7 @@ function rowToLocation(row: any): Location {
  */
 function inputToRow(input: CreateLocationInput | UpdateLocationInput): any {
     const row: any = {};
-    if ('clientId' in input) row.client_id = input.clientId;
+    if ('customerId' in input) row.customer_id = input.customerId;
     if ('name' in input) row.name = input.name;
     if ('locationType' in input) row.location_type = input.locationType;
     if ('addressLine1' in input) row.address_line1 = input.addressLine1;
@@ -101,7 +101,7 @@ function inputToRow(input: CreateLocationInput | UpdateLocationInput): any {
  * Creates a new location
  */
 export async function createLocation(input: CreateLocationInput): Promise<Result<Location>> {
-    logger.debug('Creating location', { name: input.name, clientId: input.clientId });
+    logger.debug('Creating location', { name: input.name, customerId: input.customerId });
 
     try {
         const supabase = getConnection();
@@ -110,7 +110,7 @@ export async function createLocation(input: CreateLocationInput): Promise<Result
         const { data, error } = await supabase
             .from(LOCATIONS_TABLE)
             .insert(rowData)
-            .select('*, clients(name)')
+            .select('*, customers(name)')
             .single();
 
         if (error) throw error;
@@ -130,7 +130,7 @@ export async function getLocationById(id: string): Promise<Result<Location>> {
         const supabase = getConnection();
         const { data, error } = await supabase
             .from(LOCATIONS_TABLE)
-            .select('*, clients(name)')
+            .select('*, customers(name)')
             .eq('id', id)
             .single();
 
@@ -146,14 +146,14 @@ export async function getLocationById(id: string): Promise<Result<Location>> {
  * Gets all locations with optional filters
  */
 export async function getAllLocations(
-    filters?: { type?: string; clientId?: string; searchTerm?: string },
+    filters?: { type?: string; customerId?: string; searchTerm?: string },
     pagination?: PaginationParams
 ): Promise<Result<PaginatedResponse<Location>>> {
     try {
         const supabase = getConnection();
         let query = supabase
             .from(LOCATIONS_TABLE)
-            .select('*, clients(name)', { count: 'exact' });
+            .select('*, customers(name)', { count: 'exact' });
 
         query = query.is('deleted_at', null);
 
@@ -161,8 +161,8 @@ export async function getAllLocations(
             query = query.eq('location_type', filters.type);
         }
 
-        if (filters?.clientId) {
-            query = query.eq('client_id', filters.clientId);
+        if (filters?.customerId) {
+            query = query.eq('customer_id', filters.customerId);
         }
 
         if (filters?.searchTerm) {
@@ -179,7 +179,7 @@ export async function getAllLocations(
         // Apply sorting
         const sortBy = pagination?.sortBy ?? 'created_at';
         const sortOrder = pagination?.sortOrder ?? 'desc';
-        // Note: 'clients(name)' alias sorting might be tricky, sticking to main table columns for now
+        // Note: 'customers(name)' alias sorting might be tricky, sticking to main table columns for now
         query = query.order(sortBy, { ascending: sortOrder === 'asc' });
 
         const { data, error, count } = await query;
@@ -207,23 +207,23 @@ export async function getAllLocations(
 }
 
 /**
- * Gets all locations for a client
+ * Gets all locations for a customer
  */
-export async function getClientLocations(clientId: string): Promise<Result<Location[]>> {
+export async function getCustomerLocations(customerId: string): Promise<Result<Location[]>> {
     try {
         const supabase = getConnection();
         const { data, error } = await supabase
             .from(LOCATIONS_TABLE)
-            .select('*, clients(name)')
-            .eq('client_id', clientId)
+            .select('*, customers(name)')
+            .eq('customer_id', customerId)
             .is('deleted_at', null)
             .order('is_primary', { ascending: false }); // Primary first
 
         if (error) throw error;
         return { success: true, data: data.map(rowToLocation) };
     } catch (error: any) {
-        logger.error('Failed to get client locations', error);
-        return { success: false, error: new Error(`Failed to get client locations: ${error.message}`) };
+        logger.error('Failed to get customer locations', error);
+        return { success: false, error: new Error(`Failed to get customer locations: ${error.message}`) };
     }
 }
 
@@ -239,7 +239,7 @@ export async function updateLocation(input: UpdateLocationInput): Promise<Result
             .from(LOCATIONS_TABLE)
             .update(rowData)
             .eq('id', input.id)
-            .select('*, clients(name)')
+            .select('*, customers(name)')
             .single();
 
         if (error) throw error;

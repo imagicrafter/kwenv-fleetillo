@@ -231,7 +231,7 @@
                         style="display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 150px; max-width: 250px;">
                         <label
                             style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">Customer</label>
-                        <select id="filter-client"
+                        <select id="filter-customer"
                             style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); color: var(--text-primary); padding: 8px; border-radius: 6px; width: 100%;">
                             <option value="">All Customers</option>
                             <!-- Populated by JS -->
@@ -413,16 +413,16 @@
 
                     <div class="form-group" style="position: relative;">
                         <label>Customer *</label>
-                        <input type="text" id="client-search" placeholder="Search customer by name..."
+                        <input type="text" id="customer-search" placeholder="Search customer by name..."
                             autocomplete="off">
-                        <input type="hidden" id="client-id">
-                        <div id="client-search-results"
+                        <input type="hidden" id="customer-id">
+                        <div id="customer-search-results"
                             style="display: none; position: absolute; width: 100%; top: 100%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; z-index: 10; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
                         </div>
-                        <div id="selected-client-display"
+                        <div id="selected-customer-display"
                             style="display: none; margin-top: 8px; padding: 8px; background: rgba(88, 166, 255, 0.1); border-radius: 4px; align-items: center; justify-content: space-between;">
-                            <span id="selected-client-name" style="font-weight: 500;"></span>
-                            <button type="button" id="clear-client-btn"
+                            <span id="selected-customer-name" style="font-weight: 500;"></span>
+                            <button type="button" id="clear-customer-btn"
                                 style="background: none; border: none; color: var(--text-secondary); cursor: pointer;">✕</button>
                         </div>
                     </div>
@@ -486,7 +486,7 @@
                             <button type="button" id="clear-location-btn"
                                 style="background: none; border: none; color: var(--text-secondary); cursor: pointer;">✕</button>
                         </div>
-                        <div id="location-client-hint"
+                        <div id="location-customer-hint"
                             style="display: none; margin-top: 4px; font-size: 0.8rem; color: var(--text-secondary);">
                             Select a customer first to filter locations
                         </div>
@@ -1568,7 +1568,7 @@
             // --- Filter UI Elements ---
             const filterDateFrom = document.getElementById('filter-date-from');
             const filterDateTo = document.getElementById('filter-date-to');
-            const filterClient = document.getElementById('filter-client');
+            const filterCustomer = document.getElementById('filter-customer');
             const filterVehicle = document.getElementById('filter-vehicle');
             const filterStatus = document.getElementById('filter-status');
             const clearFiltersBtn = document.getElementById('clear-filters-btn');
@@ -1650,19 +1650,19 @@
             async function populateFilters() {
                 try {
                     // Load Clients
-                    const clientsRes = await window.electronAPI.clients.getAll();
+                    const customersRes = await window.electronAPI.clients.getAll();
                     // Handle wrapped response
-                    const clients = clientsRes.data && Array.isArray(clientsRes.data.data)
-                        ? clientsRes.data.data
-                        : (Array.isArray(clientsRes.data) ? clientsRes.data : []);
+                    const customers = customersRes.data && Array.isArray(customersRes.data.data)
+                        ? customersRes.data.data
+                        : (Array.isArray(customersRes.data) ? customersRes.data : []);
 
-                    clients.sort((a, b) => a.name.localeCompare(b.name));
+                    customers.sort((a, b) => a.name.localeCompare(b.name));
 
-                    clients.forEach(client => {
+                    customers.forEach(customer => {
                         const option = document.createElement('option');
-                        option.value = client.id;
-                        option.textContent = client.name;
-                        filterClient.appendChild(option);
+                        option.value = customer.id;
+                        option.textContent = customer.name;
+                        filterCustomer.appendChild(option);
                     });
 
                     // Load Vehicles
@@ -1707,7 +1707,7 @@
             })();
 
             // Filter Change Listeners
-            [filterDateFrom, filterDateTo, filterClient, filterVehicle, filterStatus].forEach(el => {
+            [filterDateFrom, filterDateTo, filterCustomer, filterVehicle, filterStatus].forEach(el => {
                 if (el) {
                     el.addEventListener('change', () => {
                         currentPage = 1;
@@ -1720,7 +1720,7 @@
                 clearFiltersBtn.addEventListener('click', () => {
                     filterDateFrom.value = '';
                     filterDateTo.value = '';
-                    filterClient.value = '';
+                    filterCustomer.value = '';
                     filterVehicle.value = '';
                     filterStatus.value = '';
                     searchInput.value = '';
@@ -1802,7 +1802,7 @@
                         searchTerm: term,
                         scheduledDateFrom: filterDateFrom.value || undefined,
                         scheduledDateTo: filterDateTo.value || undefined,
-                        clientId: filterClient.value || undefined,
+                        customerId: filterCustomer.value || undefined,
                         vehicleId: filterVehicle.value || undefined,
                         status: filterStatus.value || undefined
                     };
@@ -1834,7 +1834,7 @@
 
                     // Update pagination info if no metadata returned (legacy fallback)
                     if (!response.pagination) {
-                        // Simple client-side pagination display if server doesn't return meta
+                        // Simple frontend pagination display if server doesn't return meta
                         const totalPages = Math.ceil(totalItems / limit);
                         updatePaginationControls({ page: currentPage, limit, total: totalItems, totalPages });
                     }
@@ -1887,7 +1887,7 @@
                         <td>
                             <div style="font-family: monospace; font-weight: 600;">${booking.bookingNumber || 'N/A'}</div>
                         </td>
-                        <td>${booking.clientName || 'Unknown Client'}</td>
+                        <td>${booking.customerName || 'Unknown Customer'}</td>
                         <td>
                             <div><strong>${(booking.serviceItems && booking.serviceItems.length > 0) ? booking.serviceItems[0].name : (booking.serviceName || 'Unknown Service')}</strong>${(booking.serviceItems && booking.serviceItems.length > 1) ? ' <span style="font-size:0.8em; color:var(--text-secondary);">+' + (booking.serviceItems.length - 1) + ' more</span>' : ''}</div>
                             <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: capitalize;">${(booking.bookingType || '').replace('_', ' ')}</div>
@@ -1941,12 +1941,12 @@
                 });
             }
 
-            const clientSearchInput = document.getElementById('client-search');
-            const clientIdInput = document.getElementById('client-id');
-            const clientSearchResults = document.getElementById('client-search-results');
-            const selectedClientDisplay = document.getElementById('selected-client-display');
-            const selectedClientName = document.getElementById('selected-client-name');
-            const clearClientBtn = document.getElementById('clear-client-btn');
+            const customerSearchInput = document.getElementById('customer-search');
+            const customerIdInput = document.getElementById('customer-id');
+            const customerSearchResults = document.getElementById('customer-search-results');
+            const selectedCustomerDisplay = document.getElementById('selected-customer-display');
+            const selectedCustomerName = document.getElementById('selected-customer-name');
+            const clearCustomerBtn = document.getElementById('clear-customer-btn');
 
             const serviceSearchInput = document.getElementById('service-search');
             const serviceSearchResults = document.getElementById('service-search-results');
@@ -1965,7 +1965,7 @@
             const selectedLocationName = document.getElementById('selected-location-name');
             const selectedLocationAddress = document.getElementById('selected-location-address');
             const clearLocationBtn = document.getElementById('clear-location-btn');
-            const locationClientHint = document.getElementById('location-client-hint');
+            const locationCustomerHint = document.getElementById('location-customer-hint');
 
             // --- Service Search Logic ---
             let serviceSearchTimeout;
@@ -2137,76 +2137,76 @@
 
 
             // --- Client Search Logic ---
-            let clientSearchTimeout;
-            clientSearchInput.addEventListener('input', (e) => {
-                clearTimeout(clientSearchTimeout);
+            let customerSearchTimeout;
+            customerSearchInput.addEventListener('input', (e) => {
+                clearTimeout(customerSearchTimeout);
                 const term = e.target.value.trim();
 
                 if (term.length < 2) {
-                    clientSearchResults.style.display = 'none';
+                    customerSearchResults.style.display = 'none';
                     return;
                 }
 
-                clientSearchTimeout = setTimeout(async () => {
+                customerSearchTimeout = setTimeout(async () => {
                     try {
                         const result = await window.electronAPI.clients.getAll({ searchTerm: term, limit: 5 });
-                        const clients = result.data.data || result.data || [];
-                        renderClientResults(clients);
+                        const customers = result.data.data || result.data || [];
+                        renderCustomerResults(customers);
                     } catch (err) {
                         console.error('Client search failed', err);
                     }
                 }, 300);
             });
 
-            function renderClientResults(clients) {
-                clientSearchResults.innerHTML = '';
-                if (clients.length === 0) {
+            function renderCustomerResults(customers) {
+                customerSearchResults.innerHTML = '';
+                if (customers.length === 0) {
                     const div = document.createElement('div');
                     div.style.padding = '8px 12px';
                     div.style.color = 'var(--text-secondary)';
-                    div.textContent = 'No clients found';
-                    clientSearchResults.appendChild(div);
+                    div.textContent = 'No customers found';
+                    customerSearchResults.appendChild(div);
                 } else {
-                    clients.forEach(client => {
+                    customers.forEach(customer => {
                         const div = document.createElement('div');
                         div.style.padding = '8px 12px';
                         div.style.cursor = 'pointer';
                         div.style.borderBottom = '1px solid var(--border-subtle)';
-                        div.innerHTML = `<div style="font-weight:500">${client.name}</div><div style="font-size:0.8rem; color:var(--text-secondary)">${client.email || ''}</div>`;
+                        div.innerHTML = `<div style="font-weight:500">${customer.name}</div><div style="font-size:0.8rem; color:var(--text-secondary)">${customer.email || ''}</div>`;
                         div.addEventListener('mouseover', () => div.style.backgroundColor = 'rgba(255,255,255,0.05)');
                         div.addEventListener('mouseout', () => div.style.backgroundColor = 'transparent');
                         div.addEventListener('click', () => {
-                            selectClient(client);
+                            selectCustomer(customer);
                         });
-                        clientSearchResults.appendChild(div);
+                        customerSearchResults.appendChild(div);
                     });
                 }
-                clientSearchResults.style.display = 'block';
+                customerSearchResults.style.display = 'block';
             }
 
-            function selectClient(client) {
-                clientIdInput.value = client.id;
-                selectedClientName.textContent = client.name;
-                clientSearchInput.style.display = 'none';
-                clientSearchResults.style.display = 'none';
-                selectedClientDisplay.style.display = 'flex';
+            function selectCustomer(customer) {
+                customerIdInput.value = client.id;
+                selectedCustomerName.textContent = client.name;
+                customerSearchInput.style.display = 'none';
+                customerSearchResults.style.display = 'none';
+                selectedCustomerDisplay.style.display = 'flex';
 
                 // Show hint for location if no location selected yet
                 if (!locationIdInput.value) {
-                    locationClientHint.style.display = 'block';
+                    locationCustomerHint.style.display = 'block';
                 }
             }
 
-            clearClientBtn.addEventListener('click', () => {
-                clientIdInput.value = '';
-                selectedClientDisplay.style.display = 'none';
-                clientSearchInput.style.display = 'block';
-                clientSearchInput.value = '';
-                clientSearchInput.focus();
+            clearCustomerBtn.addEventListener('click', () => {
+                customerIdInput.value = '';
+                selectedCustomerDisplay.style.display = 'none';
+                customerSearchInput.style.display = 'block';
+                customerSearchInput.value = '';
+                customerSearchInput.focus();
 
-                // Clear location as well since it might be client-specific
+                // Clear location as well since it might be customer-specific
                 // Or at least hide the hint
-                locationClientHint.style.display = 'none';
+                locationCustomerHint.style.display = 'none';
             });
 
             // --- Location Search Logic ---
@@ -2224,8 +2224,8 @@
                     try {
                         // Filter locations by client if selected
                         const filters = { searchTerm: term, limit: 5 };
-                        if (clientIdInput.value) {
-                            filters.clientId = clientIdInput.value;
+                        if (customerIdInput.value) {
+                            filters.customerId = customerIdInput.value;
                         }
 
                         const result = await window.electronAPI.locations.getAll(filters);
@@ -2273,7 +2273,7 @@
                 locationSearchInput.style.display = 'none';
                 locationSearchResults.style.display = 'none';
                 selectedLocationDisplay.style.display = 'flex';
-                locationClientHint.style.display = 'none';
+                locationCustomerHint.style.display = 'none';
             }
 
             clearLocationBtn.addEventListener('click', () => {
@@ -2282,8 +2282,8 @@
                 locationSearchInput.style.display = 'block';
                 locationSearchInput.value = '';
                 locationSearchInput.focus();
-                if (clientIdInput.value) {
-                    locationClientHint.style.display = 'block';
+                if (customerIdInput.value) {
+                    locationCustomerHint.style.display = 'block';
                 }
             });
 
@@ -2322,21 +2322,21 @@
                     if (notesField) notesField.value = booking.specialInstructions || '';
 
                     // Populate Client
-                    if (booking.clientId) {
-                        if (booking.clientName) {
-                            selectClient({ id: booking.clientId, name: booking.clientName, email: booking.clientEmail });
+                    if (booking.customerId) {
+                        if (booking.customerName) {
+                            selectCustomer({ id: booking.customerId, name: booking.customerName, email: booking.customerEmail });
                         } else {
                             try {
-                                const clientData = await window.electronAPI.clients.getById(booking.clientId);
-                                const client = clientData.data || clientData;
-                                selectClient({ id: booking.clientId, name: client.name || 'Unknown Client' });
+                                const customerData = await window.electronAPI.clients.getById(booking.customerId);
+                                const customer = customerData.data || customerData;
+                                selectCustomer({ id: booking.customerId, name: customer.name || 'Unknown Customer' });
                             } catch (e) {
-                                console.error('Failed to fetch client details', e);
-                                selectClient({ id: booking.clientId, name: 'Unknown Client' });
+                                console.error('Failed to fetch customer details', e);
+                                selectCustomer({ id: booking.customerId, name: 'Unknown Customer' });
                             }
                         }
                     } else {
-                        clearClientBtn.click();
+                        clearCustomerBtn.click();
                     }
 
                     // Populate Services (Multi-service)
@@ -2434,14 +2434,14 @@
                     originalBookingStatus = null;
 
                     // Clear custom inputs
-                    clientIdInput.value = '';
-                    selectedClientDisplay.style.display = 'none';
-                    clientSearchInput.style.display = 'block';
+                    customerIdInput.value = '';
+                    selectedCustomerDisplay.style.display = 'none';
+                    customerSearchInput.style.display = 'block';
 
                     locationIdInput.value = '';
                     selectedLocationDisplay.style.display = 'none';
                     locationSearchInput.style.display = 'block';
-                    locationClientHint.style.display = 'none'; // Re-hide hint
+                    locationCustomerHint.style.display = 'none'; // Re-hide hint
 
                     selectedServices = [];
                     renderServicesTable();
@@ -2462,7 +2462,7 @@
                 if (modal) modal.style.display = 'none';
                 if (form && !isEditing) {
                     form.reset();
-                    clearClientBtn.click();
+                    clearCustomerBtn.click();
                     // clearServiceBtn.click(); // Function removed
                     selectedServices = [];
                     renderServicesTable();
@@ -2494,7 +2494,7 @@
                 }
 
                 const bookingData = {
-                    clientId: clientIdInput.value || null,
+                    customerId: customerIdInput.value || null,
                     locationId: locationIdInput.value || null,
                     // serviceId: serviceIdInput.value, // Removed single service ID
                     serviceIds: selectedServices.map(s => s.id),
@@ -2543,8 +2543,8 @@
 
             // Close search dropdowns on click outside
             document.addEventListener('click', (e) => {
-                if (!e.target.closest('#client-search-results') && e.target !== clientSearchInput) {
-                    clientSearchResults.style.display = 'none';
+                if (!e.target.closest('#customer-search-results') && e.target !== customerSearchInput) {
+                    customerSearchResults.style.display = 'none';
                 }
                 if (!e.target.closest('#service-search-results') && e.target !== serviceSearchInput) {
                     serviceSearchResults.style.display = 'none';
@@ -2941,7 +2941,7 @@
                     if (location) {
                         // Check if location belongs to the resolved customer
                         const customer = row.resolvedEntities?.customer;
-                        if (customer && location.clientId !== customer.id) {
+                        if (customer && location.customerId !== customer.id) {
                             row.errors.locationName = 'Wrong customer';
                         } else {
                             row.resolvedEntities.location = location;
@@ -3074,7 +3074,7 @@
                     }
                     // Filter locations by customer
                     options = cachedLocations
-                        .filter(l => l.clientId === customer.id)
+                        .filter(l => l.customerId === customer.id)
                         .map(l => ({ id: l.id, name: l.name }));
 
                     if (options.length === 0) {
@@ -3217,7 +3217,7 @@
                         const location = row.resolvedEntities.location;
 
                         const bookingData = {
-                            clientId: customer.id,
+                            customerId: customer.id,
                             serviceId: service.id, // Required for join/display logic
                             serviceItems: [{
                                 serviceId: service.id,
