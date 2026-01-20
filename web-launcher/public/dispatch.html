@@ -497,7 +497,15 @@
             checklist.innerHTML = '<p style="color: var(--text-secondary);">Loading drivers...</p>';
 
             try {
-                const result = await window.electronAPI.drivers.getAll();
+                // Support both Electron API and HTTP API
+                let result;
+                if (window.electronAPI?.drivers?.getAll) {
+                    result = await window.electronAPI.drivers.getAll();
+                } else {
+                    // Fallback to HTTP API for web mode
+                    const response = await fetch('/api/v1/drivers');
+                    result = await response.json();
+                }
                 const drivers = result.data?.data || result.data || [];
 
                 // Filter only active drivers
@@ -566,10 +574,17 @@
                 const today = new Date().toISOString().split('T')[0];
 
                 // Fetch routes for this driver with status 'planned'
-                const result = await window.electronAPI.routes.getAll({
-                    driverId: driverId,
-                    status: 'planned'
-                });
+                let result;
+                if (window.electronAPI?.routes?.getAll) {
+                    result = await window.electronAPI.routes.getAll({
+                        driverId: driverId,
+                        status: 'planned'
+                    });
+                } else {
+                    // Fallback to HTTP API
+                    const response = await fetch(`/api/v1/routes?driverId=${driverId}&status=planned`);
+                    result = await response.json();
+                }
 
                 const routes = result.data?.data || result.data || [];
                 const nextRoute = routes.find(r => r.routeDate >= today);
@@ -662,13 +677,22 @@
                     if (routeInfo) {
                         if (timing === 'now') {
                             // Dispatch immediately
-                            await window.electronAPI.dispatch.sendDispatch({
-                                routeId: routeInfo.id,
-                                driverId: driverId
-                            });
+                            if (window.electronAPI?.dispatch?.sendDispatch) {
+                                await window.electronAPI.dispatch.sendDispatch({
+                                    routeId: routeInfo.id,
+                                    driverId: driverId
+                                });
+                            } else {
+                                // Fallback to dispatch service API
+                                await client.sendDispatch(routeInfo.id, driverId);
+                            }
                         } else {
-                            // TODO: Create dispatch job with scheduled time via dispatch-job.service
-                            console.log('Scheduled dispatch for:', driverId, 'at', scheduledTime);
+                            // Create dispatch job with scheduled time via dispatch-job API
+                            await client.createDispatchJob({
+                                driverIds: [driverId],
+                                scheduledTime: scheduledTime,
+                                name: `Scheduled Dispatch ${new Date().toLocaleString()}`
+                            });
                         }
                     }
                 }
