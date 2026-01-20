@@ -175,8 +175,7 @@
                     <input type="text" placeholder="Search dispatch history..." id="search-input">
                 </div>
                 <div class="actions">
-                    <button class="btn-primary" onclick="window.location.href='routes.html'">📤 New Dispatch</button>
-                    <button class="btn-icon">⚙️</button>
+                    <button class="btn-primary" id="schedule-dispatch-btn">+ Dispatch</button>
                 </div>
             </header>
 
@@ -276,6 +275,63 @@
             <div class="modal-actions">
                 <button class="btn-secondary" onclick="closeModal()">Close</button>
                 <button class="btn-primary" id="retry-btn">Retry Dispatch</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule Dispatch Modal -->
+    <div class="modal-overlay" id="schedule-dispatch-modal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3>Schedule Dispatch</h3>
+                <button class="modal-close" onclick="closeScheduleModal()">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <!-- Driver Selection -->
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Select Drivers</label>
+                    <div id="driver-checklist"
+                        style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px; background: rgba(0,0,0,0.2);">
+                        <p style="color: var(--text-secondary);">Loading drivers...</p>
+                    </div>
+                    <p id="driver-error"
+                        style="color: var(--accent-danger); font-size: 0.85rem; margin-top: 8px; display: none;"></p>
+                </div>
+
+                <!-- Schedule Time -->
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">When to Dispatch</label>
+                    <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="dispatch-timing" value="now" checked
+                                style="accent-color: var(--accent-primary);">
+                            <span>Send Immediately</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="radio" name="dispatch-timing" value="scheduled"
+                                style="accent-color: var(--accent-primary);">
+                            <span>Schedule for Later</span>
+                        </label>
+                    </div>
+                    <div id="schedule-time-picker" style="margin-top: 12px; display: none;">
+                        <input type="datetime-local" id="scheduled-datetime"
+                            style="padding: 10px; border-radius: 8px; border: 1px solid var(--border-subtle); background: rgba(0,0,0,0.2); color: var(--text-primary); width: 100%;">
+                    </div>
+                </div>
+
+                <!-- Route Preview -->
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Routes to Dispatch</label>
+                    <div id="route-preview"
+                        style="border: 1px solid var(--border-subtle); border-radius: 8px; padding: 12px; background: rgba(0,0,0,0.2); min-height: 60px;">
+                        <p style="color: var(--text-secondary); text-align: center;">Select drivers to see their next
+                            routes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions" style="padding: 16px 20px; border-top: 1px solid var(--border-subtle);">
+                <button class="btn-secondary" onclick="closeScheduleModal()">Cancel</button>
+                <button class="btn-primary" id="confirm-schedule-btn" disabled>Schedule Dispatch</button>
             </div>
         </div>
     </div>
@@ -411,7 +467,229 @@
             document.getElementById('dispatch-modal').style.display = 'none';
         }
 
-        document.addEventListener('DOMContentLoaded', loadDispatchHistory);
+        // ===== Schedule Dispatch Modal =====
+        let availableDrivers = [];
+        let selectedDriverIds = new Set();
+        let driverRouteMap = new Map(); // driverId -> route info
+
+        function openScheduleModal() {
+            document.getElementById('schedule-dispatch-modal').style.display = 'block';
+            document.getElementById('driver-error').style.display = 'none';
+            selectedDriverIds.clear();
+            driverRouteMap.clear();
+            loadDriversForSchedule();
+            updateRoutePreview();
+            updateScheduleButton();
+
+            // Set default datetime to now + 30 minutes
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + 30);
+            const localISOTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            document.getElementById('scheduled-datetime').value = localISOTime;
+        }
+
+        function closeScheduleModal() {
+            document.getElementById('schedule-dispatch-modal').style.display = 'none';
+        }
+
+        async function loadDriversForSchedule() {
+            const checklist = document.getElementById('driver-checklist');
+            checklist.innerHTML = '<p style="color: var(--text-secondary);">Loading drivers...</p>';
+
+            try {
+                // Fetch drivers from API
+                const response = await fetch('/api/v1/drivers');
+                const result = await response.json();
+                const drivers = result.data?.data || result.data || [];
+
+                // Filter only active drivers
+                availableDrivers = drivers.filter(d => d.status === 'active');
+
+                if (availableDrivers.length === 0) {
+                    checklist.innerHTML = '<p style="color: var(--text-secondary);">No active drivers found</p>';
+                    return;
+                }
+
+                // Check which drivers are already in active dispatch jobs
+                let activeJobDrivers = [];
+                try {
+                    activeJobDrivers = await client.getActiveDriverIds();
+                } catch (e) {
+                    console.warn('Could not fetch active job drivers:', e);
+                }
+
+                checklist.innerHTML = availableDrivers.map(driver => {
+                    const isInActiveJob = activeJobDrivers.includes(driver.id);
+                    const disabledAttr = isInActiveJob ? 'disabled' : '';
+                    const labelStyle = isInActiveJob ? 'opacity: 0.5;' : '';
+                    const warningText = isInActiveJob ? '<span style="color: var(--accent-warning); font-size: 0.75rem; margin-left: 8px;">(In active job)</span>' : '';
+
+                    return `
+                        <label style="display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 6px; cursor: pointer; ${labelStyle}" 
+                               onmouseover="this.style.background='rgba(255,255,255,0.05)'" 
+                               onmouseout="this.style.background='transparent'">
+                            <input type="checkbox" class="driver-checkbox" value="${driver.id}" ${disabledAttr}
+                                   style="accent-color: var(--accent-primary);"
+                                   onchange="handleDriverSelection(this)">
+                            <span>${driver.firstName} ${driver.lastName}</span>
+                            ${warningText}
+                        </label>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error('Error loading drivers:', error);
+                checklist.innerHTML = '<p style="color: var(--accent-danger);">Error loading drivers</p>';
+            }
+        }
+
+        async function handleDriverSelection(checkbox) {
+            const driverId = checkbox.value;
+
+            if (checkbox.checked) {
+                selectedDriverIds.add(driverId);
+                // Fetch the next route for this driver
+                await fetchRouteForDriver(driverId);
+            } else {
+                selectedDriverIds.delete(driverId);
+                driverRouteMap.delete(driverId);
+            }
+
+            updateRoutePreview();
+            updateScheduleButton();
+        }
+
+        async function fetchRouteForDriver(driverId) {
+            try {
+                // Get today's date
+                const today = new Date().toISOString().split('T')[0];
+
+                // Fetch routes for this driver with status 'planned'
+                const response = await fetch(`/api/v1/routes?driverId=${driverId}&status=planned`);
+                const result = await response.json();
+                const routes = result.data?.data || result.data || [];
+                const nextRoute = routes.find(r => r.routeDate >= today);
+
+                if (nextRoute) {
+                    driverRouteMap.set(driverId, {
+                        id: nextRoute.id,
+                        routeCode: nextRoute.routeCode || nextRoute.routeName || nextRoute.id,
+                        routeDate: nextRoute.routeDate,
+                        stopCount: nextRoute.bookings?.length || nextRoute.stops?.length || 0
+                    });
+                } else {
+                    driverRouteMap.set(driverId, null);
+                }
+            } catch (error) {
+                console.error('Error fetching route for driver:', driverId, error);
+                driverRouteMap.set(driverId, null);
+            }
+        }
+
+        function updateRoutePreview() {
+            const preview = document.getElementById('route-preview');
+
+            if (selectedDriverIds.size === 0) {
+                preview.innerHTML = '<p style="color: var(--text-secondary); text-align: center;">Select drivers to see their next routes</p>';
+                return;
+            }
+
+            const items = [];
+            let hasValidRoutes = false;
+
+            selectedDriverIds.forEach(driverId => {
+                const driver = availableDrivers.find(d => d.id === driverId);
+                const routeInfo = driverRouteMap.get(driverId);
+
+                if (driver) {
+                    if (routeInfo) {
+                        hasValidRoutes = true;
+                        items.push(`
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(0,255,100,0.1); border-radius: 6px; margin-bottom: 6px;">
+                                <span><strong>${driver.firstName} ${driver.lastName}</strong></span>
+                                <span style="color: var(--accent-success);">${routeInfo.routeCode} (${routeInfo.routeDate})</span>
+                            </div>
+                        `);
+                    } else {
+                        items.push(`
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px; background: rgba(255,100,0,0.1); border-radius: 6px; margin-bottom: 6px;">
+                                <span>${driver.firstName} ${driver.lastName}</span>
+                                <span style="color: var(--accent-warning);">No planned route</span>
+                            </div>
+                        `);
+                    }
+                }
+            });
+
+            preview.innerHTML = items.join('');
+        }
+
+        function updateScheduleButton() {
+            const btn = document.getElementById('confirm-schedule-btn');
+            let hasValidRoutes = false;
+
+            selectedDriverIds.forEach(driverId => {
+                if (driverRouteMap.get(driverId)) hasValidRoutes = true;
+            });
+
+            btn.disabled = !hasValidRoutes;
+            btn.textContent = selectedDriverIds.size > 0
+                ? `Schedule Dispatch (${selectedDriverIds.size} driver${selectedDriverIds.size > 1 ? 's' : ''})`
+                : 'Schedule Dispatch';
+        }
+
+        async function scheduleDispatch() {
+            const btn = document.getElementById('confirm-schedule-btn');
+            btn.disabled = true;
+            btn.textContent = 'Scheduling...';
+
+            try {
+                const timing = document.querySelector('input[name="dispatch-timing"]:checked').value;
+                const scheduledTime = timing === 'now'
+                    ? new Date().toISOString()
+                    : new Date(document.getElementById('scheduled-datetime').value).toISOString();
+
+                const driverIds = Array.from(selectedDriverIds);
+
+                // Create dispatch job via API
+                const result = await client.createDispatchJob({
+                    driverIds: driverIds,
+                    scheduledTime: scheduledTime,
+                    name: `Dispatch ${new Date().toLocaleString()}`
+                });
+
+                console.log('Dispatch job created:', result);
+
+                closeScheduleModal();
+                loadDispatchHistory(); // Refresh the history table
+
+            } catch (error) {
+                console.error('Error scheduling dispatch:', error);
+                document.getElementById('driver-error').textContent = `Error: ${error.message}`;
+                document.getElementById('driver-error').style.display = 'block';
+            } finally {
+                updateScheduleButton();
+            }
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDispatchHistory();
+
+            // Schedule dispatch button
+            document.getElementById('schedule-dispatch-btn').addEventListener('click', openScheduleModal);
+
+            // Confirm schedule button
+            document.getElementById('confirm-schedule-btn').addEventListener('click', scheduleDispatch);
+
+            // Toggle schedule time picker visibility
+            document.querySelectorAll('input[name="dispatch-timing"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const picker = document.getElementById('schedule-time-picker');
+                    picker.style.display = e.target.value === 'scheduled' ? 'block' : 'none';
+                });
+            });
+        });
 
     </script>
 </body>

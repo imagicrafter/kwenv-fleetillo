@@ -125,6 +125,89 @@ class DispatchClient {
             body: JSON.stringify({ driverId })
         });
     }
+
+    /**
+     * Send a dispatch for a specific driver and route
+     * @param {string} routeId 
+     * @param {string} driverId 
+     */
+    async sendDispatch(routeId, driverId) {
+        return this._request('/dispatch', {
+            method: 'POST',
+            body: JSON.stringify({ routeId, driverId, channels: ['telegram', 'email'] })
+        });
+    }
+
+    // ===== Dispatch Job Methods =====
+
+    /**
+     * Create a new dispatch job
+     * @param {Object} payload { driverIds: string[], scheduledTime: string, name?: string }
+     */
+    async createDispatchJob(payload) {
+        return this._requestAlt('/dispatch-jobs', {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        }, '/api/v1');
+    }
+
+    /**
+     * Get dispatch jobs
+     * @param {Object} filters { status?, driverId? }
+     */
+    async getDispatchJobs(filters = {}) {
+        const params = new URLSearchParams();
+        if (filters.status) params.append('status', filters.status);
+        if (filters.driverId) params.append('driverId', filters.driverId);
+        return this._requestAlt(`/dispatch-jobs?${params.toString()}`, {}, '/api/v1');
+    }
+
+    /**
+     * Get drivers currently in active dispatch jobs
+     * @returns {Promise<string[]>} Array of driver IDs
+     */
+    async getActiveDriverIds() {
+        const result = await this._requestAlt('/dispatch-jobs/active-drivers', {}, '/api/v1');
+        return result.data || [];
+    }
+
+    /**
+     * Cancel a dispatch job
+     * @param {string} jobId
+     */
+    async cancelDispatchJob(jobId) {
+        return this._requestAlt(`/dispatch-jobs/${jobId}/cancel`, {
+            method: 'POST'
+        }, '/api/v1');
+    }
+
+    /**
+     * Helper for making requests to main API (not dispatch service)
+     * @private
+     */
+    async _requestAlt(endpoint, options = {}, altBaseUrl) {
+        const url = `${altBaseUrl}${endpoint}`;
+        const headers = {
+            'Content-Type': 'application/json',
+            ...options.headers
+        };
+
+        try {
+            const response = await fetch(url, { ...options, headers });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error?.message || `Request failed: ${response.status} ${response.statusText}`);
+            }
+
+            if (response.status === 204) return null;
+
+            return await response.json();
+        } catch (error) {
+            console.error(`API Error (${endpoint}):`, error);
+            throw error;
+        }
+    }
 }
 
 // Export as global

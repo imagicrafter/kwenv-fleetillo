@@ -263,11 +263,11 @@
     </div>
 
     <!-- Dispatch Detail Modal -->
-    <div class="modal-overlay" id="dispatch-modal">
-        <div class="modal">
+    <div class="modal" id="dispatch-modal">
+        <div class="modal-content">
             <div class="modal-header">
                 <h3>Dispatch Details</h3>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
             </div>
             <div id="dispatch-detail-content">
                 <!-- Populated by JS -->
@@ -280,11 +280,11 @@
     </div>
 
     <!-- Schedule Dispatch Modal -->
-    <div class="modal-overlay" id="schedule-dispatch-modal">
-        <div class="modal" style="max-width: 600px;">
+    <div class="modal" id="schedule-dispatch-modal">
+        <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
                 <h3>Schedule Dispatch</h3>
-                <button class="modal-close" onclick="closeScheduleModal()">&times;</button>
+                <button class="close-modal" onclick="closeScheduleModal()">&times;</button>
             </div>
             <div class="modal-body" style="padding: 20px;">
                 <!-- Driver Selection -->
@@ -473,7 +473,15 @@
         let driverRouteMap = new Map(); // driverId -> route info
 
         function openScheduleModal() {
-            document.getElementById('schedule-dispatch-modal').style.display = 'block';
+            console.log('Opening schedule modal...');
+            const modal = document.getElementById('schedule-dispatch-modal');
+            if (!modal) {
+                console.error('Modal element not found!');
+                return;
+            }
+            modal.style.display = 'block';
+            console.log('Modal display set to block');
+
             document.getElementById('driver-error').style.display = 'none';
             selectedDriverIds.clear();
             driverRouteMap.clear();
@@ -497,7 +505,24 @@
             checklist.innerHTML = '<p style="color: var(--text-secondary);">Loading drivers...</p>';
 
             try {
-                const result = await window.electronAPI.drivers.getAll();
+                // Support both Electron API and RPC API
+                let result;
+                if (window.electronAPI?.drivers?.getAll) {
+                    result = await window.electronAPI.drivers.getAll();
+                } else {
+                    // Fallback to RPC API for web mode
+                    const response = await fetch('/api/rpc', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            namespace: 'drivers',
+                            method: 'getAll',
+                            args: [{}] // filters, pagination
+                        })
+                    });
+                    const rpcData = await response.json();
+                    result = { success: true, data: rpcData };
+                }
                 const drivers = result.data?.data || result.data || [];
 
                 // Filter only active drivers
@@ -566,10 +591,26 @@
                 const today = new Date().toISOString().split('T')[0];
 
                 // Fetch routes for this driver with status 'planned'
-                const result = await window.electronAPI.routes.getAll({
-                    driverId: driverId,
-                    status: 'planned'
-                });
+                let result;
+                if (window.electronAPI?.routes?.getAll) {
+                    result = await window.electronAPI.routes.getAll({
+                        driverId: driverId,
+                        status: 'planned'
+                    });
+                } else {
+                    // Fallback to RPC API for web mode
+                    const response = await fetch('/api/rpc', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            namespace: 'routes',
+                            method: 'getAll',
+                            args: [{ driverId: driverId, status: 'planned' }]
+                        })
+                    });
+                    const rpcData = await response.json();
+                    result = { success: true, data: rpcData };
+                }
 
                 const routes = result.data?.data || result.data || [];
                 const nextRoute = routes.find(r => r.routeDate >= today);
@@ -662,13 +703,22 @@
                     if (routeInfo) {
                         if (timing === 'now') {
                             // Dispatch immediately
-                            await window.electronAPI.dispatch.sendDispatch({
-                                routeId: routeInfo.id,
-                                driverId: driverId
-                            });
+                            if (window.electronAPI?.dispatch?.sendDispatch) {
+                                await window.electronAPI.dispatch.sendDispatch({
+                                    routeId: routeInfo.id,
+                                    driverId: driverId
+                                });
+                            } else {
+                                // Fallback to dispatch service API
+                                await client.sendDispatch(routeInfo.id, driverId);
+                            }
                         } else {
-                            // TODO: Create dispatch job with scheduled time via dispatch-job.service
-                            console.log('Scheduled dispatch for:', driverId, 'at', scheduledTime);
+                            // Create dispatch job with scheduled time via dispatch-job API
+                            await client.createDispatchJob({
+                                driverIds: [driverId],
+                                scheduledTime: scheduledTime,
+                                name: `Scheduled Dispatch ${new Date().toLocaleString()}`
+                            });
                         }
                     }
                 }
