@@ -497,14 +497,23 @@
             checklist.innerHTML = '<p style="color: var(--text-secondary);">Loading drivers...</p>';
 
             try {
-                // Support both Electron API and HTTP API
+                // Support both Electron API and RPC API
                 let result;
                 if (window.electronAPI?.drivers?.getAll) {
                     result = await window.electronAPI.drivers.getAll();
                 } else {
-                    // Fallback to HTTP API for web mode
-                    const response = await fetch('/api/v1/drivers');
-                    result = await response.json();
+                    // Fallback to RPC API for web mode
+                    const response = await fetch('/api/rpc', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            namespace: 'drivers',
+                            method: 'getAll',
+                            args: [{}] // filters, pagination
+                        })
+                    });
+                    const rpcData = await response.json();
+                    result = { success: true, data: rpcData };
                 }
                 const drivers = result.data?.data || result.data || [];
 
@@ -581,9 +590,18 @@
                         status: 'planned'
                     });
                 } else {
-                    // Fallback to HTTP API
-                    const response = await fetch(`/api/v1/routes?driverId=${driverId}&status=planned`);
-                    result = await response.json();
+                    // Fallback to RPC API for web mode
+                    const response = await fetch('/api/rpc', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            namespace: 'routes',
+                            method: 'getAll',
+                            args: [{ driverId: driverId, status: 'planned' }]
+                        })
+                    });
+                    const rpcData = await response.json();
+                    result = { success: true, data: rpcData };
                 }
 
                 const routes = result.data?.data || result.data || [];
