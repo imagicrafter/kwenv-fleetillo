@@ -14,12 +14,15 @@ echo "FILE_PATH: $FILE_PATH" >> /tmp/claude-hook-debug.log
 
 if [[ "$FILE_PATH" =~ \.claude/plans/.*\.md$ ]]; then
     if [ -f "$FILE_PATH" ]; then
-        # Use full path to VS Code (adjust if needed)
-        /usr/local/bin/code "$FILE_PATH" 2>> /tmp/claude-hook-debug.log || \
-        /Applications/Visual\ Studio\ Code.app/Contents/Resources/app/bin/code "$FILE_PATH" 2>> /tmp/claude-hook-debug.log
+        # Open file in VS Code and attempt preview
+        code "$FILE_PATH" 2>> /tmp/claude-hook-debug.log
 
-        sleep 0.5
-        /usr/local/bin/code --command "markdown.showPreview" 2>> /tmp/claude-hook-debug.log || true
+        # Try AppleScript for preview (requires Accessibility permissions)
+        sleep 0.8
+        osascript -e 'tell application "Visual Studio Code" to activate' \
+                  -e 'delay 0.2' \
+                  -e 'tell application "System Events" to keystroke "v" using {command down, shift down}' \
+                  2>> /tmp/claude-hook-debug.log || echo "Note: Grant Accessibility permission to enable auto-preview" >> /tmp/claude-hook-debug.log
 
         echo "Opened plan document: $FILE_PATH" >> /tmp/claude-hook-debug.log
     else

@@ -1,84 +1,219 @@
 # Context Priming Command
 
-Read these files to understand the OptiRoute system:
+Read these files to understand the Fleetillo system:
 
-## Essential Context
+## Essential Context (Read First)
 
-1. **README.md** - Project overview (START HERE!)
-   - What this project is and why it exists
-   - Setup and installation
+1. **README.md** - Project overview and quick start
+   - What Fleetillo is and why it exists
+   - Setup and installation guide
    - Available scripts and commands
+   - Technology stack overview
 
-2. **docs/yokeflow/architecture_overview.md** - System architecture
-   - Architecture diagram
-   - Tech stack details
-   - Directory structure
+2. **docs/optiroute_code_specification.md** - Comprehensive system guide
+   - Complete application overview
+   - Index to all detailed documentation
+   - Quick reference for patterns and conventions
+   - Agent task routing guide
 
-3. **docs/yokeflow/rest_api_specification.md** - Route Planning API endpoints
-   - REST API documentation
-   - Request/response formats
+## Core Documentation
 
-4. **dispatch-service/API.md - Dispatch service API endpoints
+### Architecture & Design
+- **docs/yokeflow/architecture_overview.md** - System architecture
+  - Multi-component architecture diagram
+  - Tech stack details (TypeScript, Express, Supabase, React)
+  - Directory structure and organization
+  
+### API Documentation
+- **docs/yokeflow/rest_api_specification.md** - Main REST API endpoints
+  - Route planning and management endpoints
+  - Request/response formats
+  
+- **dispatch-service/API.md** - Dispatch Service API
+  - Driver notification system (Telegram + Email)
+  - Dispatch endpoints and integration patterns
+  - UI integration examples
 
-## After Reading
+### Database & Data Model
+- **docs/yokeflow/optiroute_schema.sql** - Complete database schema
+  - All tables, indexes, triggers, and constraints
+  - Database schema name: `routeiq`
 
-You should understand:
+## After Reading, You Should Understand:
 
-### Core System
+### System Overview
 - **Purpose**: Route planning and management system for service-based businesses
-- **Architecture**: Multi-component system
-  - Express.js REST API (TypeScript)
-  - Supabase (PostgreSQL) for database
-  - Google Maps API for geocoding
-  - Google Routes API for route optimization
-  - Web launcher for browser-based UI
-  - Dispatch service for driver management (new)
+- **Primary Functions**:
+  - Customer and service management
+  - Booking scheduling (one-time and recurring)
+  - Fleet and driver management  
+  - Optimized route planning with Google Routes API
+  - Driver dispatch notifications via Telegram and Email
+
+### Architecture Components
+1. **Main Application** (TypeScript + Express)
+   - REST API backend (`src/`)
+   - Business logic in services layer
+   - PostgreSQL via Supabase
+   
+2. **Web Launcher** (`web-launcher/`)
+   - Browser-based UI (HTML/CSS/JS)
+   - Express server with session management
+   - Can run in embedded or standalone mode
+   
+3. **Dispatch Service** (`dispatch-service/`)
+   - Driver notification system
+   - Telegram bot integration
+   - Email notifications via Resend
+   - Can run embedded or standalone
+
+4. **Electron Launcher** (`electron-launcher/`)
+   - Desktop application wrapper
 
 ### Data Model
-- **Tables**: clients, services, locations, vehicles, bookings, routes, drivers
-- **Patterns**: Soft delete via `deleted_at`, snake_case DB / camelCase TypeScript
-- **Schema**: `optiroute` schema in Supabase
+- **Database Schema**: `routeiq` (in Supabase)
+- **Core Tables**: 
+  - `clients` - Customer records
+  - `services` - Service type definitions
+  - `locations` - Service addresses with geocoding
+  - `vehicles` - Fleet management
+  - `drivers` - Driver records with contact methods
+  - `bookings` - Service appointments
+  - `routes` - Optimized route plans
+  - `dispatch_jobs` - Notification delivery tracking
+  
+- **Patterns**: 
+  - Soft delete via `deleted_at` timestamp
+  - snake_case in database, camelCase in TypeScript
+  - UUID primary keys
+  - Foreign key constraints with ON DELETE CASCADE
 
-### Key Components
-- **src/services/**: Business logic services
-  - `client.service.ts` - Customer CRUD operations
-  - `service.service.ts` - Service type definitions
-  - `booking.service.ts` - Appointment scheduling
-  - `vehicle.service.ts` - Fleet management
-  - `driver.service.ts` - Driver management
-  - `route.service.ts` - Route CRUD operations
-  - `route-planning.service.ts` - Route optimization logic
-  - `googlemaps.service.ts` - Geocoding integration
-  - `google-routes.service.ts` - Routes API integration
-- **src/types/**: TypeScript type definitions with row converters
-- **src/controllers/**: Express route handlers
-- **src/routes/**: API route definitions
-- **web-launcher/**: Browser-based UI with Express server
-- **dispatch-service/**: Standalone dispatch management service
-- **supabase/migrations/**: Database migration files
+### Key Components & Patterns
 
-### Design Patterns
-- `Result<T>` pattern for consistent error handling
-- Row conversion: `rowToEntity()` / `entityInputToRow()`
-- Soft delete: filter by `deleted_at IS NULL`
-- Service layer encapsulates all business logic
+#### Services Layer (`src/services/`)
+Core business logic modules:
+- `client.service.ts` - Customer CRUD
+- `service.service.ts` - Service types
+- `booking.service.ts` - Appointment scheduling  
+- `vehicle.service.ts` - Fleet management
+- `driver.service.ts` - Driver management
+- `route.service.ts` - Route CRUD
+- `route-planning.service.ts` - Route optimization
+- `googlemaps.service.ts` - Geocoding/address validation
+- `google-routes.service.ts` - Routes API integration
+- `dispatch-job.service.ts` - Dispatch tracking
+
+#### Design Patterns
+- **Result<T> Pattern**: All services return `Result<T>` for consistent error handling
+- **Row Conversion**: `rowToEntity()` / `entityInputToRow()` for DB ↔ TypeScript mapping  
+- **Soft Delete**: Filter all queries with `deleted_at IS NULL`
+- **Service Encapsulation**: All business logic in service layer, controllers are thin
+
+#### Type System (`src/types/`)
+- Complete TypeScript definitions for all entities
+- Separate types for: Entity, CreateInput, UpdateInput, Row
+- Type converters handle case transformation
 
 ### How to Run
-- Build: `npm run build`
-- Web App: `cd web-launcher && npm start` (port 8080)
-- Backend API: `npm run dev` (port 3000)
-- Tests: `npm test` (unit), `npm run test:e2e` (Playwright)
-- DB Check: `npm run db:check`
+
+#### Development
+```bash
+# Build TypeScript
+npm run build
+
+# Web application (embedded mode - includes dispatch)
+cd web-launcher && npm start  # Port 8080
+
+# Backend API only
+npm run dev  # Port 3000
+
+# Dispatch service standalone
+cd dispatch-service && npm start  # Port 3001
+```
+
+#### Testing
+```bash
+npm test              # Unit tests
+npm run test:e2e      # Playwright E2E tests
+npm run db:check      # Database connection validation
+```
 
 ### How to Extend
-- Add services: `src/services/` + `src/types/` + update `src/services/index.ts`
-- Add API routes: `src/routes/` + `src/controllers/`
-- Add migrations: `supabase/migrations/YYYYMMDDHHMMSS_description.sql`
-- Modify UI: `web-launcher/public/` (HTML/CSS/JS)
+
+#### Add New Entity/Service
+1. Create types in `src/types/your-entity.ts`
+2. Implement service in `src/services/your-entity.service.ts`
+3. Add controller in `src/controllers/your-entity.controller.ts`
+4. Define routes in `src/routes/your-entity.routes.ts`
+5. Update `src/services/index.ts` and `src/routes/index.ts`
+
+#### Database Changes
+1. Create migration: `supabase/migrations/YYYYMMDDHHMMSS_description.sql`
+2. Update schema file: `docs/yokeflow/optiroute_schema.sql`
+3. Apply via Supabase CLI or dashboard
+
+#### UI Changes
+- Web launcher: `web-launcher/public/` (HTML/CSS/JS)
+- Electron: `electron-launcher/` (if desktop changes needed)
 
 ### Environment Variables
-- `SUPABASE_URL` - Supabase project URL
-- `SUPABASE_KEY` - Supabase anon key
-- `SUPABASE_SERVICE_ROLE_KEY` - Service role key
-- `SUPABASE_SCHEMA` - Schema name (optiroute)
-- `GOOGLE_MAPS_API_KEY` - Google Maps API key
+
+#### Required (All Modes)
+```env
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key  
+SUPABASE_SCHEMA=routeiq
+GOOGLE_MAPS_API_KEY=your-google-maps-api-key
+```
+
+#### Dispatch Service
+```env
+TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+RESEND_API_KEY=your-resend-api-key
+EMAIL_FROM_ADDRESS=dispatch@fleetillo.com
+EMAIL_FROM_NAME=Fleetillo Dispatch
+DISPATCH_API_KEYS=comma,separated,api,keys
+```
+
+#### Optional
+```env
+NODE_ENV=development|production
+PORT=3000
+LOG_LEVEL=info|debug|error
+DEMO_PASSWORD=your-demo-password
+SESSION_SECRET=your-session-secret
+```
+
+### External Dependencies
+- **Supabase**: PostgreSQL database hosting
+- **Google Maps Platform**: Geocoding, Places, Routes APIs
+- **Telegram Bot API**: Driver notifications
+- **Resend**: Email delivery service
+
+### Deployment Modes
+
+1. **Embedded** (`DISPATCH_MODE=embedded`)
+   - Single web server running both app and dispatch
+   - Dispatch routes mounted at `/dispatch`
+   - Best for: Demos, development, small deployments
+
+2. **Standalone** (`DISPATCH_MODE=standalone`)
+   - Separate services for app and dispatch
+   - Independent scaling
+   - Best for: Production, high traffic
+
+---
+
+## Quick Task Reference
+
+| What You're Doing | Start Here |
+|-------------------|-----------|
+| Understanding the system | README.md → architecture_overview.md |
+| Database changes | optiroute_schema.sql |
+| New API endpoint | rest_api_specification.md + service_implementation_guide.md |
+| New entity/service | service_implementation_guide.md + type_definitions_guide.md |
+| Dispatch/notifications | dispatch-service/API.md |
+| Maps/geocoding | google_maps_integration_guide.md |
+| Route optimization | route_planning_guide.md |
+| Environment setup | environment_configuration_guide.md |
