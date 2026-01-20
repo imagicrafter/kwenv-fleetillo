@@ -5,6 +5,7 @@ import serviceRoutes from './service.routes.js';
 import vehicleRoutes from './vehicle.routes.js';
 import routeRoutes from './route.routes.js';
 import dispatchJobRoutes from './dispatch-job.routes.js';
+import driverRoutes from './driver.routes.js';
 
 const router = Router();
 
@@ -30,6 +31,9 @@ router.use('/routes', routeRoutes);
 
 // Dispatch job routes
 router.use('/dispatch-jobs', dispatchJobRoutes);
+
+// Driver routes
+router.use('/drivers', driverRoutes);
 
 // Root API endpoint
 router.get('/', (_req, res) => {
