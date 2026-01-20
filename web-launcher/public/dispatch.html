@@ -263,11 +263,11 @@
     </div>
 
     <!-- Dispatch Detail Modal -->
-    <div class="modal-overlay" id="dispatch-modal">
-        <div class="modal">
+    <div class="modal" id="dispatch-modal">
+        <div class="modal-content">
             <div class="modal-header">
                 <h3>Dispatch Details</h3>
-                <button class="modal-close" onclick="closeModal()">&times;</button>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
             </div>
             <div id="dispatch-detail-content">
                 <!-- Populated by JS -->
@@ -280,11 +280,11 @@
     </div>
 
     <!-- Schedule Dispatch Modal -->
-    <div class="modal-overlay" id="schedule-dispatch-modal">
-        <div class="modal" style="max-width: 600px;">
+    <div class="modal" id="schedule-dispatch-modal">
+        <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
                 <h3>Schedule Dispatch</h3>
-                <button class="modal-close" onclick="closeScheduleModal()">&times;</button>
+                <button class="close-modal" onclick="closeScheduleModal()">&times;</button>
             </div>
             <div class="modal-body" style="padding: 20px;">
                 <!-- Driver Selection -->
@@ -473,7 +473,15 @@
         let driverRouteMap = new Map(); // driverId -> route info
 
         function openScheduleModal() {
-            document.getElementById('schedule-dispatch-modal').style.display = 'block';
+            console.log('Opening schedule modal...');
+            const modal = document.getElementById('schedule-dispatch-modal');
+            if (!modal) {
+                console.error('Modal element not found!');
+                return;
+            }
+            modal.style.display = 'block';
+            console.log('Modal display set to block');
+
             document.getElementById('driver-error').style.display = 'none';
             selectedDriverIds.clear();
             driverRouteMap.clear();
