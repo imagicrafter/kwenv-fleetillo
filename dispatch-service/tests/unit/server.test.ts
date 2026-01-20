@@ -45,7 +45,7 @@ describe('Express Server Setup', () => {
       const response = await request(app).get('/');
 
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('service', 'OptiRoute Dispatch Service');
+      expect(response.body).toHaveProperty('service', 'Fleetillo Dispatch Service');
       expect(response.body).toHaveProperty('version', '1.0.0');
       expect(response.body).toHaveProperty('status', 'running');
     });

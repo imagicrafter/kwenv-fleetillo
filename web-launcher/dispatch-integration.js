@@ -51,7 +51,7 @@ async function createDispatchRouter() {
         // Root endpoint for dispatch service
         router.get('/', (req, res) => {
             res.json({
-                service: 'OptiRoute Dispatch Service (Embedded)',
+                service: 'Fleetillo Dispatch Service (Embedded)',
                 version: '1.0.0',
                 status: 'running',
                 mode: 'embedded'

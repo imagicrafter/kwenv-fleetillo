@@ -2,7 +2,7 @@
  * Supabase Client for Dispatch Service
  *
  * Provides a configured Supabase client for database operations.
- * Uses the same Supabase instance as the main OptiRoute application.
+ * Uses the same Supabase instance as the main Fleetillo application.
  *
  * @module db/supabase
  */

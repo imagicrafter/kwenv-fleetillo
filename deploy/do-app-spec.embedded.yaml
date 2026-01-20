@@ -1,14 +1,14 @@
-# OptiRoute App Spec - EMBEDDED MODE
+# Fleetillo App Spec - EMBEDDED MODE
 # Single service with dispatch functionality built into web-launcher
 # Use this for demos, development, and low-traffic deployments
 
-name: optiroute-web
+name: fleetillo-web
 region: nyc
 services:
 - name: web
   github:
-    repo: imagicrafter/optiroute
-    branch: feature/dispatch-service
+    repo: imagicrafter/fleetillo
+    branch: main
     deploy_on_push: true
   source_dir: /
   build_command: npm install && npm run build && cd web-launcher && npm install && cd ../dispatch-service && npm install && npm run build
@@ -59,10 +59,10 @@ services:
     type: SECRET
     scope: RUN_TIME
   - key: EMAIL_FROM_ADDRESS
-    value: dispatch@optiroute.imagicrafterai.com
+    value: dispatch@fleetillo.com
     scope: RUN_TIME
   - key: EMAIL_FROM_NAME
-    value: OptiRoute Dispatch
+    value: Fleetillo Dispatch
     scope: RUN_TIME
   - key: NODE_ENV
     value: production
@@ -79,8 +79,8 @@ services:
 jobs:
 - name: dispatch-scheduler
   github:
-    repo: imagicrafter/optiroute
-    branch: feature/dispatch-service
+    repo: imagicrafter/fleetillo
+    branch: main
     deploy_on_push: true
   source_dir: /
   build_command: npm install && npm run build
@@ -107,8 +107,8 @@ jobs:
 
 - name: end-of-day
   github:
-    repo: imagicrafter/optiroute
-    branch: feature/dispatch-service
+    repo: imagicrafter/fleetillo
+    branch: main
     deploy_on_push: true
   source_dir: /
   build_command: npm install && npm run build
@@ -134,5 +134,5 @@ jobs:
     scope: RUN_TIME
 
 domains:
-- domain: optiroute.imagicrafterai.com
+- domain: fleetillo.com
   type: PRIMARY

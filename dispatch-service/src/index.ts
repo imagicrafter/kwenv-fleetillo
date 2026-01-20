@@ -1,5 +1,5 @@
 /**
- * OptiRoute Dispatch Service
+ * Fleetillo Dispatch Service
  *
  * A standalone microservice for sending route assignments to drivers
  * via multiple communication channels (Telegram, Email).
@@ -75,7 +75,7 @@ app.use('/api/v1', apiRouter);
 // Root endpoint
 app.get('/', (_req: Request, res: Response) => {
   res.json({
-    service: 'OptiRoute Dispatch Service',
+    service: 'Fleetillo Dispatch Service',
     version: '1.0.0',
     status: 'running',
   });

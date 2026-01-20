@@ -1,5 +1,5 @@
 #!/bin/bash
-# Deploy script for optiroute-support-agent
+# Deploy script for fleetfusion-support-agent
 # Sources .env file and deploys to Gradient ADK
 
 set -e
@@ -33,5 +33,5 @@ if [ -z "$GRADIENT_MODEL_ACCESS_KEY" ]; then
     echo "⚠️  Warning: GRADIENT_MODEL_ACCESS_KEY is not set - inference calls will fail"
 fi
 
-echo "🚀 Deploying optiroute-support-agent..."
+echo "🚀 Deploying fleetfusion-support-agent..."
 gradient agent deploy "$@"

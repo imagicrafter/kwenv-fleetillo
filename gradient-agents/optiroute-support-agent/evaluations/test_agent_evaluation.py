@@ -1,7 +1,7 @@
 """
 OptiRoute Support Agent - Evaluation Test Suite
 
-This module provides pytest-based evaluation tests for the optiroute-support-agent.
+This module provides pytest-based evaluation tests for the fleetfusion-support-agent.
 Tests verify tool execution accuracy, anti-hallucination behavior, response quality,
 and absence of tool call leakage.
 

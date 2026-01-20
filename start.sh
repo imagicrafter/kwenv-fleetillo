@@ -1,5 +1,5 @@
 #!/bin/bash
-# OptiRoute Start Script
+# Fleetillo Start Script
 # Starts the main web application and optionally the dispatch service
 #
 # Environment Variables:

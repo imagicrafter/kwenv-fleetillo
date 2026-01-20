@@ -77,7 +77,7 @@ const isIframeMode = process.env.ALLOW_IFRAME === 'true';
 const isProduction = process.env.NODE_ENV === 'production';
 
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'optiroute-demo-secret',
+    secret: process.env.SESSION_SECRET || 'fleetillo-demo-secret',
     resave: false,
     saveUninitialized: false,
     cookie: {

@@ -2,7 +2,7 @@
  * Driver Service
  *
  * Provides CRUD operations and business logic for managing drivers
- * in the OptiRoute application.
+ * in the Fleetillo application.
  */
 
 import { getAdminSupabaseClient } from './supabase.js';

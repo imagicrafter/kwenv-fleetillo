@@ -1,14 +1,14 @@
-# OptiRoute App Spec - STANDALONE MODE
+# Fleetillo App Spec - STANDALONE MODE
 # Two separate services: web app and dispatch service
 # Use this for production deployments requiring scalability
 
-name: optiroute-web
+name: fleetillo-web
 region: nyc
 services:
 # Main Web Application
 - name: web
   github:
-    repo: imagicrafter/optiroute
+    repo: imagicrafter/fleetillo
     branch: main
     deploy_on_push: true
   source_dir: /
@@ -57,7 +57,7 @@ services:
 # Dispatch Service - Scalable notification service
 - name: dispatch
   github:
-    repo: imagicrafter/optiroute
+    repo: imagicrafter/fleetillo
     branch: main
     deploy_on_push: true
   source_dir: /dispatch-service
@@ -94,10 +94,10 @@ services:
     type: SECRET
     scope: RUN_TIME
   - key: EMAIL_FROM_ADDRESS
-    value: dispatch@optiroute.imagicrafterai.com
+    value: dispatch@fleetillo.com
     scope: RUN_TIME
   - key: EMAIL_FROM_NAME
-    value: OptiRoute Dispatch
+    value: Fleetillo Dispatch
     scope: RUN_TIME
   - key: NODE_ENV
     value: production
@@ -138,5 +138,5 @@ ingress:
       - X-Correlation-ID
 
 domains:
-- domain: optiroute.imagicrafterai.com
+- domain: fleetillo.com
   type: PRIMARY

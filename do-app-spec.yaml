@@ -1,10 +1,10 @@
-name: optiroute-web
+name: fleetillo-web
 region: nyc
 services:
 - name: web
   github:
-    repo: imagicrafter/optiroute
-    branch: feature/dispatch-service
+    repo: imagicrafter/fleetillo
+    branch: main
     deploy_on_push: true
   source_dir: /
   build_command: npm install && npm run build && cd web-launcher && npm install
@@ -36,8 +36,8 @@ services:
 # Dispatch Service - Route assignment notifications via Telegram and Email
 - name: dispatch
   github:
-    repo: imagicrafter/optiroute
-    branch: feature/dispatch-service
+    repo: imagicrafter/fleetillo
+    branch: main
     deploy_on_push: true
   source_dir: /dispatch-service
   build_command: npm install && npm run build
@@ -79,7 +79,7 @@ services:
     value: dispatch@optiroute.imagicrafterai.com
     scope: RUN_TIME
   - key: EMAIL_FROM_NAME
-    value: OptiRoute Dispatch
+    value: Fleetillo Dispatch
     scope: RUN_TIME
   # Node environment
   - key: NODE_ENV
@@ -121,5 +121,5 @@ ingress:
       - X-Correlation-ID
 
 domains:
-- domain: optiroute.imagicrafterai.com
+- domain: fleetillo.com
   type: PRIMARY

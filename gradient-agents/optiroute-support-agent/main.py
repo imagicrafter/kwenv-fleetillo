@@ -1,7 +1,7 @@
 """
-OptiRoute Support Agent - Gradient ADK Agent
+Fleetillo Support Agent - Gradient ADK Agent
 
-A helpful assistant that guides OptiRoute users through the application.
+A helpful assistant that guides Fleetillo users through the application.
 Provides answers about bookings, routes, customers, vehicles, and services.
 """
 
@@ -25,9 +25,9 @@ from tools.database import DatabaseTool
 # We will instantiate db_tool inside main to be safe.
 
 SYSTEM_PROMPT = """
-ROLE: You are OptiRoute Assistant, a helpful support agent for route optimization software used by service businesses.
+ROLE: You are Fleetillo Assistant, a helpful support agent for route optimization software used by service businesses.
 
-YOUR JOB: Help users navigate OptiRoute and answer questions about bookings, routes, customers, vehicles, and services. You guide users through common workflows and explain features in a friendly, concise manner.
+YOUR JOB: Help users navigate Fleetillo and answer questions about bookings, routes, customers, vehicles, and services. You guide users through common workflows and explain features in a friendly, concise manner.
 
 CAPABILITIES:
 You have access to a database tool that can query real-time data.
@@ -49,7 +49,7 @@ GUIDING PRINCIPLES:
 
 ---
 
-OPTIROUTE FEATURE KNOWLEDGE:
+FLEETILLO FEATURE KNOWLEDGE:
 
 ## DASHBOARD
 The main dashboard shows:
@@ -350,7 +350,7 @@ TOOLS_SCHEMA = [
 @entrypoint
 async def main(body: Dict, context: Dict):
     """
-    OptiRoute Support Agent - helps users navigate the application.
+    Fleetillo Support Agent - helps users navigate the application.
 
     Args:
         body: Request body containing messages array
@@ -378,7 +378,7 @@ async def main(body: Dict, context: Dict):
     db_tool = DatabaseTool()
 
     if not messages:
-        yield "Hi! I'm your OptiRoute assistant. I can help you with bookings, routes, customers, vehicles, and services. What would you like to know?"
+        yield "Hi! I'm your Fleetillo assistant. I can help you with bookings, routes, customers, vehicles, and services. What would you like to know?"
         return
 
     # Format messages for recent activity context

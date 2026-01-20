@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run comprehensive evaluation on optiroute-support-agent
+# Run comprehensive evaluation on fleetfusion-support-agent
 
 echo "🔍 Running OptiRoute Support Agent Evaluation..."
 echo "================================================"
