@@ -2,6 +2,81 @@
 
 This directory contains configuration specific to Claude Code CLI. For tool-agnostic agent documentation, see `.agent/README.md`.
 
+---
+
+## New Repository Setup Checklist
+
+When setting up a new repository to use this workflow, complete these steps:
+
+### GitHub Repository Settings
+
+```bash
+# Enable auto-delete branches after PR merge
+gh api repos/OWNER/REPO -X PATCH -f delete_branch_on_merge=true
+
+# Verify the setting
+gh api repos/OWNER/REPO --jq '.delete_branch_on_merge'
+# Should return: true
+```
+
+### Required Files
+
+| File | Purpose | Template |
+|------|---------|----------|
+| `.claude/commands/execute.md` | Main execution orchestrator | Copy from this repo |
+| `.claude/commands/prime.md` | Context loading | Copy from this repo |
+| `.claude/skills/*` | All skill definitions | Copy from this repo |
+| `.githooks/pre-commit` | Block direct commits to main | See below |
+| `.env` | Environment variables (gitignored) | Project-specific |
+
+### Pre-commit Hook (Block Direct Main Commits)
+
+Create `.githooks/pre-commit`:
+
+```bash
+#!/bin/bash
+branch=$(git rev-parse --abbrev-ref HEAD)
+if [ "$branch" = "main" ]; then
+  echo "🚨 ERROR: Direct commits to 'main' branch are not allowed!"
+  echo ""
+  echo "Please create an issue branch first:"
+  echo "  git checkout -b issue/[NUMBER]-[description]"
+  echo ""
+  echo "Then commit your changes to that branch."
+  exit 1
+fi
+exit 0
+```
+
+Enable the hook:
+```bash
+chmod +x .githooks/pre-commit
+git config core.hooksPath .githooks
+```
+
+### Environment Files
+
+For projects with sub-packages, ensure `.env` files exist in:
+- Root directory
+- `dispatch-service/` (if applicable)
+- `web-launcher/` (if applicable)
+
+These are gitignored and must be copied manually when setting up worktrees.
+
+### Labels
+
+Create these labels in GitHub:
+
+| Label | Color | Description |
+|-------|-------|-------------|
+| `plan: simple` | `#0E8A16` | Simple - no plan needed, ready to implement |
+| `plan: medium` | `#FBCA04` | Medium (3-6 pts) - needs plan.md document |
+| `plan: complex` | `#D93F0B` | Complex (7+ pts) - needs requirements.md, design.md, tasks.md |
+| `plan ready` | `#0052CC` | Planning complete - ready for implementation |
+| `needs review` | `#D93F0B` | Requires human review |
+
+---
+
 ## Directory Structure
 
 ```
@@ -51,10 +126,63 @@ Implements a GitHub issue based on its complexity tier:
 | **Medium** | 3-6 pts | Single sub-agent with full plan |
 | **Complex** | 7+ pts | Multiple sub-agents with context continuity |
 
+### Worktree Isolation
+
+The execute command uses **git worktrees** for parallel agent execution. Each execution runs in an isolated directory, allowing multiple agents to work on different issues simultaneously.
+
+```
+Main Repo (stays on main)              Worktrees (isolated branches)
+─────────────────────────              ────────────────────────────
+/github/fleetillo/                     /github/fleetillo-issue-12-feature/
+  branch: main                           branch: issue/12-feature
+  (clean reference)                      (agent 1 working here)
+
+                                       /github/fleetillo-issue-15-schema/
+                                         branch: issue/15-schema
+                                         (agent 2 working here)
+```
+
+**Worktree Setup (automated by execute.md Step 3.2-3.3):**
+1. Creates worktree at `../repo-name-issue-N-slug/`
+2. Copies `.env` files from main repo (root + sub-packages)
+3. Runs `npm install` if `node_modules` doesn't exist
+4. Builds sub-packages (e.g., `dispatch-service`) if `dist/` doesn't exist
+
+**Worktree Cleanup (manual after PR merge):**
+```bash
+# List worktrees
+git worktree list
+
+# Remove a worktree
+git worktree remove ../fleetillo-issue-12-feature
+
+# Force remove if uncommitted changes
+git worktree remove --force ../fleetillo-issue-12-feature
+
+# Prune stale references
+git worktree prune
+```
+
+**Why Worktrees?**
+- No branch switching in main repo
+- Parallel execution without conflicts
+- Each agent has isolated environment
+- Main repo stays on `main` as clean reference
+
 ### Execute Workflow Diagram
 
 ```
                               /execute [N]
+                                   │
+                                   ▼
+                    ┌─────────────────────────────┐
+                    │  Create Worktree + Setup    │
+                    │  (Step 3.2 + 3.3)           │
+                    │  - git worktree add         │
+                    │  - copy .env files          │
+                    │  - npm install              │
+                    │  - build sub-packages       │
+                    └──────────────┬──────────────┘
                                    │
                     ┌──────────────┼──────────────┐
                     │              │              │
@@ -412,6 +540,40 @@ The orchestrator automatically detects and resumes partially completed planning:
 | `requirements.md` | Stage 2: Design |
 | `requirements.md` + `design.md` | Stage 3: Tasks |
 | All three | Stage 4: Complete |
+
+### Artifact Staging for Preview Mode
+
+When staging documents for human review in Antigravity preview mode, follow this process:
+
+**Why this matters:** Files created via shell commands won't display in preview mode. Only files created with `write_to_file IsArtifact=true` can be previewed.
+
+**Process:**
+
+1. **Generate content with script** (ensures verbatim copying):
+   ```bash
+   python3 .agent/skills/plan-check/scripts/stage_for_review.py \
+       "/path/to/.claude/plans/issue-N-slug/document.md" \
+       "ISSUE_NUMBER" \
+       "STAGE"   # requirements | design | tasks
+   ```
+
+2. **Create artifact** - Use `write_to_file` with:
+   - `TargetFile`: `<appDataDir>/brain/<conversation-id>/issue-N-stage.md`
+   - `IsArtifact`: true
+   - `CodeContent`: ENTIRE script output (do NOT edit)
+
+3. **Verify line count** - Compare source and artifact:
+   ```bash
+   wc -l /path/to/source.md
+   wc -l /path/to/artifact.md
+   ```
+   Artifact should have source lines + ~8 lines of frontmatter.
+
+4. **Open for review** - Call `notify_user` with `PathsToReview`
+
+**⛔ FORBIDDEN:** Summarizing, abbreviating, or "cleaning up" content. The staged artifact must contain the EXACT source file content.
+
+**Cleanup:** After planning is complete, delete staged artifacts from `<appDataDir>/brain/<conversation-id>/`.
 
 ---
 
