@@ -854,8 +854,8 @@
                             <!-- Telegram Registration (Moved into Dispatch Preferences) -->
                             <div class="form-group"
                                 style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-subtle);">
-                                <label for="telegram-chat-id">Telegram Chat ID (Optional)</label>
-                                <input type="text" id="telegram-chat-id" placeholder="Chat ID">
+                                <label for="telegram-chat-id">Telegram Chat ID (Set via Telegram registration)</label>
+                                <input type="text" id="telegram-chat-id" placeholder="Registered via Telegram" readonly>
                                 <small style="color: var(--text-secondary); font-size: 0.75rem;">
                                     For route notifications and updates
                                 </small>
@@ -1373,7 +1373,7 @@
                 last_name: document.getElementById('last-name').value,
                 phone_number: document.getElementById('phone-number').value || null,
                 email: document.getElementById('email').value || null,
-                telegram_chat_id: document.getElementById('telegram-chat-id').value || null,
+                // telegram_chat_id is NOT included - managed by Telegram registration flow only
                 license_number: document.getElementById('license-number').value || null,
                 license_class: document.getElementById('license-class').value || null,
                 license_expiry: document.getElementById('license-expiry').value || null,
