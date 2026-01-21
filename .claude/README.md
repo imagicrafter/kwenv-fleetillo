@@ -90,20 +90,28 @@ Create these labels in GitHub:
 │   ├── generate-plan/           # Create planning documents
 │   ├── issue-check/             # Orchestrator: triage all issues
 │   ├── plan-check/              # Orchestrator: generate all plans
+│   │   └── scripts/             # Helper scripts
+│   │       └── open_preview.sh  # Open markdown in VS Code preview
 │   ├── start-issue/             # Set up for implementation
 │   ├── task-state/              # Manage task status in tasks.md
 │   ├── triage-issue/            # Score and label single issue
 │   └── validate-plan/           # Check plan quality
 ├── commands/                    # Slash commands (user-invoked only)
 │   ├── execute.md               # /execute - Implement planned issues
-│   └── prime.md                 # /prime - Load project context
-├── hooks/                       # PostToolUse automation hooks
-│   ├── archive-plan.sh          # Auto-archive plans to dated folders
-│   └── review-plan.sh           # Send plans to external AI reviewers
+│   ├── prioritize.md            # /prioritize - Recommend next issue
+│   ├── plan-cleanup.md          # /plan-cleanup - Archive closed plans
+│   ├── prime.md                 # /prime - Load project context
+│   └── ...                      # Other workflow commands
 └── plans/                       # Implementation plans
-    ├── archive/                 # Archived plans (auto-populated)
-    ├── templates/               # Plan document templates
-    └── reviews/                 # External review results
+    ├── archive/                 # Archived plans (gitignored)
+    │   ├── completed/           # Plans for closed issues
+    │   └── duplicates/          # Duplicate plan folders
+    └── issue-N-slug/            # Active plan folders
+
+.agent/                          # Symlinks for other AI tools
+├── README.md    -> ../.claude/README.md
+├── skills/      -> ../.claude/skills
+└── workflows/   -> ../.claude/commands
 ```
 
 ---
@@ -125,6 +133,8 @@ Implements a GitHub issue based on its complexity tier:
 | **Simple** | 0-2 pts | Orchestrator implements directly |
 | **Medium** | 3-6 pts | Single sub-agent with full plan |
 | **Complex** | 7+ pts | Multiple sub-agents with context continuity |
+
+**Auto-Cleanup (Step 0):** Before starting, `/execute` automatically archives plan folders for any closed issues. This ensures plans from previously merged PRs are cleaned up without manual intervention.
 
 ### Worktree Isolation
 
@@ -431,6 +441,8 @@ Commands are user-invoked actions (slash commands).
 | Command | Purpose | Invocation |
 |---------|---------|------------|
 | **execute** | Implement a planned GitHub issue | `/execute 42` |
+| **prioritize** | Recommend next issue to work on | `/prioritize` |
+| **plan-cleanup** | Archive plans for closed issues | `/plan-cleanup` |
 | **prime** | Load project context into conversation | `/prime` |
 
 ### /execute
@@ -452,6 +464,39 @@ The primary implementation command. Takes an issue that has been triaged and pla
 - All validations passing
 - Pull request created
 - Issue updated with PR link
+
+### /prioritize
+
+Analyzes all planned issues and recommends the next one to implement based on:
+- Recent PR history (what areas have been worked on)
+- Issue dependencies (blocked vs ready)
+- Strategic value (foundation work that unlocks other issues)
+
+```bash
+/prioritize
+```
+
+**Output includes:**
+- Summary of recent context
+- Table of planned issues with status
+- Dependency graph
+- Recommended next issue with rationale
+- Alternative options
+
+### /plan-cleanup
+
+Archives plan folders for closed issues and cleans up duplicates. Run manually or let `/execute` handle it automatically (Step 0).
+
+```bash
+/plan-cleanup
+```
+
+**Actions:**
+- Archives closed issue plans to `.claude/plans/archive/completed/`
+- Archives duplicate folders to `.claude/plans/archive/duplicates/`
+- Archives orphaned plans to `.claude/plans/archive/orphaned/`
+
+**Note:** `/execute` runs this automatically before starting, so manual invocation is rarely needed.
 
 ### /prime
 
