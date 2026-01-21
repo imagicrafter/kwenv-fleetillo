@@ -8,6 +8,7 @@ allowed-tools:
   - Bash(test:*)
   - Bash([*)
   - Bash(for *)
+  - Bash(.claude/skills/plan-check/scripts/open_preview.sh:*)
   - Read
   - Glob
   - Grep
@@ -20,6 +21,39 @@ allowed-tools:
 # Plan Check Orchestrator
 
 Generate plans for all triaged issues that need planning documentation.
+
+## How to Run
+
+Invoke the plan-check skill to start the planning workflow:
+```
+/plan-check
+```
+
+### What Happens
+
+1. **Discovery** - Lists all issues with `plan: medium` or `plan: complex` labels that don't yet have `plan ready`
+2. **Medium issues** - Spawns sub-agents in parallel to generate `plan.md` documents (no approval needed)
+3. **Complex issues** - Runs a staged workflow with human approval gates:
+   - Stage 1: Generate and review `requirements.md`
+   - Stage 2: Generate and review `design.md`
+   - Stage 3: Generate and review `tasks.md`
+   - Stage 4: Add `plan ready` label
+
+### Reviewing Documents
+
+When a document is staged for review, it will be **automatically opened in VS Code preview mode** using the helper script at `.claude/skills/plan-check/scripts/open_preview.sh`.
+
+Preview mode renders:
+- Mermaid diagrams (flowcharts, sequence diagrams)
+- Markdown tables
+- Formatted code blocks
+- Task checkboxes
+
+After reviewing, type `approve` to proceed or provide feedback for revisions.
+
+**Manual fallback:** If auto-preview doesn't work, press `Cmd+Shift+V` (Mac) or `Ctrl+Shift+V` (Windows/Linux).
+
+---
 
 ## Overview
 
@@ -45,7 +79,9 @@ All of the following operations should proceed autonomously WITHOUT asking for p
 - A design.md document has been fully generated and is ready for review
 - A tasks.md document has been fully generated and is ready for review
 
-Use the AskUserQuestion tool ONLY after presenting a completed document to get approval or feedback.
+When ready for review:
+1. Open the document in VS Code preview mode using `open_preview.sh`
+2. Use `AskUserQuestion` to get approval or feedback
 
 ## Planning Labels
 
@@ -174,7 +210,20 @@ fi
 3. Analyze the codebase thoroughly
 4. Create directory: `mkdir -p .claude/plans/issue-[N]-[slug]`
 5. Generate `requirements.md` using the generate-requirements skill template
-6. **APPROVAL GATE:** Present the requirements document to the human and ask: "Requirements document complete for issue #[N]. Please review and approve, or provide feedback."
+6. **APPROVAL GATE:** Open document for review and wait for approval:
+
+   a. **Open in Preview Mode:**
+      ```bash
+      .claude/skills/plan-check/scripts/open_preview.sh ".claude/plans/issue-[N]-[slug]/requirements.md"
+      ```
+
+   b. **Request Review:** Use `AskUserQuestion` with:
+      - Question: "I've generated the requirements document for issue #[N] and opened it in VS Code preview mode. Please review the document."
+      - Header: "Requirements"
+      - Options:
+        - Label: "Approve", Description: "Requirements look good, proceed to design phase"
+        - Label: "Needs revision", Description: "I have feedback on the requirements"
+
 
 **Wait for human approval before proceeding to Stage 2.**
 
@@ -193,7 +242,19 @@ After requirements approval (or if resuming with existing requirements.md):
 1. Announce: "Generating design document based on approved requirements..."
 2. Generate `design.md` using the generate-design skill template
    - Must reference and align with the approved requirements.md
-3. **APPROVAL GATE:** Present the design document to the human and ask: "Design document complete for issue #[N]. Please review and approve, or provide feedback."
+3. **APPROVAL GATE:** Open document for review and wait for approval:
+
+   a. **Open in Preview Mode:**
+      ```bash
+      .claude/skills/plan-check/scripts/open_preview.sh ".claude/plans/issue-[N]-[slug]/design.md"
+      ```
+
+   b. **Request Review:** Use `AskUserQuestion` with:
+      - Question: "I've generated the design document for issue #[N] and opened it in VS Code preview mode. The document includes architecture diagrams and component interfaces. Please review."
+      - Header: "Design"
+      - Options:
+        - Label: "Approve", Description: "Design looks good, proceed to tasks phase"
+        - Label: "Needs revision", Description: "I have feedback on the design"
 
 **Wait for human approval before proceeding to Stage 3.**
 
@@ -213,7 +274,19 @@ After design approval (or if resuming with existing design.md):
 2. Generate `tasks.md` using the generate-tasks skill template
    - Must reference requirements from requirements.md
    - Must align with architecture from design.md
-3. **APPROVAL GATE:** Present the tasks document to the human and ask: "Tasks document complete for issue #[N]. Please review and approve, or provide feedback."
+3. **APPROVAL GATE:** Open document for review and wait for approval:
+
+   a. **Open in Preview Mode:**
+      ```bash
+      .claude/skills/plan-check/scripts/open_preview.sh ".claude/plans/issue-[N]-[slug]/tasks.md"
+      ```
+
+   b. **Request Review:** Use `AskUserQuestion` with:
+      - Question: "I've generated the tasks document for issue #[N] and opened it in VS Code preview mode. The document includes a structured task list with checkboxes and requirement traceability. Please review."
+      - Header: "Tasks"
+      - Options:
+        - Label: "Approve", Description: "Tasks look good, finalize planning"
+        - Label: "Needs revision", Description: "I have feedback on the tasks"
 
 **Wait for human approval before proceeding to Stage 4.**
 
