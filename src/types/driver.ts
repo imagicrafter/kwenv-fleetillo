@@ -44,6 +44,7 @@ export interface Driver extends Timestamps {
   // Additional information
   notes?: string;
   profileImageUrl?: string;
+  tags: string[];
 
   // Computed field - vehicle assignment (from vehicles table)
   assignedVehicleId?: ID;
@@ -76,6 +77,7 @@ export interface DriverRow {
   emergency_contact_phone: string | null;
   notes: string | null;
   profile_image_url: string | null;
+  tags: string[] | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -104,6 +106,7 @@ export interface CreateDriverInput {
   emergencyContactPhone?: string;
   notes?: string;
   profileImageUrl?: string;
+  tags?: string[];
 }
 
 /**
@@ -146,6 +149,7 @@ export function rowToDriver(row: DriverRow): Driver {
     emergencyContactPhone: row.emergency_contact_phone ?? undefined,
     notes: row.notes ?? undefined,
     profileImageUrl: row.profile_image_url ?? undefined,
+    tags: row.tags ?? [],
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
     deletedAt: row.deleted_at ? new Date(row.deleted_at) : undefined,
@@ -193,5 +197,6 @@ export function driverInputToRow(input: CreateDriverInput): Partial<DriverRow> {
     emergency_contact_phone: input.emergencyContactPhone ?? null,
     notes: input.notes ?? null,
     profile_image_url: input.profileImageUrl ?? null,
+    tags: input.tags ?? [],
   };
 }

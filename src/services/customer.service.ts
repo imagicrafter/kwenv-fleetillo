@@ -181,7 +181,8 @@ export async function createCustomer(input: CreateCustomerInput, options?: { ski
           postalCode: input.postalCode,
           country: input.country || 'USA',
           latitude: input.latitude,
-          longitude: input.longitude
+          longitude: input.longitude,
+          tags: []
         };
 
         await createLocation(locationInput);

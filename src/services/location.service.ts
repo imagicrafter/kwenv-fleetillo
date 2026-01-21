@@ -35,6 +35,7 @@ export interface Location {
     longitude?: number | null;
     isPrimary: boolean;
     notes?: string | null;
+    tags: string[];
     createdAt: string;
     updatedAt: string;
     deletedAt?: string | null;
@@ -70,6 +71,7 @@ function rowToLocation(row: any): Location {
         longitude: row.longitude,
         isPrimary: row.is_primary,
         notes: row.notes,
+        tags: row.tags ?? [],
         createdAt: row.created_at,
         updatedAt: row.updated_at,
         deletedAt: row.deleted_at
@@ -94,6 +96,7 @@ function inputToRow(input: CreateLocationInput | UpdateLocationInput): any {
     if ('longitude' in input) row.longitude = input.longitude;
     if ('isPrimary' in input) row.is_primary = input.isPrimary;
     if ('notes' in input) row.notes = input.notes;
+    if ('tags' in input) row.tags = input.tags;
     return row;
 }
 
