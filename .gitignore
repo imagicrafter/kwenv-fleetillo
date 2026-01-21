@@ -46,3 +46,6 @@ temp/
 # yarn.lock
 .env.bak
 .gravity
+
+# Claude Code - archived plans (closed issues, duplicates)
+.claude/plans/archive/

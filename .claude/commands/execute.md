@@ -109,6 +109,37 @@ The plan was approved during the planning phase. This command executes the plan 
 
 ---
 
+## Step 0: Auto-Cleanup Stale Plans
+
+Before starting execution, archive any plan folders for issues that have been closed (e.g., from previous PR merges).
+
+```bash
+echo "🧹 Checking for stale plans to archive..."
+
+mkdir -p .claude/plans/archive/completed
+
+for dir in .claude/plans/issue-*/; do
+  [ -d "$dir" ] || continue
+
+  issue_num=$(basename "$dir" | grep -oE '[0-9]+' | head -1)
+
+  if [ -n "$issue_num" ]; then
+    state=$(gh issue view "$issue_num" --json state --jq '.state' 2>/dev/null || echo "UNKNOWN")
+
+    if [ "$state" = "CLOSED" ]; then
+      echo "  Archiving $(basename "$dir") (issue #$issue_num is closed)"
+      mv "$dir" .claude/plans/archive/completed/
+    fi
+  fi
+done
+
+echo "✅ Stale plan cleanup complete"
+```
+
+This ensures plans from previously merged PRs are archived before starting new work.
+
+---
+
 ## Step 1: Argument Resolution and Validation
 
 **Argument**: `$ARGUMENTS` - Plan folder path or issue number
@@ -1458,6 +1489,7 @@ gh issue edit "$ISSUE_NUMBER" --remove-label "plan ready" 2>/dev/null || true
 2. Address any review comments
 3. Merge after approval
 4. Issue #$ISSUE_NUMBER will auto-close on merge
+5. Plan folder will be auto-archived on next `/execute` run (or run `/plan-cleanup` manually)
 
 ---
 🤖 Execution completed successfully

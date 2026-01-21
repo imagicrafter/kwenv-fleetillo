@@ -1,6 +1,6 @@
 # Claude Code Configuration
 
-This directory contains configuration specific to Claude Code CLI. For tool-agnostic agent documentation, see `.agent/README.md`.
+This directory contains configuration for Claude Code CLI and other AI agents (via symlinks in `.agent/`).
 
 ---
 
@@ -541,39 +541,13 @@ The orchestrator automatically detects and resumes partially completed planning:
 | `requirements.md` + `design.md` | Stage 3: Tasks |
 | All three | Stage 4: Complete |
 
-### Artifact Staging for Preview Mode
+### Document Review in Preview Mode
 
-When staging documents for human review in Antigravity preview mode, follow this process:
+When documents are staged for human review, they are automatically opened in VS Code preview mode using the helper script at `.claude/skills/plan-check/scripts/open_preview.sh`.
 
-**Why this matters:** Files created via shell commands won't display in preview mode. Only files created with `write_to_file IsArtifact=true` can be previewed.
-
-**Process:**
-
-1. **Generate content with script** (ensures verbatim copying):
-   ```bash
-   python3 .agent/skills/plan-check/scripts/stage_for_review.py \
-       "/path/to/.claude/plans/issue-N-slug/document.md" \
-       "ISSUE_NUMBER" \
-       "STAGE"   # requirements | design | tasks
-   ```
-
-2. **Create artifact** - Use `write_to_file` with:
-   - `TargetFile`: `<appDataDir>/brain/<conversation-id>/issue-N-stage.md`
-   - `IsArtifact`: true
-   - `CodeContent`: ENTIRE script output (do NOT edit)
-
-3. **Verify line count** - Compare source and artifact:
-   ```bash
-   wc -l /path/to/source.md
-   wc -l /path/to/artifact.md
-   ```
-   Artifact should have source lines + ~8 lines of frontmatter.
-
-4. **Open for review** - Call `notify_user` with `PathsToReview`
-
-**⛔ FORBIDDEN:** Summarizing, abbreviating, or "cleaning up" content. The staged artifact must contain the EXACT source file content.
-
-**Cleanup:** After planning is complete, delete staged artifacts from `<appDataDir>/brain/<conversation-id>/`.
+**Preview shortcuts:**
+- **VS Code:** `Cmd+Shift+V` (Mac) / `Ctrl+Shift+V` (Windows/Linux)
+- **Side-by-side:** `Cmd+K V` (Mac) / `Ctrl+K V` (Windows/Linux)
 
 ---
 
@@ -695,6 +669,5 @@ Examples: `issue/5-dispatch-job`, `issue/42-geofencing`
 
 ## Related
 
-- `.agent/README.md` - Tool-agnostic configuration
-- `.agent/skills/` - Synced skills for Gemini/other tools
+- `.agent/` - Symlinks for other AI tools (Gemini, Cursor, etc.)
 - `docs/yokeflow/` - Project architecture
