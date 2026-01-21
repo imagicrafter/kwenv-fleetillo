@@ -3,28 +3,55 @@ name: execute
 description: Execute implementation for a triaged and planned GitHub issue. Handles simple, medium, and complex tiers with appropriate sub-agent delegation.
 argument-hint: <plan-folder-or-issue-number>
 allowed-tools:
+  # GitHub and Git
   - Bash(gh:*)
   - Bash(git:*)
+  # Build tools
   - Bash(npm:*)
   - Bash(npx:*)
   - Bash(pytest:*)
   - Bash(python:*)
   - Bash(go:*)
   - Bash(cargo:*)
+  - Bash(make:*)
+  # File operations
   - Bash(cat:*)
   - Bash(head:*)
   - Bash(tail:*)
+  - Bash(mv:*)
+  - Bash(cp:*)
+  - Bash(rm:*)
+  - Bash(mkdir:*)
+  - Bash(mktemp:*)
+  - Bash(touch:*)
+  # Text processing
   - Bash(grep:*)
+  - Bash(sed:*)
+  - Bash(jq:*)
+  - Bash(sort:*)
+  - Bash(uniq:*)
+  - Bash(tr:*)
+  - Bash(xargs:*)
+  - Bash(cut:*)
+  - Bash(awk:*)
+  # Path utilities
+  - Bash(basename:*)
+  - Bash(dirname:*)
+  - Bash(realpath:*)
+  # Filesystem queries
   - Bash(find:*)
   - Bash(ls:*)
-  - Bash(mkdir:*)
+  - Bash(wc:*)
+  - Bash(stat:*)
+  # Shell utilities
   - Bash(test:*)
   - Bash(echo:*)
   - Bash(date:*)
-  - Bash(wc:*)
-  - Bash(sed:*)
-  - Bash(jq:*)
+  - Bash(eval:*)
   - Bash([*)
+  - Bash(true:*)
+  - Bash(false:*)
+  # Claude tools
   - Read
   - Write
   - Edit
@@ -241,7 +268,9 @@ fi
 echo "✅ GitHub CLI authenticated"
 ```
 
-### 3.2 Fetch Latest and Create Feature Branch
+### 3.2 Fetch Latest and Create Worktree
+
+Worktrees provide isolated working directories, allowing multiple agents to work on different issues simultaneously without conflicts.
 
 ```bash
 git fetch origin
@@ -253,26 +282,96 @@ BRANCH_NAME="issue/${FOLDER_NAME#issue-}"
 
 echo "🌿 Target branch: $BRANCH_NAME"
 
+# Generate worktree path (sibling directory to main repo)
+REPO_ROOT=$(git rev-parse --show-toplevel)
+REPO_NAME=$(basename "$REPO_ROOT")
+WORKTREE_NAME="${REPO_NAME}-${FOLDER_NAME}"
+WORKTREE_PATH="$(dirname "$REPO_ROOT")/$WORKTREE_NAME"
+
+echo "📁 Worktree path: $WORKTREE_PATH"
+
 # Check if branch exists locally or remotely
 BRANCH_EXISTS_LOCAL=$(git show-ref --verify --quiet "refs/heads/$BRANCH_NAME" && echo "yes" || echo "no")
 BRANCH_EXISTS_REMOTE=$(git show-ref --verify --quiet "refs/remotes/origin/$BRANCH_NAME" && echo "yes" || echo "no")
 
-if [ "$BRANCH_EXISTS_LOCAL" = "yes" ]; then
-  echo "Branch exists locally, checking out..."
-  git checkout "$BRANCH_NAME"
+# Check if worktree already exists
+if [ -d "$WORKTREE_PATH" ]; then
+  echo "Worktree already exists at $WORKTREE_PATH"
+  WORKTREE_EXISTS="yes"
+else
+  WORKTREE_EXISTS="no"
+fi
+
+# Create or reuse worktree
+if [ "$WORKTREE_EXISTS" = "yes" ]; then
+  echo "Using existing worktree..."
+  cd "$WORKTREE_PATH"
   git pull origin "$BRANCH_NAME" 2>/dev/null || true
 elif [ "$BRANCH_EXISTS_REMOTE" = "yes" ]; then
-  echo "Branch exists on remote, checking out..."
-  git checkout -b "$BRANCH_NAME" "origin/$BRANCH_NAME"
+  echo "Creating worktree from remote branch..."
+  git worktree add "$WORKTREE_PATH" "$BRANCH_NAME"
+  cd "$WORKTREE_PATH"
+elif [ "$BRANCH_EXISTS_LOCAL" = "yes" ]; then
+  echo "Creating worktree from local branch..."
+  git worktree add "$WORKTREE_PATH" "$BRANCH_NAME"
+  cd "$WORKTREE_PATH"
 else
-  echo "Creating new branch from main..."
-  git checkout main
-  git pull origin main
-  git checkout -b "$BRANCH_NAME"
+  echo "Creating worktree with new branch from main..."
+  git worktree add "$WORKTREE_PATH" -b "$BRANCH_NAME" origin/main
+  cd "$WORKTREE_PATH"
 fi
 
 CURRENT_BRANCH=$(git branch --show-current)
 echo "✅ On branch: $CURRENT_BRANCH"
+echo "✅ Working in: $(pwd)"
+
+# Update PLAN_FOLDER to point to worktree location
+PLAN_FOLDER="$WORKTREE_PATH/.claude/plans/$FOLDER_NAME"
+echo "📋 Plan folder updated: $PLAN_FOLDER"
+```
+
+### 3.3 Setup Worktree Environment
+
+Copy configuration files and install dependencies in the worktree.
+
+```bash
+echo "🔧 Setting up worktree environment..."
+
+# Copy .env files from main repo (these are gitignored)
+if [ -f "$REPO_ROOT/.env" ]; then
+  cp "$REPO_ROOT/.env" "$WORKTREE_PATH/.env"
+  echo "  ✅ Copied root .env"
+fi
+
+# Copy sub-package .env files
+for subdir in dispatch-service web-launcher; do
+  if [ -f "$REPO_ROOT/$subdir/.env" ]; then
+    cp "$REPO_ROOT/$subdir/.env" "$WORKTREE_PATH/$subdir/.env"
+    echo "  ✅ Copied $subdir/.env"
+  fi
+done
+
+# Install dependencies if node_modules doesn't exist
+if [ -f "$WORKTREE_PATH/package.json" ] && [ ! -d "$WORKTREE_PATH/node_modules" ]; then
+  echo "📦 Installing root dependencies..."
+  npm install --prefix "$WORKTREE_PATH"
+fi
+
+# Build sub-packages that need compilation
+for subdir in dispatch-service; do
+  if [ -f "$WORKTREE_PATH/$subdir/package.json" ]; then
+    if [ ! -d "$WORKTREE_PATH/$subdir/node_modules" ]; then
+      echo "📦 Installing $subdir dependencies..."
+      npm install --prefix "$WORKTREE_PATH/$subdir"
+    fi
+    if [ ! -d "$WORKTREE_PATH/$subdir/dist" ]; then
+      echo "🏗️ Building $subdir..."
+      npm run build --prefix "$WORKTREE_PATH/$subdir"
+    fi
+  fi
+done
+
+echo "✅ Worktree environment ready"
 ```
 
 ---
@@ -1457,6 +1556,7 @@ exit 1
 
 | Rule | Description |
 |------|-------------|
+| **Worktree isolation** | Each execution runs in its own worktree, not the main repo |
 | **No human approval** | Execute autonomously; plan was already approved |
 | **Stop only on failure** | Label `needs review` on unrecoverable failures |
 | **Commit WIP on failure** | Always preserve work done before stopping |
@@ -1502,3 +1602,55 @@ For complex tier issues, these files enable sub-agents to understand prior work:
 - Progressive disclosure prevents over-loading sub-agents
 - Context continuity files bridge knowledge between sub-agents
 - Resume support allows interrupted executions to continue
+
+---
+
+## Worktree Management
+
+### Why Worktrees?
+
+Worktrees allow multiple agents to work on different issues simultaneously:
+- Each worktree is an isolated working directory on its own branch
+- No branch switching in the main repository
+- Parallel execution without conflicts
+- Main repo stays on `main` branch as clean reference
+
+### Worktree Locations
+
+```
+/github/fleetillo/                    ← Main repo (stays on main)
+/github/fleetillo-issue-12-feature/   ← Worktree for issue #12
+/github/fleetillo-issue-15-schema/    ← Worktree for issue #15
+```
+
+### Worktree Setup (Automated in Step 3)
+
+1. **Create worktree**: `git worktree add ../repo-issue-N -b issue/N-slug origin/main`
+2. **Copy .env files**: Root and sub-packages (dispatch-service, web-launcher)
+3. **Install dependencies**: `npm install` in root
+4. **Build sub-packages**: `npm install && npm run build` in dispatch-service/
+
+### Worktree Cleanup (After PR Merge)
+
+```bash
+# List all worktrees
+git worktree list
+
+# Remove a worktree after PR is merged
+git worktree remove ../fleetillo-issue-12-feature
+
+# If worktree has uncommitted changes, force removal
+git worktree remove --force ../fleetillo-issue-12-feature
+
+# Prune stale worktree references
+git worktree prune
+```
+
+### Worktree Best Practices
+
+| Practice | Reason |
+|----------|--------|
+| Keep main repo on `main` | Clean reference for starting new work |
+| One worktree per issue | Clear isolation of changes |
+| Delete after merge | Avoid accumulating stale worktrees |
+| Don't share worktrees | Each agent should have its own |
