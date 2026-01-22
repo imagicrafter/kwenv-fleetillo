@@ -14,10 +14,10 @@ exports.getPendingJobsDue = getPendingJobsDue;
  * Dispatch Job Service
  * Manages batch dispatch job scheduling with driver exclusivity enforcement
  */
-const supabase_js_1 = require("./supabase.js");
-const logger_js_1 = require("../utils/logger.js");
-const dispatch_job_js_1 = require("../types/dispatch-job.js");
-const logger = (0, logger_js_1.createContextLogger)('DispatchJobService');
+const supabase_1 = require("./supabase");
+const logger_1 = require("../utils/logger");
+const dispatch_job_1 = require("../types/dispatch-job");
+const logger = (0, logger_1.createContextLogger)('DispatchJobService');
 const DISPATCH_JOBS_TABLE = 'dispatch_jobs';
 /**
  * Get drivers currently assigned to active dispatch jobs
@@ -26,7 +26,7 @@ const DISPATCH_JOBS_TABLE = 'dispatch_jobs';
 async function getDriversInActiveJobs() {
     logger.debug('Getting drivers in active dispatch jobs');
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(DISPATCH_JOBS_TABLE)
             .select('driver_ids')
@@ -54,7 +54,7 @@ async function getDriversInActiveJobs() {
 async function checkDriverConflicts(driverIds) {
     logger.debug('Checking for driver conflicts', { driverIds });
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(DISPATCH_JOBS_TABLE)
             .select('id, name, driver_ids')
@@ -109,8 +109,8 @@ async function createDispatchJob(input) {
         return { success: false, error: new Error(`Cannot create job: ${conflictMsg}. Remove drivers from active jobs before reassigning.`) };
     }
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
-        const rowData = (0, dispatch_job_js_1.dispatchJobInputToRow)(input);
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
+        const rowData = (0, dispatch_job_1.dispatchJobInputToRow)(input);
         const { data, error } = await supabase
             .from(DISPATCH_JOBS_TABLE)
             .insert(rowData)
@@ -121,7 +121,7 @@ async function createDispatchJob(input) {
             return { success: false, error: new Error(error.message) };
         }
         logger.info('Dispatch job created', { jobId: data.id });
-        return { success: true, data: (0, dispatch_job_js_1.rowToDispatchJob)(data) };
+        return { success: true, data: (0, dispatch_job_1.rowToDispatchJob)(data) };
     }
     catch (error) {
         logger.error('Unexpected error creating dispatch job', { error });
@@ -134,7 +134,7 @@ async function createDispatchJob(input) {
 async function getDispatchJobs(filters) {
     logger.debug('Getting dispatch jobs', { filters });
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         let query = supabase.from(DISPATCH_JOBS_TABLE).select('*');
         if (filters?.status) {
             query = query.eq('status', filters.status);
@@ -156,7 +156,7 @@ async function getDispatchJobs(filters) {
             logger.error('Error fetching dispatch jobs', { error });
             return { success: false, error: new Error(error.message) };
         }
-        return { success: true, data: (data || []).map((row) => (0, dispatch_job_js_1.rowToDispatchJob)(row)) };
+        return { success: true, data: (data || []).map((row) => (0, dispatch_job_1.rowToDispatchJob)(row)) };
     }
     catch (error) {
         logger.error('Unexpected error fetching dispatch jobs', { error });
@@ -169,7 +169,7 @@ async function getDispatchJobs(filters) {
 async function getDispatchJobById(jobId) {
     logger.debug('Getting dispatch job by ID', { jobId });
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(DISPATCH_JOBS_TABLE)
             .select('*')
@@ -182,7 +182,7 @@ async function getDispatchJobById(jobId) {
             logger.error('Error fetching dispatch job', { error });
             return { success: false, error: new Error(error.message) };
         }
-        return { success: true, data: (0, dispatch_job_js_1.rowToDispatchJob)(data) };
+        return { success: true, data: (0, dispatch_job_1.rowToDispatchJob)(data) };
     }
     catch (error) {
         logger.error('Unexpected error fetching dispatch job', { error });
@@ -195,7 +195,7 @@ async function getDispatchJobById(jobId) {
  */
 async function executeDispatchJob(jobId) {
     logger.info('Executing dispatch job', { jobId });
-    const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+    const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
     // Get the job
     const jobResult = await getDispatchJobById(jobId);
     if (!jobResult.success || !jobResult.data) {
@@ -282,7 +282,7 @@ async function executeDispatchJob(jobId) {
  */
 async function cancelDispatchJob(jobId) {
     logger.info('Cancelling dispatch job', { jobId });
-    const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+    const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
     // Get the job first
     const jobResult = await getDispatchJobById(jobId);
     if (!jobResult.success || !jobResult.data) {
@@ -301,14 +301,14 @@ async function cancelDispatchJob(jobId) {
         logger.error('Error cancelling dispatch job', { error });
         return { success: false, error: new Error(error.message) };
     }
-    return { success: true, data: (0, dispatch_job_js_1.rowToDispatchJob)(data) };
+    return { success: true, data: (0, dispatch_job_1.rowToDispatchJob)(data) };
 }
 /**
  * Remove a driver from an active dispatch job
  */
 async function removeDriverFromJob(jobId, driverId) {
     logger.info('Removing driver from dispatch job', { jobId, driverId });
-    const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+    const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
     // Get the job first
     const jobResult = await getDispatchJobById(jobId);
     if (!jobResult.success || !jobResult.data) {
@@ -336,7 +336,7 @@ async function removeDriverFromJob(jobId, driverId) {
         logger.error('Error removing driver from job', { error });
         return { success: false, error: new Error(error.message) };
     }
-    return { success: true, data: (0, dispatch_job_js_1.rowToDispatchJob)(data) };
+    return { success: true, data: (0, dispatch_job_1.rowToDispatchJob)(data) };
 }
 /**
  * Get pending jobs that are due for execution
@@ -344,7 +344,7 @@ async function removeDriverFromJob(jobId, driverId) {
 async function getPendingJobsDue() {
     logger.debug('Getting pending jobs due for execution');
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(DISPATCH_JOBS_TABLE)
             .select('*')
@@ -355,7 +355,7 @@ async function getPendingJobsDue() {
             logger.error('Error fetching pending jobs', { error });
             return { success: false, error: new Error(error.message) };
         }
-        return { success: true, data: (data || []).map((row) => (0, dispatch_job_js_1.rowToDispatchJob)(row)) };
+        return { success: true, data: (data || []).map((row) => (0, dispatch_job_1.rowToDispatchJob)(row)) };
     }
     catch (error) {
         logger.error('Unexpected error fetching pending jobs', { error });
@@ -367,7 +367,7 @@ async function getPendingJobsDue() {
  */
 async function findNextPlannedRoute(driverId) {
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const today = new Date().toISOString().split('T')[0];
         const { data, error } = await supabase
             .from('routes')

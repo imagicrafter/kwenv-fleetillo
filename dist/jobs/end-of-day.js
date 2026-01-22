@@ -5,14 +5,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * This script is run by DigitalOcean App Platform on a cron schedule
  * to mark dispatched routes as completed at end of business day
  */
-const end_of_day_service_js_1 = require("../services/end-of-day.service.js");
-const logger_js_1 = require("../utils/logger.js");
-const logger = (0, logger_js_1.createContextLogger)('EndOfDayJob');
+const end_of_day_service_1 = require("../services/end-of-day.service");
+const logger_1 = require("../utils/logger");
+const logger = (0, logger_1.createContextLogger)('EndOfDayJob');
 async function main() {
     logger.info('=== End-of-Day Job Started ===');
     const startTime = Date.now();
     try {
-        const result = await end_of_day_service_js_1.endOfDayService.runEndOfDayCheck();
+        const result = await end_of_day_service_1.endOfDayService.runEndOfDayCheck();
         if (!result.success) {
             logger.error('End-of-day check failed', { error: result.error });
             process.exit(1);

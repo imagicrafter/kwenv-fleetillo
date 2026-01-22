@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.downloadTemplate = exports.uploadCSV = exports.count = exports.restore = exports.remove = exports.update = exports.getAll = exports.getByNumber = exports.getById = exports.create = void 0;
-const booking_service_js_1 = require("../services/booking.service.js");
-const csv_service_js_1 = require("../services/csv.service.js");
+const booking_service_1 = require("../services/booking.service");
+const csv_service_1 = require("../services/csv.service");
 /**
  * Booking Controller
  * Handles HTTP requests for booking operations
@@ -14,7 +14,7 @@ const csv_service_js_1 = require("../services/csv.service.js");
 const create = async (req, res, next) => {
     try {
         const input = req.body;
-        const result = await (0, booking_service_js_1.createBooking)(input);
+        const result = await (0, booking_service_1.createBooking)(input);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -43,7 +43,7 @@ const getById = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'ID is required' } });
             return;
         }
-        const result = await (0, booking_service_js_1.getBookingById)(id);
+        const result = await (0, booking_service_1.getBookingById)(id);
         if (!result.success) {
             res.status(404).json({
                 success: false,
@@ -72,7 +72,7 @@ const getByNumber = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'Booking number is required' } });
             return;
         }
-        const result = await (0, booking_service_js_1.getBookingByNumber)(bookingNumber);
+        const result = await (0, booking_service_1.getBookingByNumber)(bookingNumber);
         if (!result.success) {
             res.status(404).json({
                 success: false,
@@ -131,7 +131,7 @@ const getAll = async (req, res, next) => {
                 filters.tags = tags;
             }
         }
-        const result = await (0, booking_service_js_1.getBookings)(filters, pagination);
+        const result = await (0, booking_service_1.getBookings)(filters, pagination);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -164,7 +164,7 @@ const update = async (req, res, next) => {
             id,
             ...req.body,
         };
-        const result = await (0, booking_service_js_1.updateBooking)(input);
+        const result = await (0, booking_service_1.updateBooking)(input);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -193,7 +193,7 @@ const remove = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'ID is required' } });
             return;
         }
-        const result = await (0, booking_service_js_1.deleteBooking)(id);
+        const result = await (0, booking_service_1.deleteBooking)(id);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -219,7 +219,7 @@ const restore = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'ID is required' } });
             return;
         }
-        const result = await (0, booking_service_js_1.restoreBooking)(id);
+        const result = await (0, booking_service_1.restoreBooking)(id);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -251,7 +251,7 @@ const count = async (req, res, next) => {
             filters.bookingType = bookingType;
         if (includeDeleted === 'true')
             filters.includeDeleted = true;
-        const result = await (0, booking_service_js_1.countBookings)(filters);
+        const result = await (0, booking_service_1.countBookings)(filters);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -288,7 +288,7 @@ const uploadCSV = async (req, res, next) => {
             return;
         }
         // Parse and validate CSV
-        const parseResult = await (0, csv_service_js_1.parseAndValidateCSV)(req.file.buffer);
+        const parseResult = await (0, csv_service_1.parseAndValidateCSV)(req.file.buffer);
         if (!parseResult.success || !parseResult.data) {
             res.status(400).json({
                 success: false,
@@ -326,7 +326,7 @@ const uploadCSV = async (req, res, next) => {
             return;
         }
         // Bulk insert bookings
-        const bulkResult = await (0, booking_service_js_1.bulkCreateBookings)(validBookings);
+        const bulkResult = await (0, booking_service_1.bulkCreateBookings)(validBookings);
         if (!bulkResult.success || !bulkResult.data) {
             res.status(500).json({
                 success: false,

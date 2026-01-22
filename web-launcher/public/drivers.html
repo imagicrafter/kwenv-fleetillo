@@ -856,12 +856,14 @@
                         <!-- Tags -->
                         <div class="form-group" style="margin-top: 12px;">
                             <label for="driver-tag-input">Tags</label>
-                            <div class="tag-input-container" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px; background-color: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-subtle); border-radius: 6px; min-height: 42px; align-items: center;">
+                            <div class="tag-input-container"
+                                style="display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px; background-color: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-subtle); border-radius: 6px; min-height: 42px; align-items: center;">
                                 <div id="driver-tag-chips" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
                                 <input type="text" id="driver-tag-input" placeholder="Add tag and press Enter"
                                     style="flex: 1; min-width: 120px; background: transparent; border: none; color: var(--text-primary); font-family: inherit; font-size: 0.95rem; outline: none; padding: 2px 0;">
                             </div>
-                            <small style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 4px; display: block;">
+                            <small
+                                style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 4px; display: block;">
                                 Press Enter or comma to add a tag
                             </small>
                         </div>
@@ -1047,7 +1049,8 @@
     <!-- Toast Notification Container -->
     <div id="toast-container" class="toast-container"></div>
 
-    <script src="preload.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/api-client.js"></script>
     <script src="confirmation-modal.js"></script>
     <script>
         // State variables
@@ -1135,33 +1138,7 @@
             });
         }
 
-        // RPC helper function
-        async function rpc(namespace, method, params = {}) {
-            try {
-                const response = await fetch('/api/rpc', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        namespace,
-                        method,
-                        args: params
-                    })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || `RPC ${namespace}.${method} failed`);
-                }
-
-                return data;
-            } catch (error) {
-                console.error(`RPC Error (${namespace}.${method}):`, error);
-                throw error;
-            }
-        }
+        // RPC helper function removed - replaced by api-client.js
 
         // Load drivers with pagination and filters
         async function loadDrivers() {
@@ -1179,7 +1156,7 @@
                     params.searchTerm = searchTerm;
                 }
 
-                const result = await rpc('drivers', 'getAll', params);
+                const result = await window.apiClient.drivers.getAll(params);
 
                 drivers = result.data || result.drivers || [];
                 totalDrivers = result.total || drivers.length;
@@ -1201,7 +1178,7 @@
         // Load vehicles for assignment dropdown
         async function loadVehicles() {
             try {
-                const result = await rpc('vehicles', 'getAll', { page: 1, pageSize: 1000 });
+                const result = await window.apiClient.vehicles.getAll({ page: 1, pageSize: 1000 });
                 vehicles = result.data || result.vehicles || [];
                 populateVehicleDropdowns();
             } catch (error) {
@@ -1500,7 +1477,7 @@
                     formData.fallback_enabled = document.getElementById('fallback-enabled').checked;
 
                     // Update existing driver
-                    await rpc('drivers', 'update', { id: editingDriverId, ...formData });
+                    await window.apiClient.drivers.update({ id: editingDriverId, ...formData });
                     driverId = editingDriverId;
 
                     // Handle vehicle assignment change
@@ -1508,10 +1485,10 @@
                     if (selectedVehicleId !== currentVehicleId) {
                         if (selectedVehicleId) {
                             // Assign to new vehicle
-                            await rpc('drivers', 'assignToVehicle', { driverId, vehicleId: selectedVehicleId });
+                            await window.apiClient.drivers.assignToVehicle({ driverId, vehicleId: selectedVehicleId });
                         } else if (currentVehicleId) {
                             // Unassign from current vehicle
-                            await rpc('drivers', 'unassignFromVehicle', { driverId });
+                            await window.apiClient.drivers.unassignFromVehicle({ driverId });
                         }
                     }
 
@@ -1521,12 +1498,12 @@
                     formData.preferred_channel = document.getElementById('preferred-channel').value;
                     formData.fallback_enabled = document.getElementById('fallback-enabled').checked;
 
-                    const result = await rpc('drivers', 'create', formData);
+                    const result = await window.apiClient.drivers.create(formData);
                     driverId = result.data?.id || result.id;
 
                     // Assign to vehicle if selected
                     if (selectedVehicleId && driverId) {
-                        await rpc('drivers', 'assignToVehicle', { driverId, vehicleId: selectedVehicleId });
+                        await window.apiClient.drivers.assignToVehicle({ driverId, vehicleId: selectedVehicleId });
                     }
 
                     showToast('Driver created successfully', 'success');
@@ -1559,7 +1536,7 @@
             if (!await showConfirm(`Are you sure you want to delete driver ${driverName}?`, 'Delete Driver', 'Delete', 'Cancel')) return;
 
             try {
-                await rpc('drivers', 'delete', { id: driverId });
+                await window.apiClient.drivers.delete({ id: driverId });
                 showToast('Driver deleted successfully', 'success');
                 await loadDrivers();
             } catch (error) {
@@ -1790,11 +1767,11 @@
 
             try {
                 if (vehicleId) {
-                    await rpc('drivers', 'assignToVehicle', { driverId, vehicleId });
+                    await window.apiClient.drivers.assignToVehicle({ driverId, vehicleId });
                     showToast('Vehicle assigned successfully', 'success');
                 } else {
                     // Unassign - need to remove vehicle assignment
-                    await rpc('drivers', 'unassignFromVehicle', { driverId });
+                    await window.apiClient.drivers.unassignFromVehicle({ driverId });
                     showToast('Vehicle unassigned', 'success');
                 }
                 closeVehicleAssignModal();
@@ -1881,7 +1858,7 @@
 
                 try {
                     // Fetch fresh driver data
-                    const driver = await rpc('drivers', 'getById', { id: driverId });
+                    const driver = await window.apiClient.drivers.getById({ id: driverId });
 
                     if (driver && (driver.telegramChatId || driver.telegram_chat_id)) {
                         // Connected!
@@ -1977,7 +1954,6 @@
         }
     </script>
 
-    <!-- Telegram QR Code Modal -->
     <div id="qr-modal" class="modal">
         <div class="modal-content" style="max-width: 400px; text-align: center;">
             <div class="modal-header">

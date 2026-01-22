@@ -10,15 +10,15 @@ exports.setVehicleLocations = setVehicleLocations;
 exports.addVehicleLocation = addVehicleLocation;
 exports.removeVehicleLocation = removeVehicleLocation;
 exports.setVehiclePrimaryLocation = setVehiclePrimaryLocation;
-const supabase_js_1 = require("./supabase.js");
-const logger_js_1 = require("../utils/logger.js");
-const vehicle_location_js_1 = require("../types/vehicle-location.js");
-const logger = (0, logger_js_1.createContextLogger)('VehicleLocationService');
+const supabase_1 = require("./supabase");
+const logger_1 = require("../utils/logger");
+const vehicle_location_1 = require("../types/vehicle-location");
+const logger = (0, logger_1.createContextLogger)('VehicleLocationService');
 /**
  * Get all locations associated with a vehicle
  */
 async function getVehicleLocations(vehicleId) {
-    const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+    const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
     try {
         const { data, error } = await supabase
             .from('vehicle_locations')
@@ -29,7 +29,7 @@ async function getVehicleLocations(vehicleId) {
             logger.error('Failed to fetch vehicle locations', { error, vehicleId });
             return { success: false, error };
         }
-        const locations = data.map(vehicle_location_js_1.rowToVehicleLocation);
+        const locations = data.map(vehicle_location_1.rowToVehicleLocation);
         return { success: true, data: locations };
     }
     catch (error) {
@@ -41,7 +41,7 @@ async function getVehicleLocations(vehicleId) {
  * Get the primary location for a vehicle
  */
 async function getVehiclePrimaryLocation(vehicleId) {
-    const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+    const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
     try {
         const { data, error } = await supabase
             .from('vehicle_locations')
@@ -56,7 +56,7 @@ async function getVehiclePrimaryLocation(vehicleId) {
         if (!data) {
             return { success: true, data: null };
         }
-        return { success: true, data: (0, vehicle_location_js_1.rowToVehicleLocation)(data) };
+        return { success: true, data: (0, vehicle_location_1.rowToVehicleLocation)(data) };
     }
     catch (error) {
         logger.error('Unexpected error fetching primary location', { error });
@@ -67,7 +67,7 @@ async function getVehiclePrimaryLocation(vehicleId) {
  * Set locations for a vehicle (replaces all existing associations)
  */
 async function setVehicleLocations(vehicleId, locations) {
-    const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+    const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
     try {
         // Delete existing associations
         const { error: deleteError } = await supabase
@@ -97,7 +97,7 @@ async function setVehicleLocations(vehicleId, locations) {
             logger.error('Failed to insert vehicle locations', { error, vehicleId });
             return { success: false, error };
         }
-        const vehicleLocations = data.map(vehicle_location_js_1.rowToVehicleLocation);
+        const vehicleLocations = data.map(vehicle_location_1.rowToVehicleLocation);
         return { success: true, data: vehicleLocations };
     }
     catch (error) {
@@ -109,7 +109,7 @@ async function setVehicleLocations(vehicleId, locations) {
  * Add a single location to a vehicle
  */
 async function addVehicleLocation(vehicleId, locationId, isPrimary = false) {
-    const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+    const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
     try {
         // If setting as primary, unset other primaries first
         if (isPrimary) {
@@ -131,7 +131,7 @@ async function addVehicleLocation(vehicleId, locationId, isPrimary = false) {
             logger.error('Failed to add vehicle location', { error, vehicleId, locationId });
             return { success: false, error };
         }
-        return { success: true, data: (0, vehicle_location_js_1.rowToVehicleLocation)(data) };
+        return { success: true, data: (0, vehicle_location_1.rowToVehicleLocation)(data) };
     }
     catch (error) {
         logger.error('Unexpected error adding vehicle location', { error });
@@ -142,7 +142,7 @@ async function addVehicleLocation(vehicleId, locationId, isPrimary = false) {
  * Remove a location from a vehicle
  */
 async function removeVehicleLocation(vehicleId, locationId) {
-    const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+    const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
     try {
         const { error } = await supabase
             .from('vehicle_locations')
@@ -164,7 +164,7 @@ async function removeVehicleLocation(vehicleId, locationId) {
  * Set primary location for a vehicle
  */
 async function setVehiclePrimaryLocation(vehicleId, locationId) {
-    const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+    const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
     try {
         // Unset all primaries for this vehicle
         await supabase

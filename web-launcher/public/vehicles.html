@@ -642,7 +642,8 @@
         </div>
     </div>
 
-    <script src="preload.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/api-client.js"></script>
     <script src="confirmation-modal.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -684,7 +685,7 @@
             async function loadLocations() {
                 try {
                     // Get all locations, filter to exclude client-type locations
-                    const result = await window.electronAPI.locations.getAll({}, { page: 1, limit: 200 });
+                    const result = await window.apiClient.locations.getAll({}, { page: 1, limit: 200 });
                     const allLocations = result.data || [];
                     // Filter to exclude client locations (keep depot, home, disposal, other, etc.)
                     currentLocations = allLocations.filter(loc =>
@@ -878,7 +879,7 @@
 
             async function loadServices() {
                 try {
-                    const result = await window.electronAPI.services.getAll();
+                    const result = await window.apiClient.services.getAll();
                     currentServices = result.data || result || [];
                     serviceMap.clear();
                     currentServices.forEach(s => serviceMap.set(s.id, s.name));
@@ -963,7 +964,7 @@
                     const filters = searchTerm ? { searchTerm } : {};
                     const pagination = { page: currentPage, limit };
 
-                    const response = await window.electronAPI.vehicles.getAll(filters, pagination);
+                    const response = await window.apiClient.vehicles.getAll(filters, pagination);
 
                     let vehicles = [];
                     if (response.pagination) {
@@ -1091,7 +1092,7 @@
                         const id = e.currentTarget.dataset.id;
                         if (await showConfirm('Are you sure you want to delete this vehicle?', 'Delete Vehicle', 'Delete', 'Cancel')) {
                             try {
-                                await window.electronAPI.vehicles.delete(id);
+                                await window.apiClient.vehicles.delete(id);
                                 loadVehicles();
                             } catch (err) {
                                 console.error('Delete failed', err);
@@ -1128,7 +1129,7 @@
 
                     // Load vehicle's associated locations from junction table
                     try {
-                        const locs = await window.electronAPI.vehicleLocations.getByVehicle(vehicle.id);
+                        const locs = await window.apiClient.vehicleLocations.getByVehicle(vehicle.id);
                         vehicleLocations = locs.map(l => ({ locationId: l.locationId, isPrimary: l.isPrimary }));
                     } catch (err) {
                         console.error('Failed to load vehicle locations:', err);
@@ -1185,18 +1186,18 @@
                     let vehicleId = id;
                     if (isEditing && id) {
                         data.id = id;
-                        await window.electronAPI.vehicles.update(data);
+                        await window.apiClient.vehicles.update(data);
                     } else {
-                        const newVehicle = await window.electronAPI.vehicles.create(data);
+                        const newVehicle = await window.apiClient.vehicles.create(data);
                         vehicleId = newVehicle.id;
                     }
 
                     // Save vehicle locations to junction table
                     if (vehicleId && selectedLocations.length > 0) {
-                        await window.electronAPI.vehicleLocations.set(vehicleId, selectedLocations);
+                        await window.apiClient.vehicleLocations.set(vehicleId, selectedLocations);
                     } else if (vehicleId) {
                         // Clear all locations if none selected
-                        await window.electronAPI.vehicleLocations.set(vehicleId, []);
+                        await window.apiClient.vehicleLocations.set(vehicleId, []);
                     }
 
                     closeModal();

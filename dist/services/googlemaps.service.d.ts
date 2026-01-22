@@ -4,8 +4,8 @@
  * Provides geocoding and address validation functionality using the Google Maps API.
  * Includes proper error handling, retry logic, and caching for transient failures.
  */
-import type { Result } from '../types/index.js';
-import type { Coordinates, GeocodingResult, AddressValidationResult, GeocodeAddressInput, ReverseGeocodeInput, ValidateAddressInput, PlacePrediction, PlaceAutocompleteInput, DistanceMatrixEntry, DistanceMatrixInput } from '../types/googlemaps.js';
+import type { Result } from '../types/index';
+import type { Coordinates, GeocodingResult, AddressValidationResult, GeocodeAddressInput, ReverseGeocodeInput, ValidateAddressInput, PlacePrediction, PlaceAutocompleteInput, DistanceMatrixEntry, DistanceMatrixInput } from '../types/googlemaps';
 /**
  * Google Maps service error
  */

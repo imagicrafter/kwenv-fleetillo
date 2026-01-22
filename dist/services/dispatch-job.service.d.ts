@@ -1,5 +1,5 @@
-import type { Result } from '../types/index.js';
-import { DispatchJob, CreateDispatchJobInput, DispatchJobFilters } from '../types/dispatch-job.js';
+import type { Result } from '../types/index';
+import { DispatchJob, CreateDispatchJobInput, DispatchJobFilters } from '../types/dispatch-job';
 /**
  * Get drivers currently assigned to active dispatch jobs
  * Active means status is 'pending' or 'running'

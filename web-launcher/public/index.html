@@ -501,7 +501,8 @@
             </div>
         </main>
     </div>
-    <script src="preload.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/api-client.js"></script>
     <script>
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -518,7 +519,7 @@
         async function loadDashboardSettings() {
             try {
                 // Determine whether to show chatbot or overview
-                const settings = await window.electronAPI.settings.getRouteSettings();
+                const settings = await window.apiClient.settings.getRouteSettings();
                 const showChatbot = settings && settings.dashboard && settings.dashboard.showChatbot !== false; // Default true
 
                 const chatWidget = document.querySelector('.chat-widget');
@@ -539,23 +540,23 @@
         async function loadDashboardStats() {
             try {
                 // 1. Active Bookings (Scheduled or In Progress or Confirmed)
-                const scheduledBookings = await window.electronAPI.bookings.count({ status: 'scheduled' });
-                const confirmedBookings = await window.electronAPI.bookings.count({ status: 'confirmed' });
-                const inProgressBookings = await window.electronAPI.bookings.count({ status: 'in_progress' });
+                const scheduledBookings = await window.apiClient.bookings.count({ status: 'scheduled' });
+                const confirmedBookings = await window.apiClient.bookings.count({ status: 'confirmed' });
+                const inProgressBookings = await window.apiClient.bookings.count({ status: 'in_progress' });
                 const activeBookingsCount = (scheduledBookings || 0) + (confirmedBookings || 0) + (inProgressBookings || 0);
 
                 document.getElementById('active-bookings-count').textContent = activeBookingsCount;
 
                 // 2. Active Routes (All routes for now)
-                const routesCount = await window.electronAPI.routes.count({});
+                const routesCount = await window.apiClient.routes.count({});
                 document.getElementById('active-routes-count').textContent = routesCount || 0;
 
                 // 3. Active Vehicles (status: 'available')
-                const vehiclesCount = await window.electronAPI.vehicles.count({ status: 'available' });
+                const vehiclesCount = await window.apiClient.vehicles.count({ status: 'available' });
                 document.getElementById('active-vehicles-count').textContent = vehiclesCount || 0;
 
                 // 4. Active Customers
-                const customersCount = await window.electronAPI.clients.count({ status: 'active' });
+                const customersCount = await window.apiClient.clients.count({ status: 'active' });
                 document.getElementById('active-customers-count').textContent = customersCount || 0;
 
             } catch (error) {
@@ -568,7 +569,7 @@
             const activityList = document.getElementById('activity-list');
 
             try {
-                const activities = await window.electronAPI.activities.getRecent(5);
+                const activities = await window.apiClient.activities.getRecent(5);
 
                 if (!activities || activities.length === 0) {
                     activityList.innerHTML = `

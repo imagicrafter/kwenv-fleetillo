@@ -4,7 +4,7 @@
  * Provides CRUD operations and business logic for managing services
  * in the RouteIQ application.
  */
-import type { Service, ServiceFilters, CreateServiceInput, UpdateServiceInput, Result, PaginationParams, PaginatedResponse } from '../types/index.js';
+import type { Service, ServiceFilters, CreateServiceInput, UpdateServiceInput, Result, PaginationParams, PaginatedResponse } from '../types/index';
 /**
  * Service service error
  */

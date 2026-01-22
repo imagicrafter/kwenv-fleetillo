@@ -5,15 +5,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
  * This script is run by DigitalOcean App Platform on a cron schedule
  * to execute pending dispatch jobs that are due
  */
-const dispatch_job_service_js_1 = require("../services/dispatch-job.service.js");
-const logger_js_1 = require("../utils/logger.js");
-const logger = (0, logger_js_1.createContextLogger)('DispatchSchedulerJob');
+const dispatch_job_service_1 = require("../services/dispatch-job.service");
+const logger_1 = require("../utils/logger");
+const logger = (0, logger_1.createContextLogger)('DispatchSchedulerJob');
 async function main() {
     logger.info('=== Dispatch Scheduler Job Started ===');
     const startTime = Date.now();
     try {
         // Get all pending jobs that are due for execution
-        const pendingResult = await dispatch_job_service_js_1.dispatchJobService.getPendingJobsDue();
+        const pendingResult = await dispatch_job_service_1.dispatchJobService.getPendingJobsDue();
         if (!pendingResult.success || !pendingResult.data) {
             logger.error('Failed to fetch pending jobs', { error: pendingResult.error });
             process.exit(1);
@@ -29,7 +29,7 @@ async function main() {
         let failCount = 0;
         for (const job of pendingJobs) {
             logger.info(`Executing job: ${job.name} (${job.id})`);
-            const result = await dispatch_job_service_js_1.dispatchJobService.executeDispatchJob(job.id);
+            const result = await dispatch_job_service_1.dispatchJobService.executeDispatchJob(job.id);
             if (result.success && result.data) {
                 successCount++;
                 logger.info(`Job completed: ${job.name}`, {

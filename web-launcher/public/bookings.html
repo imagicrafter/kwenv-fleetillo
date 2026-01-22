@@ -1373,7 +1373,8 @@
         }
     </style>
 
-    <script src="preload.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/api-client.js"></script>
     <script src="confirmation-modal.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -1487,7 +1488,7 @@
                             const idsToDelete = Array.from(selectedBookingIds);
                             // Delete sequentially for now to avoid race conditions or backend overload
                             for (const id of idsToDelete) {
-                                await window.electronAPI.bookings.delete(id);
+                                await window.apiClient.bookings.delete(id);
                             }
                             selectedBookingIds.clear();
                             updateBulkDeleteUI();
@@ -1535,7 +1536,7 @@
 
                                 for (const id of idsToUpdate) {
                                     try {
-                                        await window.electronAPI.bookings.update({ id, status: newStatus });
+                                        await window.apiClient.bookings.update({ id, status: newStatus });
                                         successCount++;
                                     } catch (err) {
                                         console.error(`Failed to update booking ${id}:`, err);
@@ -1661,7 +1662,7 @@
             async function populateFilters() {
                 try {
                     // Load Clients
-                    const clientsRes = await window.electronAPI.clients.getAll();
+                    const clientsRes = await window.apiClient.clients.getAll();
                     // Handle wrapped response
                     const clients = clientsRes.data && Array.isArray(clientsRes.data.data)
                         ? clientsRes.data.data
@@ -1677,7 +1678,7 @@
                     });
 
                     // Load Vehicles
-                    const vehiclesRes = await window.electronAPI.vehicles.getAll();
+                    const vehiclesRes = await window.apiClient.vehicles.getAll();
                     const vehicles = vehiclesRes.data || [];
 
                     vehicles.sort((a, b) => a.name.localeCompare(b.name));
@@ -1690,7 +1691,7 @@
                     });
 
                     // Load Routes
-                    const routesRes = await window.electronAPI.routes.getAll();
+                    const routesRes = await window.apiClient.routes.getAll();
                     const routes = (routesRes.data?.data || routesRes.data || []);
 
                     routes.sort((a, b) => (a.routeName || '').localeCompare(b.routeName || ''));
@@ -1718,7 +1719,7 @@
             // Check Import Button Visibility setting
             (async () => {
                 try {
-                    const settings = await window.electronAPI.settings.getAll();
+                    const settings = await window.apiClient.settings.getAll();
                     const importBtn = document.getElementById('import-btn');
                     if (importBtn && settings) {
                         // Default to true if not set
@@ -1841,7 +1842,7 @@
                         sortOrder: currentSortOrder
                     };
 
-                    const response = await window.electronAPI.bookings.getAll(filters, pagination);
+                    const response = await window.apiClient.bookings.getAll(filters, pagination);
 
                     // Handle PaginatedResponse
                     let bookings = [];
@@ -2006,7 +2007,7 @@
 
                 serviceSearchTimeout = setTimeout(async () => {
                     try {
-                        const result = await window.electronAPI.services.getAll({ searchTerm: term, limit: 10 });
+                        const result = await window.apiClient.services.getAll({ searchTerm: term, limit: 10 });
                         const services = result.data.data || result.data || [];
                         renderServiceResults(services);
                     } catch (err) {
@@ -2175,7 +2176,7 @@
 
                 clientSearchTimeout = setTimeout(async () => {
                     try {
-                        const result = await window.electronAPI.clients.getAll({ searchTerm: term, limit: 5 });
+                        const result = await window.apiClient.clients.getAll({ searchTerm: term, limit: 5 });
                         const clients = result.data.data || result.data || [];
                         renderClientResults(clients);
                     } catch (err) {
@@ -2254,7 +2255,7 @@
                             filters.clientId = clientIdInput.value;
                         }
 
-                        const result = await window.electronAPI.locations.getAll(filters);
+                        const result = await window.apiClient.locations.getAll(filters);
                         const locations = result.data.data || result.data || [];
                         renderLocationResults(locations);
                     } catch (err) {
@@ -2316,7 +2317,7 @@
 
             async function openEditModal(id) {
                 try {
-                    const response = await window.electronAPI.bookings.getById(id);
+                    const response = await window.apiClient.bookings.getById(id);
                     const booking = response.data || response;
 
                     if (!booking) throw new Error('Booking not found');
@@ -2353,7 +2354,7 @@
                             selectClient({ id: booking.customerId, name: booking.customerName, email: booking.customerEmail });
                         } else {
                             try {
-                                const customerData = await window.electronAPI.customers.getById(booking.customerId);
+                                const customerData = await window.apiClient.customers.getById(booking.customerId);
                                 const customer = customerData.data || customerData;
                                 selectClient({ id: booking.customerId, name: customer.name || 'Unknown Customer' });
                             } catch (e) {
@@ -2389,7 +2390,7 @@
                     } else if (booking.serviceId) {
                         // Legacy single service fallback
                         try {
-                            const serviceData = await window.electronAPI.services.getById(booking.serviceId);
+                            const serviceData = await window.apiClient.services.getById(booking.serviceId);
                             const service = serviceData.data || serviceData;
                             addService({
                                 ...service,
@@ -2418,7 +2419,7 @@
                                     state: booking.locationState || ''
                                 });
                             } else {
-                                const locData = await window.electronAPI.locations.getById(booking.locationId);
+                                const locData = await window.apiClient.locations.getById(booking.locationId);
                                 const loc = locData.data || locData;
                                 selectLocation(loc);
                             }
@@ -2568,13 +2569,13 @@
                         if (originalBookingStatus === 'scheduled' &&
                             (newStatus === 'cancelled' || newStatus === 'no_show')) {
                             try {
-                                await window.electronAPI.bookings.removeFromRoute(currentBookingId);
+                                await window.apiClient.bookings.removeFromRoute(currentBookingId);
                             } catch (routeErr) {
                                 console.warn('Could not remove from route:', routeErr);
                             }
                         }
 
-                        const updateResult = await window.electronAPI.bookings.update(bookingData);
+                        const updateResult = await window.apiClient.bookings.update(bookingData);
 
                         // Check if the update invalidated a route
                         if (updateResult?.routeWasInvalidated && updateResult?.invalidatedRouteId) {
@@ -2585,7 +2586,7 @@
                             return; // Exit early to avoid double modal close
                         }
                     } else {
-                        await window.electronAPI.bookings.create(bookingData);
+                        await window.apiClient.bookings.create(bookingData);
                     }
                     closeModal();
                     loadBookings();
@@ -2625,10 +2626,10 @@
             async function loadEntityCaches() {
                 try {
                     const [customersRes, servicesRes, locationsRes, bookingsRes] = await Promise.all([
-                        window.electronAPI.clients.getAll(),
-                        window.electronAPI.services.getAll(),
-                        window.electronAPI.locations.getAll(),
-                        window.electronAPI.bookings.getAll({}, { page: 1, limit: 10000 })
+                        window.apiClient.clients.getAll(),
+                        window.apiClient.services.getAll(),
+                        window.apiClient.locations.getAll(),
+                        window.apiClient.bookings.getAll({}, { page: 1, limit: 10000 })
                     ]);
 
                     cachedCustomers = customersRes.data?.data || customersRes.data || [];
@@ -3290,7 +3291,7 @@
                             bookingData.bookingNumber = row.data.bookingNumber;
                         }
 
-                        const result = await window.electronAPI.bookings.create(bookingData);
+                        const result = await window.apiClient.bookings.create(bookingData);
 
                         importResults.success.push({
                             bookingNumber: result.bookingNumber || row.data.bookingNumber,

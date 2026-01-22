@@ -5,10 +5,10 @@
  * for route optimization. This service is designed to handle multiple bookings
  * and generate optimized routes for efficient service delivery.
  */
-import type { Result } from '../types/index.js';
-import type { Booking } from '../types/booking.js';
-import { TravelMode, RoutingPreference } from '../types/google-routes.js';
-import type { Route } from '../types/google-routes.js';
+import type { Result } from '../types/index';
+import type { Booking } from '../types/booking';
+import { TravelMode, RoutingPreference } from '../types/google-routes';
+import type { Route } from '../types/google-routes';
 /**
  * Route generation service error
  */

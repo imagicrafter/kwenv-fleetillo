@@ -15,39 +15,39 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.logger = exports.validateConfig = exports.config = void 0;
-const index_js_1 = require("./config/index.js");
-Object.defineProperty(exports, "config", { enumerable: true, get: function () { return index_js_1.config; } });
-Object.defineProperty(exports, "validateConfig", { enumerable: true, get: function () { return index_js_1.validateConfig; } });
-const logger_js_1 = require("./utils/logger.js");
-Object.defineProperty(exports, "logger", { enumerable: true, get: function () { return logger_js_1.logger; } });
+const index_1 = require("./config/index");
+Object.defineProperty(exports, "config", { enumerable: true, get: function () { return index_1.config; } });
+Object.defineProperty(exports, "validateConfig", { enumerable: true, get: function () { return index_1.validateConfig; } });
+const logger_1 = require("./utils/logger");
+Object.defineProperty(exports, "logger", { enumerable: true, get: function () { return logger_1.logger; } });
 /**
  * RouteIQ TypeScript Application
  * Main entry point
  */
 function main() {
     // Create a context-specific logger for the main module
-    const appLogger = (0, logger_js_1.createContextLogger)('App');
+    const appLogger = (0, logger_1.createContextLogger)('App');
     appLogger.info('RouteIQ TypeScript Application');
     // Validate configuration before starting
-    if (!(0, index_js_1.validateConfig)()) {
+    if (!(0, index_1.validateConfig)()) {
         appLogger.error('Configuration validation failed. Please check your .env file.');
         process.exit(1);
     }
     appLogger.info('Application starting', {
-        environment: index_js_1.config.env,
+        environment: index_1.config.env,
         nodeVersion: process.version,
-        logLevel: index_js_1.config.logLevel,
-        port: index_js_1.config.port,
-        debug: index_js_1.config.debug,
+        logLevel: index_1.config.logLevel,
+        port: index_1.config.port,
+        debug: index_1.config.debug,
     });
     // Log additional debug information in development mode
-    if ((0, index_js_1.isDevelopment)() && (0, index_js_1.isDebugEnabled)()) {
+    if ((0, index_1.isDevelopment)() && (0, index_1.isDebugEnabled)()) {
         appLogger.debug('Configuration Details (Debug Mode)', {
-            supabaseUrl: index_js_1.config.supabase.url,
-            supabaseSchema: index_js_1.config.supabase.schema,
-            googleMapsConfigured: !!index_js_1.config.googleMaps.apiKey,
-            apiPrefix: index_js_1.config.api.prefix,
-            apiVersion: index_js_1.config.api.version,
+            supabaseUrl: index_1.config.supabase.url,
+            supabaseSchema: index_1.config.supabase.schema,
+            googleMapsConfigured: !!index_1.config.googleMaps.apiKey,
+            apiPrefix: index_1.config.api.prefix,
+            apiVersion: index_1.config.api.version,
         });
     }
     appLogger.info('Application started successfully!');
@@ -55,5 +55,5 @@ function main() {
 // Run the application
 main();
 // Re-export error handling module
-__exportStar(require("./errors/index.js"), exports);
+__exportStar(require("./errors/index"), exports);
 //# sourceMappingURL=index.js.map

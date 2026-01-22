@@ -1,5 +1,5 @@
-import { config, validateConfig } from './config/index.js';
-import { logger } from './utils/logger.js';
+import { config, validateConfig } from './config/index';
+import { logger } from './utils/logger';
 export { config, validateConfig, logger };
-export * from './errors/index.js';
+export * from './errors/index';
 //# sourceMappingURL=index.d.ts.map

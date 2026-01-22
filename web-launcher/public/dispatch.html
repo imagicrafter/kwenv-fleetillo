@@ -356,6 +356,8 @@
         </div>
     </div>
 
+    <script src="js/config.js"></script>
+    <script src="js/api-client.js"></script>
     <script src="dispatch-client.js"></script>
     <script>
         const client = new DispatchClient();
@@ -527,22 +529,7 @@
             try {
                 // Support both Electron API and RPC API
                 let result;
-                if (window.electronAPI?.drivers?.getAll) {
-                    result = await window.electronAPI.drivers.getAll();
-                } else {
-                    // Fallback to RPC API for web mode
-                    const response = await fetch('/api/rpc', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            namespace: 'drivers',
-                            method: 'getAll',
-                            args: [{}] // filters, pagination
-                        })
-                    });
-                    const rpcData = await response.json();
-                    result = { success: true, data: rpcData };
-                }
+                result = await window.apiClient.drivers.getAll();
                 const drivers = result.data?.data || result.data || [];
 
                 // Filter only active drivers
@@ -612,25 +599,10 @@
 
                 // Fetch routes for this driver with status 'planned'
                 let result;
-                if (window.electronAPI?.routes?.getAll) {
-                    result = await window.electronAPI.routes.getAll({
-                        driverId: driverId,
-                        status: 'planned'
-                    });
-                } else {
-                    // Fallback to RPC API for web mode
-                    const response = await fetch('/api/rpc', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            namespace: 'routes',
-                            method: 'getAll',
-                            args: [{ driverId: driverId, status: 'planned' }]
-                        })
-                    });
-                    const rpcData = await response.json();
-                    result = { success: true, data: rpcData };
-                }
+                result = await window.apiClient.routes.getAll({
+                    driverId: driverId,
+                    status: 'planned'
+                });
 
                 const routes = result.data?.data || result.data || [];
                 const nextRoute = routes.find(r => r.routeDate >= today);
@@ -723,8 +695,8 @@
                     if (routeInfo) {
                         if (timing === 'now') {
                             // Dispatch immediately
-                            if (window.electronAPI?.dispatch?.sendDispatch) {
-                                await window.electronAPI.dispatch.sendDispatch({
+                            if (window.apiClient?.dispatch?.sendDispatch) {
+                                await window.apiClient.dispatch.sendDispatch({
                                     routeId: routeInfo.id,
                                     driverId: driverId
                                 });

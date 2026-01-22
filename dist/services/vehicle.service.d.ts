@@ -4,8 +4,8 @@
  * Provides CRUD operations and business logic for managing vehicles
  * in the RouteIQ application.
  */
-import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
-import type { Vehicle, VehicleFilters, CreateVehicleInput, UpdateVehicleInput } from '../types/index.js';
+import type { Result, PaginationParams, PaginatedResponse } from '../types/index';
+import type { Vehicle, VehicleFilters, CreateVehicleInput, UpdateVehicleInput } from '../types/index';
 /**
  * Vehicle service error
  */

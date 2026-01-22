@@ -4,9 +4,9 @@
  * Provides CRUD operations and business logic for managing drivers
  * in the Fleetillo application.
  */
-import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
-import type { Driver, CreateDriverInput, UpdateDriverInput, DriverFilters } from '../types/driver.js';
-import type { Vehicle } from '../types/vehicle.js';
+import type { Result, PaginationParams, PaginatedResponse } from '../types/index';
+import type { Driver, CreateDriverInput, UpdateDriverInput, DriverFilters } from '../types/driver';
+import type { Vehicle } from '../types/vehicle';
 /**
  * Driver service error
  */

@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.requireImage = exports.handleImageUploadError = exports.avatarUpload = void 0;
 const multer_1 = __importDefault(require("multer"));
-const AppError_js_1 = require("../errors/AppError.js");
-const codes_js_1 = require("../errors/codes.js");
+const AppError_1 = require("../errors/AppError");
+const codes_1 = require("../errors/codes");
 /**
  * Image upload middleware using multer
  * Configured for avatar image uploads with validation
@@ -24,7 +24,7 @@ const imageFilter = (_req, file, cb) => {
         cb(null, true);
     }
     else {
-        cb(AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.VALIDATION_ERROR, {
+        cb(AppError_1.AppError.fromCode(codes_1.ErrorCodes.VALIDATION_ERROR, {
             message: 'Invalid file type. Only JPEG, PNG, and WebP images are allowed.',
             context: {
                 filename: file.originalname,
@@ -66,7 +66,7 @@ const handleImageUploadError = (error, req, _res, next) => {
     if (error instanceof multer_1.default.MulterError) {
         // Handle specific multer errors
         if (error.code === 'LIMIT_FILE_SIZE') {
-            const appError = AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.VALIDATION_ERROR, {
+            const appError = AppError_1.AppError.fromCode(codes_1.ErrorCodes.VALIDATION_ERROR, {
                 message: 'Image size exceeds the 5MB limit.',
                 context: {
                     filename: req.file?.originalname,
@@ -76,7 +76,7 @@ const handleImageUploadError = (error, req, _res, next) => {
             return next(appError);
         }
         if (error.code === 'LIMIT_UNEXPECTED_FILE') {
-            const appError = AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.VALIDATION_ERROR, {
+            const appError = AppError_1.AppError.fromCode(codes_1.ErrorCodes.VALIDATION_ERROR, {
                 message: 'Unexpected field name. Use "avatar" as the field name.',
                 context: {
                     expectedField: 'avatar',
@@ -85,14 +85,14 @@ const handleImageUploadError = (error, req, _res, next) => {
             return next(appError);
         }
         // Generic multer error
-        const appError = AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.VALIDATION_ERROR, {
+        const appError = AppError_1.AppError.fromCode(codes_1.ErrorCodes.VALIDATION_ERROR, {
             message: `Image upload error: ${error.message}`,
             context: { multerError: error.code },
         });
         return next(appError);
     }
     // If it's already an AppError (from imageFilter), pass it through
-    if (error instanceof AppError_js_1.AppError) {
+    if (error instanceof AppError_1.AppError) {
         return next(error);
     }
     // Unknown error
@@ -105,7 +105,7 @@ exports.handleImageUploadError = handleImageUploadError;
  */
 const requireImage = (req, _res, next) => {
     if (!req.file) {
-        throw AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.VALIDATION_ERROR, {
+        throw AppError_1.AppError.fromCode(codes_1.ErrorCodes.VALIDATION_ERROR, {
             message: 'No image uploaded. Please upload an avatar image.',
             context: {
                 expectedField: 'avatar',

@@ -1,7 +1,7 @@
 /**
  * Utility functions for RouteIQ application
  */
-export * from './logger.js';
+export * from './logger';
 /**
  * Sleep utility for async operations
  * @param ms - Milliseconds to sleep

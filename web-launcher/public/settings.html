@@ -785,7 +785,8 @@
     <!-- Toast notification -->
     <div class="toast" id="toast"></div>
 
-    <script src="preload.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/api-client.js"></script>
     <script>
         // State
         let currentUnitSystem = 'imperial';
@@ -799,7 +800,7 @@
         async function loadSettings() {
             try {
                 // Load Route Settings
-                const settings = await window.electronAPI.settings.getRouteSettings();
+                const settings = await window.apiClient.settings.getRouteSettings();
                 if (settings) {
                     originalSettings = settings;
 
@@ -827,7 +828,7 @@
                     }
 
                     // Cost Settings (load from allSettings if available)
-                    const allSettingsResult = await window.electronAPI.settings.getAll();
+                    const allSettingsResult = await window.apiClient.settings.getAll();
                     // Handling Result wrapper if present, otherwise assuming direct data
                     const allSettings = (allSettingsResult && allSettingsResult.success) ? allSettingsResult.data : allSettingsResult;
 
@@ -1066,7 +1067,7 @@
                 };
 
                 // Add to original to preserve other fields if needed, but updateMultiple upserts
-                await window.electronAPI.settings.updateMultiple(settingsToUpdate);
+                await window.apiClient.settings.updateMultiple(settingsToUpdate);
 
                 // If no error thrown, assume success
                 showToast('Settings saved successfully');

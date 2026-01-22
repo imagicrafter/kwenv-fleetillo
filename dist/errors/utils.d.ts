@@ -2,9 +2,9 @@
  * Error utility functions for RouteIQ application
  * Provides error handling helpers, type guards, and async error boundaries
  */
-import { AppError, InternalError } from './AppError.js';
-import { type ErrorCodeDefinition } from './codes.js';
-import { ErrorCategory, type ErrorContext, type ErrorResponse, type SerializedError, type Result } from '../types/index.js';
+import { AppError, InternalError } from './AppError';
+import { type ErrorCodeDefinition } from './codes';
+import { ErrorCategory, type ErrorContext, type ErrorResponse, type SerializedError, type Result } from '../types/index';
 /**
  * Type guard to check if a value is an AppError
  */
