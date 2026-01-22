@@ -18,13 +18,13 @@ exports.countBookings = countBookings;
 exports.getBookingByNumber = getBookingByNumber;
 exports.removeBookingFromRoute = removeBookingFromRoute;
 exports.bulkCreateBookings = bulkCreateBookings;
-const supabase_js_1 = require("./supabase.js");
-const logger_js_1 = require("../utils/logger.js");
-const booking_js_1 = require("../types/booking.js");
+const supabase_1 = require("./supabase");
+const logger_1 = require("../utils/logger");
+const booking_1 = require("../types/booking");
 /**
  * Logger instance for booking operations
  */
-const logger = (0, logger_js_1.createContextLogger)('BookingService');
+const logger = (0, logger_1.createContextLogger)('BookingService');
 /**
  * Table name for bookings in the fleetillo schema
  */
@@ -150,8 +150,8 @@ async function createBooking(input) {
     }
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
-        const rowData = (0, booking_js_1.bookingInputToRow)(input);
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
+        const rowData = (0, booking_1.bookingInputToRow)(input);
         // Auto-generate booking number if not provided
         if (!rowData.booking_number) {
             // Get date string either from input or fallback to today
@@ -186,7 +186,7 @@ async function createBooking(input) {
                 error: new BookingServiceError(`Failed to create booking: ${error.message}`, exports.BookingErrorCodes.CREATE_FAILED, error),
             };
         }
-        const booking = (0, booking_js_1.rowToBooking)(data);
+        const booking = (0, booking_1.rowToBooking)(data);
         logger.info('Booking created successfully', { bookingId: booking.id });
         return { success: true, data: booking };
     }
@@ -205,7 +205,7 @@ async function getBookingById(id) {
     logger.debug('Getting booking by ID', { id });
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(BOOKINGS_TABLE)
             .select('*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code, vehicle_id)')
@@ -227,7 +227,7 @@ async function getBookingById(id) {
                 error: new BookingServiceError(`Failed to get booking: ${error.message}`, exports.BookingErrorCodes.QUERY_FAILED, error),
             };
         }
-        const booking = (0, booking_js_1.rowToBooking)(data);
+        const booking = (0, booking_1.rowToBooking)(data);
         return { success: true, data: booking };
     }
     catch (error) {
@@ -245,7 +245,7 @@ async function getBookings(filters, pagination) {
     logger.debug('Getting bookings', { filters, pagination });
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         let query = supabase
             .from(BOOKINGS_TABLE)
             .select('*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code, vehicle_id)', { count: 'exact' });
@@ -323,7 +323,7 @@ async function getBookings(filters, pagination) {
                 error: new BookingServiceError(`Failed to get bookings: ${error.message}`, exports.BookingErrorCodes.QUERY_FAILED, error),
             };
         }
-        let bookings = data.map(booking_js_1.rowToBooking);
+        let bookings = data.map(booking_1.rowToBooking);
         // Enrich bookings with vehicle names
         const vehicleIds = [...new Set(bookings.map(b => b.vehicleId).filter(Boolean))];
         if (vehicleIds.length > 0) {
@@ -432,10 +432,10 @@ async function updateBooking(input) {
     }
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         // Build update object from input
         const { id } = input;
-        const rowData = (0, booking_js_1.updateBookingInputToRow)(input);
+        const rowData = (0, booking_1.updateBookingInputToRow)(input);
         const { data, error } = await supabase
             .from(BOOKINGS_TABLE)
             .update(rowData)
@@ -479,7 +479,7 @@ async function updateBooking(input) {
                 logger.info('Route flagged for recalculation', { routeId: invalidatedRouteId });
             }
         }
-        const booking = (0, booking_js_1.rowToBooking)(data);
+        const booking = (0, booking_1.rowToBooking)(data);
         logger.info('Booking updated successfully', { bookingId: booking.id });
         return {
             success: true,
@@ -575,7 +575,7 @@ async function deleteBooking(id) {
     logger.debug('Deleting booking', { id });
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { error } = await supabase
             .from(BOOKINGS_TABLE)
             .update({ deleted_at: new Date().toISOString() })
@@ -606,7 +606,7 @@ async function deleteBooking(id) {
 async function hardDeleteBooking(id) {
     logger.warn('Hard deleting booking', { id });
     try {
-        const adminClient = (0, supabase_js_1.getAdminSupabaseClient)();
+        const adminClient = (0, supabase_1.getAdminSupabaseClient)();
         if (!adminClient) {
             return {
                 success: false,
@@ -639,7 +639,7 @@ async function restoreBooking(id) {
     logger.debug('Restoring booking', { id });
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(BOOKINGS_TABLE)
             .update({ deleted_at: null })
@@ -660,7 +660,7 @@ async function restoreBooking(id) {
                 error: new BookingServiceError(`Failed to restore booking: ${error.message}`, exports.BookingErrorCodes.UPDATE_FAILED, error),
             };
         }
-        const booking = (0, booking_js_1.rowToBooking)(data);
+        const booking = (0, booking_1.rowToBooking)(data);
         logger.info('Booking restored successfully', { bookingId: booking.id });
         return { success: true, data: booking };
     }
@@ -679,7 +679,7 @@ async function countBookings(filters) {
     logger.debug('Counting bookings', { filters });
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         let query = supabase.from(BOOKINGS_TABLE).select('*', { count: 'exact', head: true });
         if (!filters?.includeDeleted) {
             query = query.is('deleted_at', null);
@@ -715,7 +715,7 @@ async function getBookingByNumber(bookingNumber) {
     logger.debug('Getting booking by number', { bookingNumber });
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(BOOKINGS_TABLE)
             .select('*, customers(name, email), services(name, code), locations(name, latitude, longitude), routes(route_code, vehicle_id)')
@@ -735,7 +735,7 @@ async function getBookingByNumber(bookingNumber) {
                 error: new BookingServiceError(`Failed to get booking: ${error.message}`, exports.BookingErrorCodes.QUERY_FAILED, error),
             };
         }
-        const booking = (0, booking_js_1.rowToBooking)(data);
+        const booking = (0, booking_1.rowToBooking)(data);
         return { success: true, data: booking };
     }
     catch (error) {
@@ -760,7 +760,7 @@ async function getBookingByNumber(bookingNumber) {
 async function removeBookingFromRoute(bookingId) {
     logger.info('Removing booking from route', { bookingId });
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         // First, get the booking to find its route_id and stop_order
         const { data: booking, error: fetchError } = await supabase
             .from(BOOKINGS_TABLE)
@@ -913,10 +913,10 @@ async function bulkCreateBookings(inputs) {
             };
         }
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         // Convert all inputs to row format
         const rowsData = validInputs.map(input => {
-            const rowData = (0, booking_js_1.bookingInputToRow)(input);
+            const rowData = (0, booking_1.bookingInputToRow)(input);
             // Note: We're not auto-generating booking numbers for bulk inserts
             // This should be handled by the database or provided in the input
             return rowData;

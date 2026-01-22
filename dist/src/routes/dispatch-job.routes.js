@@ -34,8 +34,8 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const dispatchJobController = __importStar(require("../controllers/dispatch-job.controller.js"));
-const validation_js_1 = require("../middleware/validation.js");
+const dispatchJobController = __importStar(require("../controllers/dispatch-job.controller"));
+const validation_1 = require("../middleware/validation");
 const router = (0, express_1.Router)();
 /**
  * GET /api/v1/dispatch-jobs/active-drivers
@@ -51,16 +51,16 @@ router.get('/', dispatchJobController.getAll);
  * GET /api/v1/dispatch-jobs/:id
  * Get dispatch job by ID
  */
-router.get('/:id', (0, validation_js_1.validateIdParam)('id'), dispatchJobController.getById);
+router.get('/:id', (0, validation_1.validateIdParam)('id'), dispatchJobController.getById);
 /**
  * POST /api/v1/dispatch-jobs
  * Create a new dispatch job
  */
-router.post('/', (0, validation_js_1.validateRequired)(['driverIds', 'scheduledTime']), dispatchJobController.create);
+router.post('/', (0, validation_1.validateRequired)(['driverIds', 'scheduledTime']), dispatchJobController.create);
 /**
  * POST /api/v1/dispatch-jobs/:id/cancel
  * Cancel a dispatch job
  */
-router.post('/:id/cancel', (0, validation_js_1.validateIdParam)('id'), dispatchJobController.cancel);
+router.post('/:id/cancel', (0, validation_1.validateIdParam)('id'), dispatchJobController.cancel);
 exports.default = router;
 //# sourceMappingURL=dispatch-job.routes.js.map

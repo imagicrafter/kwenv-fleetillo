@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sanitizeBody = exports.validateIdParam = exports.isValidUUID = exports.validateRequired = exports.validate = void 0;
-const AppError_js_1 = require("../errors/AppError.js");
-const codes_js_1 = require("../errors/codes.js");
+const AppError_1 = require("../errors/AppError");
+const codes_1 = require("../errors/codes");
 /**
  * Validation middleware factory
  * Creates middleware that validates request data against a schema
@@ -12,21 +12,21 @@ const validate = (schema) => {
         try {
             // Validate request body
             if (schema.body && !schema.body(req.body)) {
-                throw AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.VALIDATION_ERROR, {
+                throw AppError_1.AppError.fromCode(codes_1.ErrorCodes.VALIDATION_ERROR, {
                     message: 'Invalid request body',
                     context: { body: req.body },
                 });
             }
             // Validate query parameters
             if (schema.query && !schema.query(req.query)) {
-                throw AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.VALIDATION_ERROR, {
+                throw AppError_1.AppError.fromCode(codes_1.ErrorCodes.VALIDATION_ERROR, {
                     message: 'Invalid query parameters',
                     context: { query: req.query },
                 });
             }
             // Validate route parameters
             if (schema.params && !schema.params(req.params)) {
-                throw AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.VALIDATION_ERROR, {
+                throw AppError_1.AppError.fromCode(codes_1.ErrorCodes.VALIDATION_ERROR, {
                     message: 'Invalid route parameters',
                     context: { params: req.params },
                 });
@@ -46,7 +46,7 @@ const validateRequired = (fields) => {
     return (req, _res, next) => {
         const missingFields = fields.filter(field => !(field in req.body));
         if (missingFields.length > 0) {
-            throw AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.VALIDATION_ERROR, {
+            throw AppError_1.AppError.fromCode(codes_1.ErrorCodes.VALIDATION_ERROR, {
                 message: `Missing required fields: ${missingFields.join(', ')}`,
                 context: {
                     missingFields,
@@ -73,12 +73,12 @@ const validateIdParam = (paramName = 'id') => {
     return (req, _res, next) => {
         const id = req.params[paramName];
         if (!id) {
-            throw AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.VALIDATION_ERROR, {
+            throw AppError_1.AppError.fromCode(codes_1.ErrorCodes.VALIDATION_ERROR, {
                 message: `Missing ${paramName} parameter`,
             });
         }
         if (!(0, exports.isValidUUID)(id)) {
-            throw AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.VALIDATION_ERROR, {
+            throw AppError_1.AppError.fromCode(codes_1.ErrorCodes.VALIDATION_ERROR, {
                 message: `Invalid ${paramName} format. Must be a valid UUID.`,
                 context: { [paramName]: id },
             });

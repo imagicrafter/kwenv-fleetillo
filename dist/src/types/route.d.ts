@@ -1,7 +1,7 @@
 /**
  * Route-related type definitions for RouteIQ application
  */
-import type { ID, Timestamps } from './index.js';
+import type { ID, Timestamps } from './index';
 /**
  * Route status options
  */

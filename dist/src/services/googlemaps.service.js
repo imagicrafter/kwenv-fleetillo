@@ -15,13 +15,13 @@ exports.getDistanceMatrix = getDistanceMatrix;
 exports.batchGeocodeAddresses = batchGeocodeAddresses;
 exports.getAddressFromCoordinates = getAddressFromCoordinates;
 exports.getCoordinatesFromAddress = getCoordinatesFromAddress;
-const index_js_1 = require("../config/index.js");
-const logger_js_1 = require("../utils/logger.js");
-const googlemaps_js_1 = require("../types/googlemaps.js");
+const index_1 = require("../config/index");
+const logger_1 = require("../utils/logger");
+const googlemaps_1 = require("../types/googlemaps");
 /**
  * Logger instance for Google Maps service operations
  */
-const logger = (0, logger_js_1.createContextLogger)('GoogleMapsService');
+const logger = (0, logger_1.createContextLogger)('GoogleMapsService');
 /**
  * Google Maps API base URLs
  */
@@ -96,7 +96,7 @@ function mapApiStatusToError(status, errorMessage) {
  * Validates that the API key is configured
  */
 function validateApiKey() {
-    const apiKey = index_js_1.config.googleMaps.apiKey;
+    const apiKey = index_1.config.googleMaps.apiKey;
     if (!apiKey || apiKey.trim().length === 0) {
         logger.error('Google Maps API key is not configured');
         return {
@@ -228,7 +228,7 @@ async function geocodeAddress(input) {
         };
     }
     // Convert and return the first result
-    const result = (0, googlemaps_js_1.rawToGeocodingResult)(firstResult);
+    const result = (0, googlemaps_1.rawToGeocodingResult)(firstResult);
     logger.debug('Geocoding successful', {
         placeId: result.placeId,
         coordinates: result.coordinates
@@ -286,7 +286,7 @@ async function reverseGeocode(input) {
         };
     }
     // Convert and return the first result
-    const result = (0, googlemaps_js_1.rawToGeocodingResult)(firstResult);
+    const result = (0, googlemaps_1.rawToGeocodingResult)(firstResult);
     logger.debug('Reverse geocoding successful', {
         placeId: result.placeId,
         formattedAddress: result.formattedAddress
@@ -353,7 +353,7 @@ async function validateAddress(input) {
         };
     }
     const geocodedData = geocodeResult.data;
-    const structuredAddress = (0, googlemaps_js_1.extractStructuredAddress)(geocodedData);
+    const structuredAddress = (0, googlemaps_1.extractStructuredAddress)(geocodedData);
     // Analyze validation results
     const issues = [];
     let granularity = 'OTHER';

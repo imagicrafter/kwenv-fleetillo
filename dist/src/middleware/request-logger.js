@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.logRequest = exports.requestLogger = void 0;
 const morgan_1 = __importDefault(require("morgan"));
-const logger_js_1 = require("../utils/logger.js");
+const logger_1 = require("../utils/logger");
 /**
  * Custom morgan token to log request body (for development)
  */
@@ -39,7 +39,7 @@ const requestLogger = () => {
     return (0, morgan_1.default)(format, {
         stream: {
             write: (message) => {
-                logger_js_1.logger.info(message.trim());
+                logger_1.logger.info(message.trim());
             },
         },
     });
@@ -62,10 +62,10 @@ const logRequest = (req, res, next) => {
             ip: req.ip,
         };
         if (res.statusCode >= 400) {
-            logger_js_1.logger.warn('Request completed with error', logData);
+            logger_1.logger.warn('Request completed with error', logData);
         }
         else {
-            logger_js_1.logger.debug('Request completed', logData);
+            logger_1.logger.debug('Request completed', logData);
         }
     });
     next();

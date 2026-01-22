@@ -1,11 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const supabase_js_1 = require("../services/supabase.js");
+const supabase_1 = require("../services/supabase");
 const process_1 = require("process");
 async function seedLegacyBooking() {
-    (0, supabase_js_1.initializeSupabase)();
+    (0, supabase_1.initializeSupabase)();
     // Use admin client to bypass RLS
-    const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+    const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
     // Get a service and customer
     const { data: service } = await supabase.from('services').select('*').limit(1).single();
     const { data: customer } = await supabase.from('customers').select('*').limit(1).single();

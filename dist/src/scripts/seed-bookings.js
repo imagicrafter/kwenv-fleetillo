@@ -5,13 +5,13 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv/config");
-const booking_service_js_1 = require("../services/booking.service.js");
-const customer_service_js_1 = require("../services/customer.service.js");
-const service_service_js_1 = require("../services/service.service.js");
-const location_service_js_1 = require("../services/location.service.js");
-const supabase_js_1 = require("../services/supabase.js");
+const booking_service_1 = require("../services/booking.service");
+const customer_service_1 = require("../services/customer.service");
+const service_service_1 = require("../services/service.service");
+const location_service_1 = require("../services/location.service");
+const supabase_1 = require("../services/supabase");
 // Initialize Supabase with environment variables
-(0, supabase_js_1.initializeSupabase)({
+(0, supabase_1.initializeSupabase)({
     url: process.env.SUPABASE_URL || '',
     anonKey: process.env.SUPABASE_KEY || '',
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
@@ -19,7 +19,7 @@ const supabase_js_1 = require("../services/supabase.js");
 async function seedBookings() {
     console.log('Fetching existing data...');
     // Get customers
-    const customersResult = await (0, customer_service_js_1.getCustomers)({}, { page: 1, limit: 100 });
+    const customersResult = await (0, customer_service_1.getCustomers)({}, { page: 1, limit: 100 });
     if (!customersResult.success) {
         console.error('Error fetching customers:', customersResult.error);
         return;
@@ -36,7 +36,7 @@ async function seedBookings() {
     const customers = customersResult.data.data;
     console.log(`Found ${customers.length} customers`);
     // Get services
-    const servicesResult = await (0, service_service_js_1.getServices)({});
+    const servicesResult = await (0, service_service_1.getServices)({});
     if (!servicesResult.success || !servicesResult.data?.data?.length) {
         console.error('No services found!');
         return;
@@ -44,7 +44,7 @@ async function seedBookings() {
     const services = servicesResult.data.data;
     console.log(`Found ${services.length} services`);
     // Get locations
-    const locationsResult = await (0, location_service_js_1.getAllLocations)({});
+    const locationsResult = await (0, location_service_1.getAllLocations)({});
     if (!locationsResult.success || !locationsResult.data?.data) {
         console.error('Failed to fetch locations:', locationsResult.error);
         process.exit(1);
@@ -140,7 +140,7 @@ async function seedBookings() {
                 specialInstructions: `Test booking #${bookingNum}`,
                 bookingNumber: bookingNumber,
             };
-            const result = await (0, booking_service_js_1.createBooking)(bookingInput);
+            const result = await (0, booking_service_1.createBooking)(bookingInput);
             if (result.success) {
                 console.log(`  ✓ Created ${bookingInput.bookingNumber}: ${customer.name} @ ${location.name} [${service.name}]`);
                 successCount++;

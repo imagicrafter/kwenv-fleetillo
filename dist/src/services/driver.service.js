@@ -20,14 +20,14 @@ exports.getDriverVehicles = getDriverVehicles;
 exports.uploadDriverAvatar = uploadDriverAvatar;
 exports.getDriverAvatarUrl = getDriverAvatarUrl;
 exports.deleteDriverAvatar = deleteDriverAvatar;
-const supabase_js_1 = require("./supabase.js");
-const logger_js_1 = require("../utils/logger.js");
-const driver_js_1 = require("../types/driver.js");
-const vehicle_js_1 = require("../types/vehicle.js");
+const supabase_1 = require("./supabase");
+const logger_1 = require("../utils/logger");
+const driver_1 = require("../types/driver");
+const vehicle_1 = require("../types/vehicle");
 /**
  * Logger instance for driver operations
  */
-const logger = (0, logger_js_1.createContextLogger)('DriverService');
+const logger = (0, logger_1.createContextLogger)('DriverService');
 /**
  * Table name for drivers in the optiroute schema
  */
@@ -93,7 +93,7 @@ function isValidEmail(email) {
  * Prefers admin client for privileged operations, falls back to standard client
  */
 function getClient() {
-    const adminClient = (0, supabase_js_1.getAdminSupabaseClient)();
+    const adminClient = (0, supabase_1.getAdminSupabaseClient)();
     if (adminClient) {
         logger.debug('Using Admin Supabase Client');
         return adminClient;
@@ -114,7 +114,7 @@ async function createDriver(input) {
     }
     try {
         const supabase = getClient();
-        const rowData = (0, driver_js_1.driverInputToRow)(input);
+        const rowData = (0, driver_1.driverInputToRow)(input);
         const { data, error } = await supabase
             .from(DRIVERS_TABLE)
             .insert(rowData)
@@ -127,7 +127,7 @@ async function createDriver(input) {
                 error: new DriverServiceError(`Failed to create driver: ${error.message}`, exports.DriverErrorCodes.CREATE_FAILED, error),
             };
         }
-        const driver = (0, driver_js_1.rowToDriver)(data);
+        const driver = (0, driver_1.rowToDriver)(data);
         logger.info('Driver created successfully', { driverId: driver.id, name: `${driver.firstName} ${driver.lastName}` });
         return { success: true, data: driver };
     }
@@ -165,7 +165,7 @@ async function getDriverById(id) {
                 error: new DriverServiceError(`Failed to get driver: ${error.message}`, exports.DriverErrorCodes.QUERY_FAILED, error),
             };
         }
-        const driver = (0, driver_js_1.rowToDriver)(data);
+        const driver = (0, driver_1.rowToDriver)(data);
         return { success: true, data: driver };
     }
     catch (error) {
@@ -217,7 +217,7 @@ async function getDrivers(filters, pagination) {
             };
         }
         // Convert rows to Driver objects
-        const drivers = data.map(driver_js_1.rowToDriver);
+        const drivers = data.map(driver_1.rowToDriver);
         const driverIds = drivers.map(d => d.id);
         // Fetch vehicle assignments separately (more robust than FK join)
         if (driverIds.length > 0) {
@@ -298,7 +298,7 @@ async function updateDriver(id, input) {
     try {
         const supabase = getClient();
         // Build update object
-        const rowData = (0, driver_js_1.driverInputToRow)(input);
+        const rowData = (0, driver_1.driverInputToRow)(input);
         const { data, error } = await supabase
             .from(DRIVERS_TABLE)
             .update(rowData)
@@ -319,7 +319,7 @@ async function updateDriver(id, input) {
                 error: new DriverServiceError(`Failed to update driver: ${error.message}`, exports.DriverErrorCodes.UPDATE_FAILED, error),
             };
         }
-        const driver = (0, driver_js_1.rowToDriver)(data);
+        const driver = (0, driver_1.rowToDriver)(data);
         logger.info('Driver updated successfully', { driverId: driver.id });
         return { success: true, data: driver };
     }
@@ -429,12 +429,12 @@ async function getDriverWithVehicle(id) {
                 error: new DriverServiceError(`Failed to get driver with vehicle: ${error.message}`, exports.DriverErrorCodes.QUERY_FAILED, error),
             };
         }
-        const driver = (0, driver_js_1.rowToDriver)(data);
+        const driver = (0, driver_1.rowToDriver)(data);
         // Add vehicle information if available
         let result = driver;
         if (data.vehicles && Array.isArray(data.vehicles) && data.vehicles.length > 0) {
             const vehicleData = data.vehicles[0];
-            result.assignedVehicle = (0, vehicle_js_1.rowToVehicle)(vehicleData);
+            result.assignedVehicle = (0, vehicle_1.rowToVehicle)(vehicleData);
             result.assignedVehicleId = vehicleData.id;
         }
         return { success: true, data: result };
@@ -557,7 +557,7 @@ async function getDriverVehicles(driverId) {
                 error: new DriverServiceError(`Failed to get driver vehicles: ${error.message}`, exports.DriverErrorCodes.QUERY_FAILED, error),
             };
         }
-        const vehicles = data.map(vehicle_js_1.rowToVehicle);
+        const vehicles = data.map(vehicle_1.rowToVehicle);
         return { success: true, data: vehicles };
     }
     catch (error) {

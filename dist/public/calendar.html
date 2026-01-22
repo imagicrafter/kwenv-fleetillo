@@ -500,50 +500,57 @@
             text-overflow: ellipsis;
         }
 
-        /* Status Colors - Enhanced for better visibility */
+        /* Status Colors - Enhanced for better visibility on dark theme */
         .status-confirmed {
-            background: rgba(63, 185, 80, 0.35);
+            background: rgba(63, 185, 80, 0.4);
             border-color: var(--accent-success);
-            color: #1a5928;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         .status-scheduled {
-            background: rgba(88, 166, 255, 0.35);
+            background: rgba(88, 166, 255, 0.4);
             border-color: var(--accent-primary);
-            color: #0d3a75;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         .status-in_progress {
-            background: rgba(163, 113, 247, 0.35);
+            background: rgba(163, 113, 247, 0.4);
             border-color: #a371f7;
-            color: #3d1d70;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         .status-completed {
-            background: rgba(63, 185, 80, 0.25);
+            background: rgba(63, 185, 80, 0.3);
             border-color: #3fb950;
-            color: #1a5928;
-            opacity: 0.8;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            opacity: 0.85;
         }
 
         .status-pending {
-            background: rgba(210, 153, 34, 0.35);
+            background: rgba(210, 153, 34, 0.4);
             border-color: var(--accent-warning);
-            color: #5c3d0a;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         .status-cancelled {
-            background: rgba(248, 81, 73, 0.35);
+            background: rgba(248, 81, 73, 0.4);
             border-color: var(--accent-danger);
-            color: #7a1f1a;
-            opacity: 0.6;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            opacity: 0.7;
         }
 
         .status-no_show {
-            background: rgba(248, 81, 73, 0.25);
+            background: rgba(248, 81, 73, 0.35);
             border-color: var(--accent-danger);
-            color: #7a1f1a;
-            opacity: 0.7;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            opacity: 0.75;
         }
 
         /* Booking Detail Popup */
@@ -758,12 +765,12 @@
                 <img src="assets/images/fleetillo_logo.png" alt="Fleetillo" style="height: 60px;">
             </div>
 
-                        <nav class="nav-menu">
+            <nav class="nav-menu">
                 <!-- Dashboard -->
                 <a href="index.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
                         </svg>
                     </span>
@@ -772,40 +779,41 @@
 
                 <!-- PLANNING -->
                 <div class="menu-header">PLANNING</div>
-                
+
                 <a href="customers.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
                     </span>
                     Customers
                 </a>
-                
+
                 <a href="services.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                         </svg>
                     </span>
                     Services
                 </a>
-                
+
                 <a href="bookings.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                         </svg>
                     </span>
                     Bookings
                 </a>
-                
+
                 <a href="calendar.html" class="nav-item active">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                     </span>
@@ -815,9 +823,9 @@
                 <a href="locations.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                     </span>
@@ -826,17 +834,17 @@
 
                 <!-- FLEET -->
                 <div class="menu-header">FLEET</div>
-                
+
                 <a href="vehicles.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>
                     </span>
                     Vehicles
                 </a>
-                
+
                 <a href="drivers.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -849,7 +857,7 @@
 
                 <!-- OPERATIONS -->
                 <div class="menu-header">OPERATIONS</div>
-                
+
                 <a href="routes.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -865,21 +873,21 @@
                 <a href="dispatch.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                         </svg>
                     </span>
                     Dispatch
                     <span class="badge new">New</span>
                 </a>
-                
+
                 <!-- SYSTEM -->
                 <div class="menu-header">SYSTEM</div>
-                
+
                 <a href="#" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
                     </span>
@@ -1091,7 +1099,8 @@
 
                     <div class="form-group" style="position: relative;">
                         <label>Customer *</label>
-                        <input type="text" id="customer-search" placeholder="Search customer by name..." autocomplete="off">
+                        <input type="text" id="customer-search" placeholder="Search customer by name..."
+                            autocomplete="off">
                         <input type="hidden" id="customer-id">
                         <div id="customer-search-results"
                             style="display: none; position: absolute; width: 100%; top: 100%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; z-index: 10; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
@@ -1317,7 +1326,8 @@
         }
     </style>
 
-    <script src="preload.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/api-client.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // State
@@ -1501,7 +1511,7 @@
             async function loadVehicles() {
                 if (allVehicles.length > 0) return;
                 try {
-                    const response = await window.electronAPI.vehicles.getAll({ limit: 100 });
+                    const response = await window.apiClient.vehicles.getAll({ limit: 100 });
                     const vehicles = response.data || response || [];
                     allVehicles = Array.isArray(vehicles) ? vehicles : [];
                 } catch (error) {
@@ -1552,7 +1562,7 @@
                         filters.searchTerm = searchTerm;
                     }
 
-                    const response = await window.electronAPI.bookings.getAll(filters, { page: 1, limit: 500 });
+                    const response = await window.apiClient.bookings.getAll(filters, { page: 1, limit: 500 });
 
                     // Handle paginated response
                     if (response.pagination) {
@@ -1576,7 +1586,7 @@
             // Load clients for filter dropdown
             async function loadCustomers() {
                 try {
-                    const response = await window.electronAPI.customers.getAll({ limit: 1000 });
+                    const response = await window.apiClient.customers.getAll({ limit: 1000 });
                     const customers = response.data || response || [];
                     allCustomers = Array.isArray(clients) ? clients : [];
 
@@ -2036,7 +2046,7 @@
 
             async function openEditModal(id) {
                 try {
-                    const response = await window.electronAPI.bookings.getById(id);
+                    const response = await window.apiClient.bookings.getById(id);
                     const booking = response.data || response;
 
                     if (!booking) throw new Error('Booking not found');
@@ -2120,9 +2130,9 @@
                 try {
                     if (isEditing && currentBookingId) {
                         bookingData.id = currentBookingId;
-                        await window.electronAPI.bookings.update(bookingData);
+                        await window.apiClient.bookings.update(bookingData);
                     } else {
-                        await window.electronAPI.bookings.create(bookingData);
+                        await window.apiClient.bookings.create(bookingData);
                     }
                     closeModal();
                     loadBookings(searchInput.value);
@@ -2152,7 +2162,7 @@
 
                 customerSearchTimeout = setTimeout(async () => {
                     try {
-                        const result = await window.electronAPI.customers.getAll({ searchTerm: term, limit: 5 });
+                        const result = await window.apiClient.customers.getAll({ searchTerm: term, limit: 5 });
                         const customers = result.data?.data || result.data || result || [];
                         renderCustomerResults(clients);
                     } catch (err) {
@@ -2215,7 +2225,7 @@
 
                 serviceSearchTimeout = setTimeout(async () => {
                     try {
-                        const result = await window.electronAPI.services.getAll({ searchTerm: term, limit: 5 });
+                        const result = await window.apiClient.services.getAll({ searchTerm: term, limit: 5 });
                         const services = result.data?.data || result.data || result || [];
                         renderServiceResults(services);
                     } catch (err) {
@@ -2288,7 +2298,7 @@
                 try {
                     // Fetch next available route date (future or current)
                     const today = new Date().toISOString();
-                    const result = await window.electronAPI.routes.getNextAvailableDate(today);
+                    const result = await window.apiClient.routes.getNextAvailableDate(today);
                     if (result && typeof result === 'string') {
                         // Parse YYYY-MM-DD without timezone issues
                         const [year, month, day] = result.split('-').map(Number);

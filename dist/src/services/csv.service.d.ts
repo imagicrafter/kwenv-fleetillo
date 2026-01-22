@@ -1,8 +1,8 @@
 /**
  * CSV parsing and validation service for booking uploads
  */
-import type { Result } from '../types/index.js';
-import type { CreateBookingInput } from '../types/booking.js';
+import type { Result } from '../types/index';
+import type { CreateBookingInput } from '../types/booking';
 /**
  * Expected CSV columns for booking import
  */

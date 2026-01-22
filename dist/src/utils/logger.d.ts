@@ -4,7 +4,7 @@
  * Provides structured logging with different log levels (debug, info, warn, error),
  * context support, and environment-aware formatting.
  */
-import type { LogLevel, LogLevelString, LogMetadata, LogEntry, LoggerConfig, ILogger } from '../types/logger.js';
+import type { LogLevel, LogLevelString, LogMetadata, LogEntry, LoggerConfig, ILogger } from '../types/logger';
 /**
  * Logger class implementing the ILogger interface
  * Provides comprehensive logging with different levels and formatting options

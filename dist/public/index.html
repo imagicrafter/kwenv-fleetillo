@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fleetillo Dashboard</title>
+    <title>Fleetillo Dashboard (V1)</title>
     <!-- Use a modern Google Font -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -333,6 +333,154 @@
                         </div>
                     </div>
 
+                    <!-- Application Overview Widget (Hidden by default) -->
+                    <div class="card chart-section overview-widget" style="display: none; flex-direction: column;">
+                        <div class="card-header">
+                            <h3>Application Overview</h3>
+                        </div>
+                        <div class="overview-content" style="padding: 10px 4px; overflow-y: auto;">
+                            <!-- Welcome Section -->
+                            <div style="margin-bottom: 24px;">
+                                <h4 style="margin: 0 0 8px 0; color: var(--accent-primary); font-size: 1.1rem;">Welcome
+                                    to Fleetillo</h4>
+                                <p style="color: var(--text-secondary); line-height: 1.5; font-size: 0.95rem;">
+                                    Your intelligent dispatch and route optimization solution. Here's a quick overview
+                                    of what you can do:
+                                </p>
+                            </div>
+
+                            <!-- Features Grid -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <!-- Route Planning -->
+                                <div class="feature-item" style="display: flex; gap: 12px;">
+                                    <div
+                                        style="width: 32px; height: 32px; background: rgba(88, 166, 255, 0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                            stroke="var(--accent-primary)" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                                            <path
+                                                d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h5 style="margin: 0 0 4px 0; font-size: 0.95rem;">Smart Routing</h5>
+                                        <p
+                                            style="margin: 0; color: var(--text-secondary); font-size: 0.85rem; line-height: 1.4;">
+                                            Optimize daily routes with traffic-aware algorithms to save time and fuel.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Fleet Management -->
+                                <div class="feature-item" style="display: flex; gap: 12px;">
+                                    <div
+                                        style="width: 32px; height: 32px; background: rgba(63, 185, 80, 0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                            stroke="var(--accent-success)" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <rect x="1" y="3" width="15" height="13"></rect>
+                                            <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                                            <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                                            <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h5 style="margin: 0 0 4px 0; font-size: 0.95rem;">Fleet Tracking</h5>
+                                        <p
+                                            style="margin: 0; color: var(--text-secondary); font-size: 0.85rem; line-height: 1.4;">
+                                            Manage vehicles and drivers, assign specialized equipment, and track status.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Customer Management -->
+                                <div class="feature-item" style="display: flex; gap: 12px;">
+                                    <div
+                                        style="width: 32px; height: 32px; background: rgba(210, 153, 34, 0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                            stroke="var(--accent-warning)" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="9" cy="7" r="4"></circle>
+                                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h5 style="margin: 0 0 4px 0; font-size: 0.95rem;">Client Database</h5>
+                                        <p
+                                            style="margin: 0; color: var(--text-secondary); font-size: 0.85rem; line-height: 1.4;">
+                                            Centralized management for client details, service history, and recurring
+                                            bookings.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Analytics -->
+                                <div class="feature-item" style="display: flex; gap: 12px;">
+                                    <div
+                                        style="width: 32px; height: 32px; background: rgba(219, 97, 162, 0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#db61a2"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h5 style="margin: 0 0 4px 0; font-size: 0.95rem;">Analytics</h5>
+                                        <p
+                                            style="margin: 0; color: var(--text-secondary); font-size: 0.85rem; line-height: 1.4;">
+                                            Track key performance indicators, revenue, and operational efficiency.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Locations -->
+                                <div class="feature-item" style="display: flex; gap: 12px;">
+                                    <div
+                                        style="width: 32px; height: 32px; background: rgba(137, 87, 229, 0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8957e5"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                            <circle cx="12" cy="10" r="3"></circle>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h5 style="margin: 0 0 4px 0; font-size: 0.95rem;">Locations</h5>
+                                        <p
+                                            style="margin: 0; color: var(--text-secondary); font-size: 0.85rem; line-height: 1.4;">
+                                            Manage multiple location types and vehicle home bases for accurate routing.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Dispatch -->
+                                <div class="feature-item" style="display: flex; gap: 12px;">
+                                    <div
+                                        style="width: 32px; height: 32px; background: rgba(248, 81, 73, 0.15); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f85149"
+                                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h5 style="margin: 0 0 4px 0; font-size: 0.95rem;">Dispatch</h5>
+                                        <p
+                                            style="margin: 0; color: var(--text-secondary); font-size: 0.85rem; line-height: 1.4;">
+                                            The core of Fleetillo. Real-time job assignment and seamless driver
+                                            communication.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="card recent-activity">
                         <div class="card-header">
                             <h3>Recent Activity</h3>
@@ -353,7 +501,8 @@
             </div>
         </main>
     </div>
-    <script src="preload.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/api-client.js"></script>
     <script>
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
@@ -363,28 +512,51 @@
             document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', dateOptions);
 
             loadDashboardStats();
+            loadDashboardSettings(); // Initialize settings (show/hide chatbot)
         });
+
+        // Load dashboard visibility settings
+        async function loadDashboardSettings() {
+            try {
+                // Determine whether to show chatbot or overview
+                const settings = await window.apiClient.settings.getRouteSettings();
+                const showChatbot = settings && settings.dashboard && settings.dashboard.showChatbot !== false; // Default true
+
+                const chatWidget = document.querySelector('.chat-widget');
+                const overviewWidget = document.querySelector('.overview-widget');
+
+                if (showChatbot) {
+                    if (chatWidget) chatWidget.style.display = 'flex';
+                    if (overviewWidget) overviewWidget.style.display = 'none';
+                } else {
+                    if (chatWidget) chatWidget.style.display = 'none';
+                    if (overviewWidget) overviewWidget.style.display = 'flex';
+                }
+            } catch (error) {
+                console.error('Failed to load dashboard settings:', error);
+            }
+        }
 
         async function loadDashboardStats() {
             try {
                 // 1. Active Bookings (Scheduled or In Progress or Confirmed)
-                const scheduledBookings = await window.electronAPI.bookings.count({ status: 'scheduled' });
-                const confirmedBookings = await window.electronAPI.bookings.count({ status: 'confirmed' });
-                const inProgressBookings = await window.electronAPI.bookings.count({ status: 'in_progress' });
+                const scheduledBookings = await window.apiClient.bookings.count({ status: 'scheduled' });
+                const confirmedBookings = await window.apiClient.bookings.count({ status: 'confirmed' });
+                const inProgressBookings = await window.apiClient.bookings.count({ status: 'in_progress' });
                 const activeBookingsCount = (scheduledBookings || 0) + (confirmedBookings || 0) + (inProgressBookings || 0);
 
                 document.getElementById('active-bookings-count').textContent = activeBookingsCount;
 
                 // 2. Active Routes (All routes for now)
-                const routesCount = await window.electronAPI.routes.count({});
+                const routesCount = await window.apiClient.routes.count({});
                 document.getElementById('active-routes-count').textContent = routesCount || 0;
 
                 // 3. Active Vehicles (status: 'available')
-                const vehiclesCount = await window.electronAPI.vehicles.count({ status: 'available' });
+                const vehiclesCount = await window.apiClient.vehicles.count({ status: 'available' });
                 document.getElementById('active-vehicles-count').textContent = vehiclesCount || 0;
 
                 // 4. Active Customers
-                const customersCount = await window.electronAPI.clients.count({ status: 'active' });
+                const customersCount = await window.apiClient.clients.count({ status: 'active' });
                 document.getElementById('active-customers-count').textContent = customersCount || 0;
 
             } catch (error) {
@@ -397,7 +569,7 @@
             const activityList = document.getElementById('activity-list');
 
             try {
-                const activities = await window.electronAPI.activities.getRecent(5);
+                const activities = await window.apiClient.activities.getRecent(5);
 
                 if (!activities || activities.length === 0) {
                     activityList.innerHTML = `

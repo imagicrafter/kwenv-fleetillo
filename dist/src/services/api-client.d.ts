@@ -27,7 +27,7 @@
  * ```
  */
 import type { SupabaseClient, PostgrestError } from '@supabase/supabase-js';
-import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
+import type { Result, PaginationParams, PaginatedResponse } from '../types/index';
 /**
  * Options for API client configuration
  */

@@ -2,8 +2,8 @@
  * Base application error class for RouteIQ
  * Provides structured error handling with codes, categories, and serialization
  */
-import { ErrorCategory, ErrorSeverity, type ErrorContext, type RetryConfig, type SerializedError, type ErrorResponse, type ValidationErrorDetail, type IAppError, type AppErrorOptions } from '../types/errors.js';
-import { type ErrorCodeDefinition } from './codes.js';
+import { ErrorCategory, ErrorSeverity, type ErrorContext, type RetryConfig, type SerializedError, type ErrorResponse, type ValidationErrorDetail, type IAppError, type AppErrorOptions } from '../types/errors';
+import { type ErrorCodeDefinition } from './codes';
 /**
  * Base application error class
  * All custom errors in the application should extend this class

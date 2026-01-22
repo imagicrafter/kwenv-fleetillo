@@ -5,8 +5,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.requireFile = exports.handleUploadError = exports.uploadCSV = void 0;
 const multer_1 = __importDefault(require("multer"));
-const AppError_js_1 = require("../errors/AppError.js");
-const codes_js_1 = require("../errors/codes.js");
+const AppError_1 = require("../errors/AppError");
+const codes_1 = require("../errors/codes");
 /**
  * File upload middleware using multer
  * Configured for CSV file uploads with validation
@@ -26,7 +26,7 @@ const fileFilter = (_req, file, cb) => {
         cb(null, true);
     }
     else {
-        cb(AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.VALIDATION_ERROR, {
+        cb(AppError_1.AppError.fromCode(codes_1.ErrorCodes.VALIDATION_ERROR, {
             message: 'Invalid file type. Only CSV files are allowed.',
             context: {
                 filename: file.originalname,
@@ -68,7 +68,7 @@ const handleUploadError = (error, req, _res, next) => {
     if (error instanceof multer_1.default.MulterError) {
         // Handle specific multer errors
         if (error.code === 'LIMIT_FILE_SIZE') {
-            const appError = AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.VALIDATION_ERROR, {
+            const appError = AppError_1.AppError.fromCode(codes_1.ErrorCodes.VALIDATION_ERROR, {
                 message: 'File size exceeds the 10MB limit.',
                 context: {
                     filename: req.file?.originalname,
@@ -78,7 +78,7 @@ const handleUploadError = (error, req, _res, next) => {
             return next(appError);
         }
         if (error.code === 'LIMIT_UNEXPECTED_FILE') {
-            const appError = AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.VALIDATION_ERROR, {
+            const appError = AppError_1.AppError.fromCode(codes_1.ErrorCodes.VALIDATION_ERROR, {
                 message: 'Unexpected field name. Use "csvFile" as the field name.',
                 context: {
                     expectedField: 'csvFile',
@@ -87,14 +87,14 @@ const handleUploadError = (error, req, _res, next) => {
             return next(appError);
         }
         // Generic multer error
-        const appError = AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.VALIDATION_ERROR, {
+        const appError = AppError_1.AppError.fromCode(codes_1.ErrorCodes.VALIDATION_ERROR, {
             message: `File upload error: ${error.message}`,
             context: { multerError: error.code },
         });
         return next(appError);
     }
     // If it's already an AppError (from fileFilter), pass it through
-    if (error instanceof AppError_js_1.AppError) {
+    if (error instanceof AppError_1.AppError) {
         return next(error);
     }
     // Unknown error
@@ -107,7 +107,7 @@ exports.handleUploadError = handleUploadError;
  */
 const requireFile = (req, _res, next) => {
     if (!req.file) {
-        throw AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.VALIDATION_ERROR, {
+        throw AppError_1.AppError.fromCode(codes_1.ErrorCodes.VALIDATION_ERROR, {
             message: 'No file uploaded. Please upload a CSV file.',
             context: {
                 expectedField: 'csvFile',

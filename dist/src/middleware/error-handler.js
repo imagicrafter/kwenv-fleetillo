@@ -1,15 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.notFoundHandler = exports.errorHandler = void 0;
-const AppError_js_1 = require("../errors/AppError.js");
-const logger_js_1 = require("../utils/logger.js");
+const AppError_1 = require("../errors/AppError");
+const logger_1 = require("../utils/logger");
 /**
  * Global error handling middleware for Express
  * Catches all errors and formats them into consistent API responses
  */
 const errorHandler = (err, req, res, _next) => {
     // Log the error
-    logger_js_1.logger.error('Error occurred:', {
+    logger_1.logger.error('Error occurred:', {
         error: err.message,
         stack: err.stack,
         path: req.path,
@@ -19,7 +19,7 @@ const errorHandler = (err, req, res, _next) => {
         params: req.params,
     });
     // Handle AppError instances (our custom errors)
-    if (err instanceof AppError_js_1.AppError) {
+    if (err instanceof AppError_1.AppError) {
         res.status(err.statusCode || 500).json({
             success: false,
             error: {

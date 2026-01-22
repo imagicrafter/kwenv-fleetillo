@@ -22,14 +22,14 @@ exports.geocodeWithValidation = geocodeWithValidation;
 exports.batchValidateAddresses = batchValidateAddresses;
 exports.isAddressValid = isAddressValid;
 exports.getValidatedCoordinates = getValidatedCoordinates;
-const logger_js_1 = require("../utils/logger.js");
-const index_js_1 = require("../config/index.js");
-const googlemaps_service_js_1 = require("./googlemaps.service.js");
-const googlemaps_js_1 = require("../types/googlemaps.js");
+const logger_1 = require("../utils/logger");
+const index_1 = require("../config/index");
+const googlemaps_service_1 = require("./googlemaps.service");
+const googlemaps_1 = require("../types/googlemaps");
 /**
  * Logger instance for Address Validation service operations
  */
-const logger = (0, logger_js_1.createContextLogger)('AddressValidationService');
+const logger = (0, logger_1.createContextLogger)('AddressValidationService');
 /**
  * Address Validation service error
  */
@@ -78,7 +78,7 @@ const DEFAULT_OPTIONS = {
  * Validates that the API key is configured
  */
 function validateApiKey() {
-    const apiKey = index_js_1.config.googleMaps.apiKey;
+    const apiKey = index_1.config.googleMaps.apiKey;
     if (!apiKey || apiKey.trim().length === 0) {
         logger.error('Google Maps API key is not configured');
         return {
@@ -139,7 +139,7 @@ function locationTypeToConfidence(locationType) {
  * Creates standardized address from geocoding result
  */
 function createStandardizedAddress(result) {
-    const structured = (0, googlemaps_js_1.extractStructuredAddress)(result);
+    const structured = (0, googlemaps_1.extractStructuredAddress)(result);
     // Build address line 1 from street number and route
     let addressLine1 = '';
     if (structured.streetNumber && structured.route) {
@@ -314,7 +314,7 @@ function determineValidationStatus(issues, confidenceScore, minConfidenceScore) 
  */
 async function getSuggestions(addressString, options) {
     try {
-        const result = await (0, googlemaps_service_js_1.getPlaceAutocomplete)({
+        const result = await (0, googlemaps_service_1.getPlaceAutocomplete)({
             input: addressString,
             types: ['address'],
             region: options.regionBias,
@@ -382,15 +382,15 @@ async function validateAddressWithDetails(input, options = {}) {
     }
     const addressString = inputResult.data;
     // Geocode the address
-    const geocodeResult = await (0, googlemaps_service_js_1.geocodeAddress)({
+    const geocodeResult = await (0, googlemaps_service_1.geocodeAddress)({
         address: addressString,
         region: mergedOptions.regionBias,
     });
     if (!geocodeResult.success) {
         // Handle geocoding failure
         const error = geocodeResult.error;
-        const isNotFound = error instanceof googlemaps_service_js_1.GoogleMapsServiceError &&
-            error.code === googlemaps_service_js_1.GoogleMapsErrorCodes.ZERO_RESULTS;
+        const isNotFound = error instanceof googlemaps_service_1.GoogleMapsServiceError &&
+            error.code === googlemaps_service_1.GoogleMapsErrorCodes.ZERO_RESULTS;
         const issues = [{
                 severity: 'ERROR',
                 code: isNotFound ? 'ADDRESS_NOT_FOUND' : 'GEOCODING_FAILED',
@@ -493,7 +493,7 @@ async function standardizeAddress(input) {
         };
     }
     // Geocode to get standardized format
-    const geocodeResult = await (0, googlemaps_service_js_1.geocodeAddress)({
+    const geocodeResult = await (0, googlemaps_service_1.geocodeAddress)({
         address: addressString,
         region: input.regionBias,
     });
@@ -579,7 +579,7 @@ async function geocodeWithValidation(input) {
             },
         };
     }
-    const geocodeResult = await (0, googlemaps_service_js_1.geocodeAddress)({
+    const geocodeResult = await (0, googlemaps_service_1.geocodeAddress)({
         address: addressString,
         region: input.regionBias,
     });

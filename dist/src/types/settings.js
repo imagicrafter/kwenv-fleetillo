@@ -22,6 +22,8 @@ exports.SettingKeys = {
     COSTS_INCLUDE_TRAFFIC_BUFFER: 'costs.includeTrafficBuffer',
     // Dashboard settings
     DASHBOARD_SHOW_CHATBOT: 'dashboard.showChatbot',
+    // Location settings
+    LOCATIONS_CUSTOM_FIELDS: 'locations.customFields',
 };
 // Default settings
 exports.DEFAULT_SETTINGS = {

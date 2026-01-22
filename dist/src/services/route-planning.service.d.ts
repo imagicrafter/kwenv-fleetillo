@@ -9,10 +9,10 @@
  * 5. Assigns compatible vehicles
  * 6. Persists routes and updates bookings
  */
-import type { Result } from '../types/index.js';
-import type { Booking } from '../types/booking.js';
-import type { Route } from '../types/route.js';
-import type { Vehicle } from '../types/vehicle.js';
+import type { Result } from '../types/index';
+import type { Booking } from '../types/booking';
+import type { Route } from '../types/route';
+import type { Vehicle } from '../types/vehicle';
 /**
  * Route planning service error
  */

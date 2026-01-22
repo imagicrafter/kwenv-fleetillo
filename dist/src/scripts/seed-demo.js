@@ -27,15 +27,15 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv/config");
 const faker_1 = require("@faker-js/faker");
-const supabase_js_1 = require("../services/supabase.js");
-const customer_service_js_1 = require("../services/customer.service.js");
-const location_service_js_1 = require("../services/location.service.js");
-const service_service_js_1 = require("../services/service.service.js");
-const vehicle_service_js_1 = require("../services/vehicle.service.js");
-const vehicle_location_service_js_1 = require("../services/vehicle-location.service.js");
-const driver_service_js_1 = require("../services/driver.service.js");
-const booking_service_js_1 = require("../services/booking.service.js");
-const route_service_js_1 = require("../services/route.service.js");
+const supabase_1 = require("../services/supabase");
+const customer_service_1 = require("../services/customer.service");
+const location_service_1 = require("../services/location.service");
+const service_service_1 = require("../services/service.service");
+const vehicle_service_1 = require("../services/vehicle.service");
+const vehicle_location_service_1 = require("../services/vehicle-location.service");
+const driver_service_1 = require("../services/driver.service");
+const booking_service_1 = require("../services/booking.service");
+const route_service_1 = require("../services/route.service");
 const SIZE_CONFIGS = {
     small: {
         customers: 5,
@@ -529,7 +529,7 @@ function formatTimeForDb(hours, minutes) {
 // ============================================================================
 async function clearDemoData() {
     console.log('Clearing existing demo data...');
-    const supabase = (0, supabase_js_1.getAdminSupabaseClient)();
+    const supabase = (0, supabase_1.getAdminSupabaseClient)();
     if (!supabase) {
         throw new Error('Admin Supabase client not available');
     }
@@ -630,7 +630,7 @@ async function generateCustomers(count) {
             notes: `Demo customer for ${companyName}`,
             tags: [DEMO_TAG, faker_1.faker.helpers.arrayElement(['commercial', 'residential', 'event', 'construction'])],
         };
-        const result = await (0, customer_service_js_1.createCustomer)(input, { skipLocationCreation: true });
+        const result = await (0, customer_service_1.createCustomer)(input, { skipLocationCreation: true });
         if (result.success && result.data) {
             customerIds.push(result.data.id);
             console.log(`  Created customer: ${result.data.name} (${result.data.companyName})`);
@@ -735,7 +735,7 @@ async function generateLocations(customerIds, config) {
                 isPrimary,
                 tags: [DEMO_TAG, locationType],
             };
-            const result = await (0, location_service_js_1.createLocation)(input);
+            const result = await (0, location_service_1.createLocation)(input);
             if (result.success && result.data) {
                 customerLocations.push(result.data.id);
                 allLocationIds.push(result.data.id);
@@ -782,7 +782,7 @@ async function generateLocations(customerIds, config) {
             isPrimary: false,
             tags: [DEMO_TAG, 'depot'],
         };
-        const result = await (0, location_service_js_1.createLocation)(depotInput);
+        const result = await (0, location_service_1.createLocation)(depotInput);
         if (result.success && result.data) {
             allLocationIds.push(result.data.id);
             const cityDepots = depotLocationsByCity.get(addr.city) || [];
@@ -827,7 +827,7 @@ async function generateLocations(customerIds, config) {
                 isPrimary: false,
                 tags: [DEMO_TAG, 'home'],
             };
-            const result = await (0, location_service_js_1.createLocation)(homeInput);
+            const result = await (0, location_service_1.createLocation)(homeInput);
             if (result.success && result.data) {
                 allLocationIds.push(result.data.id);
                 const cityHomes = homeLocationsByCity.get(addr.city) || [];
@@ -869,7 +869,7 @@ async function generateServices(count) {
             status: 'active',
             tags: [DEMO_TAG],
         };
-        const result = await (0, service_service_js_1.createService)(input);
+        const result = await (0, service_service_1.createService)(input);
         if (result.success && result.data) {
             serviceIds.push(result.data.id);
             console.log(`  Created service: ${result.data.name} ($${result.data.basePrice})`);
@@ -903,7 +903,7 @@ async function generateVehicles(count, serviceIds, homeLocationsByCity, depotLoc
     // Track used vehicle names to ensure uniqueness
     const usedVehicleNames = new Set();
     // Query existing vehicle names to avoid conflicts
-    const supabase = (0, supabase_js_1.getAdminSupabaseClient)();
+    const supabase = (0, supabase_1.getAdminSupabaseClient)();
     if (supabase) {
         const { data: existingVehicles } = await supabase
             .from('vehicles')
@@ -977,7 +977,7 @@ async function generateVehicles(count, serviceIds, homeLocationsByCity, depotLoc
             notes: `Demo vehicle - ${spec.make} ${spec.model}`,
             tags: [DEMO_TAG],
         };
-        const result = await (0, vehicle_service_js_1.createVehicle)(input);
+        const result = await (0, vehicle_service_1.createVehicle)(input);
         if (result.success && result.data) {
             const vehicleId = result.data.id;
             vehicleIds.push(vehicleId);
@@ -1007,7 +1007,7 @@ async function generateVehicles(count, serviceIds, homeLocationsByCity, depotLoc
                     });
                 }
                 // Set vehicle locations via junction table
-                const vlResult = await (0, vehicle_location_service_js_1.setVehicleLocations)(vehicleId, locationsToAssociate);
+                const vlResult = await (0, vehicle_location_service_1.setVehicleLocations)(vehicleId, locationsToAssociate);
                 if (vlResult.success) {
                     console.log(`    Associated ${locationsToAssociate.length} location(s) with ${result.data.name}`);
                 }
@@ -1055,14 +1055,14 @@ async function generateDrivers(count, vehicleIds) {
             emergencyContactPhone: faker_1.faker.phone.number({ style: 'national' }),
             tags: [DEMO_TAG],
         };
-        const result = await (0, driver_service_js_1.createDriver)(input);
+        const result = await (0, driver_service_1.createDriver)(input);
         if (result.success && result.data) {
             driverIds.push(result.data.id);
             console.log(`  Created driver: ${result.data.firstName} ${result.data.lastName}`);
             // Assign driver to vehicle if available
             if (i < vehicleIds.length) {
                 const vehicleId = vehicleIds[i];
-                const assignResult = await (0, driver_service_js_1.assignDriverToVehicle)(result.data.id, vehicleId);
+                const assignResult = await (0, driver_service_1.assignDriverToVehicle)(result.data.id, vehicleId);
                 if (assignResult.success) {
                     console.log(`    Assigned to vehicle ${vehicleId.substring(0, 8)}...`);
                 }
@@ -1082,7 +1082,7 @@ locationsByCustomer, customerLocationsByCity, vehiclesPerCity, serviceIds) {
     console.log(`\nGenerating bookings with city-based distribution...`);
     const bookingIds = [];
     // Fetch service details for service items
-    const supabase = (0, supabase_js_1.getAdminSupabaseClient)();
+    const supabase = (0, supabase_1.getAdminSupabaseClient)();
     if (!supabase)
         throw new Error('Admin client not available');
     const { data: servicesData } = await supabase
@@ -1209,7 +1209,7 @@ locationsByCustomer, customerLocationsByCity, vehiclesPerCity, serviceIds) {
                     specialInstructions: Math.random() > 0.7 ? faker_1.faker.lorem.sentence() : undefined,
                     tags: [DEMO_TAG],
                 };
-                const result = await (0, booking_service_js_1.createBooking)(input);
+                const result = await (0, booking_service_1.createBooking)(input);
                 if (result.success && result.data) {
                     bookingIds.push(result.data.id);
                     cityBookingsCreated++;
@@ -1241,7 +1241,7 @@ async function generateRoutes(count, vehicleIds, bookingIds) {
     console.log(`\nGenerating ${count} routes...`);
     const routeIds = [];
     // Get available vehicles (not in maintenance)
-    const supabase = (0, supabase_js_1.getAdminSupabaseClient)();
+    const supabase = (0, supabase_1.getAdminSupabaseClient)();
     if (!supabase)
         throw new Error('Admin client not available');
     const availableVehicles = vehicleIds.slice(0, -1); // Exclude last one (in maintenance)
@@ -1282,7 +1282,7 @@ async function generateRoutes(count, vehicleIds, bookingIds) {
             notes: `Demo route for ${routeDate}`,
             tags: [DEMO_TAG],
         };
-        const result = await (0, route_service_js_1.createRoute)(input);
+        const result = await (0, route_service_1.createRoute)(input);
         if (result.success && result.data) {
             routeIds.push(result.data.id);
             console.log(`  Created route: ${result.data.routeName} (${routeBookings.length} stops)`);
@@ -1344,12 +1344,12 @@ async function main() {
     console.log(`  Bookings: ${config.bookings}`);
     // Initialize Supabase
     console.log('\nInitializing Supabase connection...');
-    (0, supabase_js_1.initializeSupabase)({
+    (0, supabase_1.initializeSupabase)({
         url: process.env.SUPABASE_URL || '',
         anonKey: process.env.SUPABASE_KEY || '',
         serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
     });
-    const adminClient = (0, supabase_js_1.getAdminSupabaseClient)();
+    const adminClient = (0, supabase_1.getAdminSupabaseClient)();
     if (!adminClient) {
         console.error('ERROR: Admin Supabase client not available. Make sure SUPABASE_SERVICE_ROLE_KEY is set.');
         process.exit(1);
@@ -1385,7 +1385,7 @@ async function main() {
         const testRouteIds = await generateRoutes(1, vehicleIds, bookingIds);
         if (testRouteIds.length > 0) {
             console.log('Test route created successfully. Deleting test route...');
-            const supabase = (0, supabase_js_1.getAdminSupabaseClient)();
+            const supabase = (0, supabase_1.getAdminSupabaseClient)();
             if (supabase) {
                 const { error } = await supabase.from('routes').delete().in('id', testRouteIds);
                 if (error) {

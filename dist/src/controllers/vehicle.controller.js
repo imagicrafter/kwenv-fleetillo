@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.patchServiceTypes = exports.patchStatus = exports.patchLocation = exports.getByServiceType = exports.count = exports.restore = exports.remove = exports.update = exports.getAll = exports.getById = exports.create = void 0;
-const vehicle_service_js_1 = require("../services/vehicle.service.js");
+const vehicle_service_1 = require("../services/vehicle.service");
 /**
  * Vehicle Controller
  * Handles HTTP requests for vehicle management operations
@@ -13,7 +13,7 @@ const vehicle_service_js_1 = require("../services/vehicle.service.js");
 const create = async (req, res, next) => {
     try {
         const input = req.body;
-        const result = await (0, vehicle_service_js_1.createVehicle)(input);
+        const result = await (0, vehicle_service_1.createVehicle)(input);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -42,7 +42,7 @@ const getById = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'ID is required' } });
             return;
         }
-        const result = await (0, vehicle_service_js_1.getVehicleById)(id);
+        const result = await (0, vehicle_service_1.getVehicleById)(id);
         if (!result.success) {
             res.status(404).json({
                 success: false,
@@ -103,7 +103,7 @@ const getAll = async (req, res, next) => {
         if (includeDeleted) {
             filters.includeDeleted = includeDeleted === 'true';
         }
-        const result = await (0, vehicle_service_js_1.getVehicles)(filters, pagination);
+        const result = await (0, vehicle_service_1.getVehicles)(filters, pagination);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -136,7 +136,7 @@ const update = async (req, res, next) => {
             id,
             ...req.body,
         };
-        const result = await (0, vehicle_service_js_1.updateVehicle)(input);
+        const result = await (0, vehicle_service_1.updateVehicle)(input);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -165,7 +165,7 @@ const remove = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'ID is required' } });
             return;
         }
-        const result = await (0, vehicle_service_js_1.deleteVehicle)(id);
+        const result = await (0, vehicle_service_1.deleteVehicle)(id);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -191,7 +191,7 @@ const restore = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'ID is required' } });
             return;
         }
-        const result = await (0, vehicle_service_js_1.restoreVehicle)(id);
+        const result = await (0, vehicle_service_1.restoreVehicle)(id);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -231,7 +231,7 @@ const count = async (req, res, next) => {
         if (includeDeleted) {
             filters.includeDeleted = includeDeleted === 'true';
         }
-        const result = await (0, vehicle_service_js_1.countVehicles)(filters);
+        const result = await (0, vehicle_service_1.countVehicles)(filters);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -270,7 +270,7 @@ const getByServiceType = async (req, res, next) => {
         if (includeDeleted) {
             filters.includeDeleted = includeDeleted === 'true';
         }
-        const result = await (0, vehicle_service_js_1.getVehiclesByServiceType)(serviceType, filters);
+        const result = await (0, vehicle_service_1.getVehiclesByServiceType)(serviceType, filters);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -307,7 +307,7 @@ const patchLocation = async (req, res, next) => {
             });
             return;
         }
-        const result = await (0, vehicle_service_js_1.updateVehicleLocation)(id, latitude, longitude);
+        const result = await (0, vehicle_service_1.updateVehicleLocation)(id, latitude, longitude);
         if (!result.success) {
             const statusCode = result.error?.code === 'VEHICLE_NOT_FOUND' ? 404 : 400;
             res.status(statusCode).json({
@@ -355,7 +355,7 @@ const patchStatus = async (req, res, next) => {
             });
             return;
         }
-        const result = await (0, vehicle_service_js_1.updateVehicleStatus)(id, status);
+        const result = await (0, vehicle_service_1.updateVehicleStatus)(id, status);
         if (!result.success) {
             const statusCode = result.error?.code === 'VEHICLE_NOT_FOUND' ? 404 : 400;
             res.status(statusCode).json({
@@ -397,7 +397,7 @@ const patchServiceTypes = async (req, res, next) => {
             id,
             serviceTypes,
         };
-        const result = await (0, vehicle_service_js_1.updateVehicle)(input);
+        const result = await (0, vehicle_service_1.updateVehicle)(input);
         if (!result.success) {
             const statusCode = result.error?.code === 'VEHICLE_NOT_FOUND' ? 404 : 400;
             res.status(statusCode).json({

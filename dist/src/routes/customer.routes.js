@@ -34,8 +34,8 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const customerController = __importStar(require("../controllers/customer.controller.js"));
-const validation_js_1 = require("../middleware/validation.js");
+const customerController = __importStar(require("../controllers/customer.controller"));
+const validation_1 = require("../middleware/validation");
 const router = (0, express_1.Router)();
 /**
  * GET /api/v1/customers/count
@@ -51,26 +51,26 @@ router.get('/', customerController.getAll);
  * GET /api/v1/customers/:id
  * Get customer by ID
  */
-router.get('/:id', (0, validation_js_1.validateIdParam)('id'), customerController.getById);
+router.get('/:id', (0, validation_1.validateIdParam)('id'), customerController.getById);
 /**
  * POST /api/v1/customers
  * Create a new customer
  */
-router.post('/', (0, validation_js_1.validateRequired)(['name', 'email']), customerController.create);
+router.post('/', (0, validation_1.validateRequired)(['name', 'email']), customerController.create);
 /**
  * PUT /api/v1/customers/:id
  * Update customer
  */
-router.put('/:id', (0, validation_js_1.validateIdParam)('id'), customerController.update);
+router.put('/:id', (0, validation_1.validateIdParam)('id'), customerController.update);
 /**
  * DELETE /api/v1/customers/:id
  * Soft delete customer
  */
-router.delete('/:id', (0, validation_js_1.validateIdParam)('id'), customerController.remove);
+router.delete('/:id', (0, validation_1.validateIdParam)('id'), customerController.remove);
 /**
  * POST /api/v1/customers/:id/restore
  * Restore deleted customer
  */
-router.post('/:id/restore', (0, validation_js_1.validateIdParam)('id'), customerController.restore);
+router.post('/:id/restore', (0, validation_1.validateIdParam)('id'), customerController.restore);
 exports.default = router;
 //# sourceMappingURL=customer.routes.js.map

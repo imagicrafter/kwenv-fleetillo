@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.count = exports.restore = exports.remove = exports.update = exports.getAll = exports.getByCode = exports.getById = exports.create = void 0;
-const service_service_js_1 = require("../services/service.service.js");
+const service_service_1 = require("../services/service.service");
 /**
  * Service Controller
  * Handles HTTP requests for service catalog operations
@@ -13,7 +13,7 @@ const service_service_js_1 = require("../services/service.service.js");
 const create = async (req, res, next) => {
     try {
         const input = req.body;
-        const result = await (0, service_service_js_1.createService)(input);
+        const result = await (0, service_service_1.createService)(input);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -42,7 +42,7 @@ const getById = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'ID is required' } });
             return;
         }
-        const result = await (0, service_service_js_1.getServiceById)(id);
+        const result = await (0, service_service_1.getServiceById)(id);
         if (!result.success) {
             res.status(404).json({
                 success: false,
@@ -71,7 +71,7 @@ const getByCode = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'Code is required' } });
             return;
         }
-        const result = await (0, service_service_js_1.getServiceByCode)(code);
+        const result = await (0, service_service_1.getServiceByCode)(code);
         if (!result.success) {
             res.status(404).json({
                 success: false,
@@ -127,7 +127,7 @@ const getAll = async (req, res, next) => {
         if (maxDuration) {
             filters.maxDuration = parseInt(maxDuration);
         }
-        const result = await (0, service_service_js_1.getServices)(filters, pagination);
+        const result = await (0, service_service_1.getServices)(filters, pagination);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -160,7 +160,7 @@ const update = async (req, res, next) => {
             id,
             ...req.body,
         };
-        const result = await (0, service_service_js_1.updateService)(input);
+        const result = await (0, service_service_1.updateService)(input);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -189,7 +189,7 @@ const remove = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'ID is required' } });
             return;
         }
-        const result = await (0, service_service_js_1.deleteService)(id);
+        const result = await (0, service_service_1.deleteService)(id);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -215,7 +215,7 @@ const restore = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'ID is required' } });
             return;
         }
-        const result = await (0, service_service_js_1.restoreService)(id);
+        const result = await (0, service_service_1.restoreService)(id);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -250,7 +250,7 @@ const count = async (req, res, next) => {
         if (includeDeleted) {
             filters.includeDeleted = includeDeleted === 'true';
         }
-        const result = await (0, service_service_js_1.countServices)(filters);
+        const result = await (0, service_service_1.countServices)(filters);
         if (!result.success) {
             res.status(400).json({
                 success: false,

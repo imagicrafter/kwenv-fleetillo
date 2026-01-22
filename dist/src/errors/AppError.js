@@ -5,8 +5,8 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InternalError = exports.NetworkError = exports.ConfigurationError = exports.DatabaseError = exports.ExternalServiceError = exports.BusinessError = exports.ResourceError = exports.AuthorizationError = exports.AuthenticationError = exports.ValidationError = exports.AppError = void 0;
-const errors_js_1 = require("../types/errors.js");
-const codes_js_1 = require("./codes.js");
+const errors_1 = require("../types/errors");
+const codes_1 = require("./codes");
 /**
  * Base application error class
  * All custom errors in the application should extend this class
@@ -28,9 +28,9 @@ class AppError extends Error {
         Object.setPrototypeOf(this, new.target.prototype);
         this.name = this.constructor.name;
         this.code = options.code;
-        this.statusCode = options.statusCode ?? errors_js_1.HttpStatusCode.INTERNAL_SERVER_ERROR;
-        this.category = options.category ?? errors_js_1.ErrorCategory.INTERNAL;
-        this.severity = options.severity ?? errors_js_1.ErrorSeverity.MEDIUM;
+        this.statusCode = options.statusCode ?? errors_1.HttpStatusCode.INTERNAL_SERVER_ERROR;
+        this.category = options.category ?? errors_1.ErrorCategory.INTERNAL;
+        this.severity = options.severity ?? errors_1.ErrorSeverity.MEDIUM;
         this.timestamp = new Date();
         this.context = options.context;
         this.retry = options.retry;
@@ -66,7 +66,7 @@ class AppError extends Error {
         if (error instanceof AppError) {
             return error;
         }
-        const code = codeDefinition ?? codes_js_1.ErrorCodes.UNEXPECTED_ERROR;
+        const code = codeDefinition ?? codes_1.ErrorCodes.UNEXPECTED_ERROR;
         const originalError = error instanceof Error ? error : new Error(String(error));
         return new AppError({
             code: code.code,
@@ -176,11 +176,11 @@ exports.AppError = AppError;
 class ValidationError extends AppError {
     constructor(message, validationErrors, context) {
         super({
-            code: codes_js_1.ErrorCodes.VALIDATION_ERROR.code,
+            code: codes_1.ErrorCodes.VALIDATION_ERROR.code,
             message,
-            statusCode: codes_js_1.ErrorCodes.VALIDATION_ERROR.statusCode,
-            category: codes_js_1.ErrorCodes.VALIDATION_ERROR.category,
-            severity: codes_js_1.ErrorCodes.VALIDATION_ERROR.severity,
+            statusCode: codes_1.ErrorCodes.VALIDATION_ERROR.statusCode,
+            category: codes_1.ErrorCodes.VALIDATION_ERROR.category,
+            severity: codes_1.ErrorCodes.VALIDATION_ERROR.severity,
             validationErrors,
             context,
         });
@@ -215,7 +215,7 @@ exports.ValidationError = ValidationError;
  */
 class AuthenticationError extends AppError {
     constructor(message, code, context) {
-        const errorCode = code ?? codes_js_1.ErrorCodes.AUTHENTICATION_REQUIRED;
+        const errorCode = code ?? codes_1.ErrorCodes.AUTHENTICATION_REQUIRED;
         super({
             code: errorCode.code,
             message: message ?? errorCode.message,
@@ -226,16 +226,16 @@ class AuthenticationError extends AppError {
         });
     }
     static invalidCredentials() {
-        return new AuthenticationError(codes_js_1.ErrorCodes.INVALID_CREDENTIALS.message, codes_js_1.ErrorCodes.INVALID_CREDENTIALS);
+        return new AuthenticationError(codes_1.ErrorCodes.INVALID_CREDENTIALS.message, codes_1.ErrorCodes.INVALID_CREDENTIALS);
     }
     static tokenExpired() {
-        return new AuthenticationError(codes_js_1.ErrorCodes.TOKEN_EXPIRED.message, codes_js_1.ErrorCodes.TOKEN_EXPIRED);
+        return new AuthenticationError(codes_1.ErrorCodes.TOKEN_EXPIRED.message, codes_1.ErrorCodes.TOKEN_EXPIRED);
     }
     static tokenInvalid() {
-        return new AuthenticationError(codes_js_1.ErrorCodes.TOKEN_INVALID.message, codes_js_1.ErrorCodes.TOKEN_INVALID);
+        return new AuthenticationError(codes_1.ErrorCodes.TOKEN_INVALID.message, codes_1.ErrorCodes.TOKEN_INVALID);
     }
     static sessionExpired() {
-        return new AuthenticationError(codes_js_1.ErrorCodes.SESSION_EXPIRED.message, codes_js_1.ErrorCodes.SESSION_EXPIRED);
+        return new AuthenticationError(codes_1.ErrorCodes.SESSION_EXPIRED.message, codes_1.ErrorCodes.SESSION_EXPIRED);
     }
 }
 exports.AuthenticationError = AuthenticationError;
@@ -244,7 +244,7 @@ exports.AuthenticationError = AuthenticationError;
  */
 class AuthorizationError extends AppError {
     constructor(message, code, context) {
-        const errorCode = code ?? codes_js_1.ErrorCodes.ACCESS_DENIED;
+        const errorCode = code ?? codes_1.ErrorCodes.ACCESS_DENIED;
         super({
             code: errorCode.code,
             message: message ?? errorCode.message,
@@ -257,14 +257,14 @@ class AuthorizationError extends AppError {
     static accessDenied(resource) {
         const message = resource
             ? `Access denied to resource: ${resource}`
-            : codes_js_1.ErrorCodes.ACCESS_DENIED.message;
-        return new AuthorizationError(message, codes_js_1.ErrorCodes.ACCESS_DENIED);
+            : codes_1.ErrorCodes.ACCESS_DENIED.message;
+        return new AuthorizationError(message, codes_1.ErrorCodes.ACCESS_DENIED);
     }
     static insufficientPermissions(requiredPermission) {
         const message = requiredPermission
             ? `Missing required permission: ${requiredPermission}`
-            : codes_js_1.ErrorCodes.INSUFFICIENT_PERMISSIONS.message;
-        return new AuthorizationError(message, codes_js_1.ErrorCodes.INSUFFICIENT_PERMISSIONS);
+            : codes_1.ErrorCodes.INSUFFICIENT_PERMISSIONS.message;
+        return new AuthorizationError(message, codes_1.ErrorCodes.INSUFFICIENT_PERMISSIONS);
     }
 }
 exports.AuthorizationError = AuthorizationError;
@@ -286,7 +286,7 @@ class ResourceError extends AppError {
         const message = resourceId
             ? `${resourceType} with ID '${resourceId}' not found`
             : `${resourceType} not found`;
-        return new ResourceError(message, codes_js_1.ErrorCodes.RESOURCE_NOT_FOUND, {
+        return new ResourceError(message, codes_1.ErrorCodes.RESOURCE_NOT_FOUND, {
             resourceType,
             resourceId,
         });
@@ -295,13 +295,13 @@ class ResourceError extends AppError {
         const message = identifier
             ? `${resourceType} '${identifier}' already exists`
             : `${resourceType} already exists`;
-        return new ResourceError(message, codes_js_1.ErrorCodes.RESOURCE_ALREADY_EXISTS, { resourceType });
+        return new ResourceError(message, codes_1.ErrorCodes.RESOURCE_ALREADY_EXISTS, { resourceType });
     }
     static conflict(resourceType, reason) {
         const message = reason
             ? `Conflict with ${resourceType}: ${reason}`
             : `${resourceType} conflict detected`;
-        return new ResourceError(message, codes_js_1.ErrorCodes.RESOURCE_CONFLICT, { resourceType });
+        return new ResourceError(message, codes_1.ErrorCodes.RESOURCE_CONFLICT, { resourceType });
     }
 }
 exports.ResourceError = ResourceError;
@@ -310,7 +310,7 @@ exports.ResourceError = ResourceError;
  */
 class BusinessError extends AppError {
     constructor(message, code, context) {
-        const errorCode = code ?? codes_js_1.ErrorCodes.BUSINESS_RULE_VIOLATION;
+        const errorCode = code ?? codes_1.ErrorCodes.BUSINESS_RULE_VIOLATION;
         super({
             code: errorCode.code,
             message,
@@ -322,19 +322,19 @@ class BusinessError extends AppError {
     }
     static ruleViolation(rule, details) {
         const message = details ? `${rule}: ${details}` : rule;
-        return new BusinessError(message, codes_js_1.ErrorCodes.BUSINESS_RULE_VIOLATION);
+        return new BusinessError(message, codes_1.ErrorCodes.BUSINESS_RULE_VIOLATION);
     }
     static invalidState(currentState, expectedState) {
         const message = expectedState
             ? `Invalid state: current '${currentState}', expected '${expectedState}'`
             : `Invalid state: '${currentState}'`;
-        return new BusinessError(message, codes_js_1.ErrorCodes.INVALID_STATE);
+        return new BusinessError(message, codes_1.ErrorCodes.INVALID_STATE);
     }
     static quotaExceeded(resource, limit) {
         const message = limit
             ? `Quota exceeded for ${resource}: limit is ${limit}`
             : `Quota exceeded for ${resource}`;
-        return new BusinessError(message, codes_js_1.ErrorCodes.QUOTA_EXCEEDED);
+        return new BusinessError(message, codes_1.ErrorCodes.QUOTA_EXCEEDED);
     }
 }
 exports.BusinessError = BusinessError;
@@ -343,7 +343,7 @@ exports.BusinessError = BusinessError;
  */
 class ExternalServiceError extends AppError {
     constructor(serviceName, message, code, cause, context) {
-        const errorCode = code ?? codes_js_1.ErrorCodes.EXTERNAL_SERVICE_ERROR;
+        const errorCode = code ?? codes_1.ErrorCodes.EXTERNAL_SERVICE_ERROR;
         super({
             code: errorCode.code,
             message: message ?? `${serviceName}: ${errorCode.message}`,
@@ -356,10 +356,10 @@ class ExternalServiceError extends AppError {
         });
     }
     static unavailable(serviceName, cause) {
-        return new ExternalServiceError(serviceName, `${serviceName} is currently unavailable`, codes_js_1.ErrorCodes.EXTERNAL_SERVICE_UNAVAILABLE, cause);
+        return new ExternalServiceError(serviceName, `${serviceName} is currently unavailable`, codes_1.ErrorCodes.EXTERNAL_SERVICE_UNAVAILABLE, cause);
     }
     static timeout(serviceName, cause) {
-        return new ExternalServiceError(serviceName, `${serviceName} request timed out`, codes_js_1.ErrorCodes.EXTERNAL_SERVICE_TIMEOUT, cause);
+        return new ExternalServiceError(serviceName, `${serviceName} request timed out`, codes_1.ErrorCodes.EXTERNAL_SERVICE_TIMEOUT, cause);
     }
 }
 exports.ExternalServiceError = ExternalServiceError;
@@ -368,7 +368,7 @@ exports.ExternalServiceError = ExternalServiceError;
  */
 class DatabaseError extends AppError {
     constructor(message, code, cause, context) {
-        const errorCode = code ?? codes_js_1.ErrorCodes.DATABASE_ERROR;
+        const errorCode = code ?? codes_1.ErrorCodes.DATABASE_ERROR;
         super({
             code: errorCode.code,
             message,
@@ -381,14 +381,14 @@ class DatabaseError extends AppError {
         });
     }
     static connectionError(cause) {
-        return new DatabaseError('Failed to connect to database', codes_js_1.ErrorCodes.DATABASE_CONNECTION_ERROR, cause);
+        return new DatabaseError('Failed to connect to database', codes_1.ErrorCodes.DATABASE_CONNECTION_ERROR, cause);
     }
     static queryError(query, cause) {
         const context = query ? { query: query.substring(0, 100) } : undefined;
-        return new DatabaseError('Database query failed', codes_js_1.ErrorCodes.DATABASE_QUERY_ERROR, cause, context);
+        return new DatabaseError('Database query failed', codes_1.ErrorCodes.DATABASE_QUERY_ERROR, cause, context);
     }
     static transactionError(cause) {
-        return new DatabaseError('Database transaction failed', codes_js_1.ErrorCodes.DATABASE_TRANSACTION_ERROR, cause);
+        return new DatabaseError('Database transaction failed', codes_1.ErrorCodes.DATABASE_TRANSACTION_ERROR, cause);
     }
 }
 exports.DatabaseError = DatabaseError;
@@ -397,7 +397,7 @@ exports.DatabaseError = DatabaseError;
  */
 class ConfigurationError extends AppError {
     constructor(message, code, context) {
-        const errorCode = code ?? codes_js_1.ErrorCodes.CONFIGURATION_ERROR;
+        const errorCode = code ?? codes_1.ErrorCodes.CONFIGURATION_ERROR;
         super({
             code: errorCode.code,
             message,
@@ -410,13 +410,13 @@ class ConfigurationError extends AppError {
         this.isOperational = false;
     }
     static missing(configKey) {
-        return new ConfigurationError(`Missing required configuration: ${configKey}`, codes_js_1.ErrorCodes.MISSING_CONFIGURATION, { configKey });
+        return new ConfigurationError(`Missing required configuration: ${configKey}`, codes_1.ErrorCodes.MISSING_CONFIGURATION, { configKey });
     }
     static invalid(configKey, reason) {
         const message = reason
             ? `Invalid configuration for '${configKey}': ${reason}`
             : `Invalid configuration: ${configKey}`;
-        return new ConfigurationError(message, codes_js_1.ErrorCodes.INVALID_CONFIGURATION, { configKey });
+        return new ConfigurationError(message, codes_1.ErrorCodes.INVALID_CONFIGURATION, { configKey });
     }
 }
 exports.ConfigurationError = ConfigurationError;
@@ -425,7 +425,7 @@ exports.ConfigurationError = ConfigurationError;
  */
 class NetworkError extends AppError {
     constructor(message, code, cause, context) {
-        const errorCode = code ?? codes_js_1.ErrorCodes.NETWORK_ERROR;
+        const errorCode = code ?? codes_1.ErrorCodes.NETWORK_ERROR;
         super({
             code: errorCode.code,
             message,
@@ -439,7 +439,7 @@ class NetworkError extends AppError {
     }
     static connectionTimeout(host, cause) {
         const message = host ? `Connection to ${host} timed out` : 'Connection timed out';
-        return new NetworkError(message, codes_js_1.ErrorCodes.CONNECTION_TIMEOUT, cause, { host });
+        return new NetworkError(message, codes_1.ErrorCodes.CONNECTION_TIMEOUT, cause, { host });
     }
 }
 exports.NetworkError = NetworkError;
@@ -449,11 +449,11 @@ exports.NetworkError = NetworkError;
 class InternalError extends AppError {
     constructor(message, cause, context) {
         super({
-            code: codes_js_1.ErrorCodes.INTERNAL_ERROR.code,
-            message: message ?? codes_js_1.ErrorCodes.INTERNAL_ERROR.message,
-            statusCode: codes_js_1.ErrorCodes.INTERNAL_ERROR.statusCode,
-            category: codes_js_1.ErrorCodes.INTERNAL_ERROR.category,
-            severity: codes_js_1.ErrorCodes.INTERNAL_ERROR.severity,
+            code: codes_1.ErrorCodes.INTERNAL_ERROR.code,
+            message: message ?? codes_1.ErrorCodes.INTERNAL_ERROR.message,
+            statusCode: codes_1.ErrorCodes.INTERNAL_ERROR.statusCode,
+            category: codes_1.ErrorCodes.INTERNAL_ERROR.category,
+            severity: codes_1.ErrorCodes.INTERNAL_ERROR.severity,
             cause,
             context,
         });
@@ -463,7 +463,7 @@ class InternalError extends AppError {
     }
     static notImplemented(feature) {
         const error = new InternalError(feature ? `Feature not implemented: ${feature}` : 'This feature is not implemented');
-        error.code = codes_js_1.ErrorCodes.NOT_IMPLEMENTED.code;
+        error.code = codes_1.ErrorCodes.NOT_IMPLEMENTED.code;
         return error;
     }
 }

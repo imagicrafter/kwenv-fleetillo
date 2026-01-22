@@ -34,8 +34,8 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const vehicleController = __importStar(require("../controllers/vehicle.controller.js"));
-const validation_js_1 = require("../middleware/validation.js");
+const vehicleController = __importStar(require("../controllers/vehicle.controller"));
+const validation_1 = require("../middleware/validation");
 const router = (0, express_1.Router)();
 /**
  * GET /api/v1/vehicles/count
@@ -56,41 +56,41 @@ router.get('/', vehicleController.getAll);
  * GET /api/v1/vehicles/:id
  * Get vehicle by ID
  */
-router.get('/:id', (0, validation_js_1.validateIdParam)('id'), vehicleController.getById);
+router.get('/:id', (0, validation_1.validateIdParam)('id'), vehicleController.getById);
 /**
  * POST /api/v1/vehicles
  * Create a new vehicle
  */
-router.post('/', (0, validation_js_1.validateRequired)(['name']), vehicleController.create);
+router.post('/', (0, validation_1.validateRequired)(['name']), vehicleController.create);
 /**
  * PUT /api/v1/vehicles/:id
  * Update vehicle
  */
-router.put('/:id', (0, validation_js_1.validateIdParam)('id'), vehicleController.update);
+router.put('/:id', (0, validation_1.validateIdParam)('id'), vehicleController.update);
 /**
  * DELETE /api/v1/vehicles/:id
  * Soft delete vehicle
  */
-router.delete('/:id', (0, validation_js_1.validateIdParam)('id'), vehicleController.remove);
+router.delete('/:id', (0, validation_1.validateIdParam)('id'), vehicleController.remove);
 /**
  * POST /api/v1/vehicles/:id/restore
  * Restore deleted vehicle
  */
-router.post('/:id/restore', (0, validation_js_1.validateIdParam)('id'), vehicleController.restore);
+router.post('/:id/restore', (0, validation_1.validateIdParam)('id'), vehicleController.restore);
 /**
  * PATCH /api/v1/vehicles/:id/location
  * Update vehicle location (GPS coordinates)
  */
-router.patch('/:id/location', (0, validation_js_1.validateIdParam)('id'), (0, validation_js_1.validateRequired)(['latitude', 'longitude']), vehicleController.patchLocation);
+router.patch('/:id/location', (0, validation_1.validateIdParam)('id'), (0, validation_1.validateRequired)(['latitude', 'longitude']), vehicleController.patchLocation);
 /**
  * PATCH /api/v1/vehicles/:id/status
  * Update vehicle status (availability)
  */
-router.patch('/:id/status', (0, validation_js_1.validateIdParam)('id'), (0, validation_js_1.validateRequired)(['status']), vehicleController.patchStatus);
+router.patch('/:id/status', (0, validation_1.validateIdParam)('id'), (0, validation_1.validateRequired)(['status']), vehicleController.patchStatus);
 /**
  * PATCH /api/v1/vehicles/:id/service-types
  * Update vehicle service types (tagging)
  */
-router.patch('/:id/service-types', (0, validation_js_1.validateIdParam)('id'), (0, validation_js_1.validateRequired)(['serviceTypes']), vehicleController.patchServiceTypes);
+router.patch('/:id/service-types', (0, validation_1.validateIdParam)('id'), (0, validation_1.validateRequired)(['serviceTypes']), vehicleController.patchServiceTypes);
 exports.default = router;
 //# sourceMappingURL=vehicle.routes.js.map

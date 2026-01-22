@@ -14,8 +14,18 @@ export declare const SettingKeys: {
     readonly COSTS_DIESEL_PRICE_PER_GALLON: "costs.dieselPricePerGallon";
     readonly COSTS_INCLUDE_TRAFFIC_BUFFER: "costs.includeTrafficBuffer";
     readonly DASHBOARD_SHOW_CHATBOT: "dashboard.showChatbot";
+    readonly LOCATIONS_CUSTOM_FIELDS: "locations.customFields";
 };
 export type SettingKey = (typeof SettingKeys)[keyof typeof SettingKeys];
+export interface CustomFieldDefinition {
+    key: string;
+    label: string;
+    type: 'text' | 'number' | 'boolean' | 'select';
+    required: boolean;
+    options?: string[];
+    defaultValue?: unknown;
+    suffix?: string;
+}
 export type UnitSystem = 'imperial' | 'metric';
 export interface SettingRow {
     key: string;

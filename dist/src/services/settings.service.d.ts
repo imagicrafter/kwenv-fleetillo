@@ -2,8 +2,8 @@
  * Settings Service
  * Handles CRUD operations for application settings
  */
-import type { Result } from '../types/index.js';
-import { SettingKey, RouteSettings, CostSettings } from '../types/settings.js';
+import type { Result } from '../types/index';
+import { SettingKey, RouteSettings, CostSettings } from '../types/settings';
 /**
  * Get a single setting by key
  */
