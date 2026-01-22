@@ -71,3 +71,25 @@ if [ -d "$PLANS_DIR" ]; then
     echo "[SessionStart] Archived $archived_count closed issue plan(s)" >&2
   fi
 fi
+
+# Auto-cleanup stale local branches (PRs that have been merged)
+branches_deleted=0
+
+for branch in $(git branch --list 'issue/*' 2>/dev/null | tr -d ' *'); do
+  # Skip if branch is currently checked out (in a worktree)
+  if git worktree list 2>/dev/null | grep -q "\[$branch\]"; then
+    continue
+  fi
+
+  # Check if PR for this branch was merged
+  pr_state=$(gh pr list --head "$branch" --state merged --json state --jq '.[0].state' 2>/dev/null || echo "")
+
+  if [ "$pr_state" = "MERGED" ]; then
+    git branch -D "$branch" 2>/dev/null
+    branches_deleted=$((branches_deleted + 1))
+  fi
+done
+
+if [ "$branches_deleted" -gt 0 ]; then
+  echo "[SessionStart] Cleaned up $branches_deleted stale branch(es)" >&2
+fi

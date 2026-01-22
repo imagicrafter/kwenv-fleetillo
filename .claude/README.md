@@ -723,15 +723,24 @@ Each sub-agent in complex tier:
 | **Stop** | `continuous-learning/evaluate-session.sh` | Extract learned patterns |
 | **PreCompact** | `memory-persistence/pre-compact.sh` | Preserve state before compaction |
 
-#### SessionStart Auto-Archive
+#### SessionStart Auto-Cleanup
 
 When a new Claude session starts, the SessionStart hook automatically:
+
+**Plan Archiving:**
 1. Checks `.claude/plans/issue-*/` folders
 2. Queries GitHub to see if each issue is closed
 3. Archives closed issue plans to `.claude/plans/archive/completed/`
 4. Reports: `[SessionStart] Archived N closed issue plan(s)`
 
-This ensures plan folders are cleaned up without manual intervention.
+**Stale Branch Cleanup:**
+1. Lists local branches matching `issue/*`
+2. Skips branches with active worktrees
+3. Checks if PR for each branch was merged
+4. Deletes local branches with merged PRs
+5. Reports: `[SessionStart] Cleaned up N stale branch(es)`
+
+This ensures plan folders and local branches are cleaned up without manual intervention.
 
 ### PostToolUse Hooks
 
