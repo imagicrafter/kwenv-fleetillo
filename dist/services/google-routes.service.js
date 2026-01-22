@@ -12,13 +12,13 @@ exports.computeRouteMatrix = computeRouteMatrix;
 exports.batchComputeRoutes = batchComputeRoutes;
 exports.getOptimalRoute = getOptimalRoute;
 exports.calculateRouteTotals = calculateRouteTotals;
-const index_js_1 = require("../config/index.js");
-const logger_js_1 = require("../utils/logger.js");
-const codes_js_1 = require("../errors/codes.js");
+const index_1 = require("../config/index");
+const logger_1 = require("../utils/logger");
+const codes_1 = require("../errors/codes");
 /**
  * Logger instance for Google Routes service operations
  */
-const logger = (0, logger_js_1.createContextLogger)('GoogleRoutesService');
+const logger = (0, logger_1.createContextLogger)('GoogleRoutesService');
 /**
  * Google Routes API configuration
  */
@@ -56,19 +56,19 @@ exports.GoogleRoutesServiceError = GoogleRoutesServiceError;
  */
 exports.GoogleRoutesErrorCodes = {
     // Configuration errors
-    MISSING_API_KEY: codes_js_1.ErrorCodes.GOOGLEROUTES_MISSING_API_KEY.code,
+    MISSING_API_KEY: codes_1.ErrorCodes.GOOGLEROUTES_MISSING_API_KEY.code,
     // Request errors
-    INVALID_WAYPOINT: codes_js_1.ErrorCodes.GOOGLEROUTES_INVALID_WAYPOINT.code,
-    INVALID_REQUEST: codes_js_1.ErrorCodes.GOOGLEROUTES_INVALID_REQUEST.code,
-    MAX_WAYPOINTS_EXCEEDED: codes_js_1.ErrorCodes.GOOGLEROUTES_MAX_WAYPOINTS_EXCEEDED.code,
-    MAX_ROUTE_LENGTH_EXCEEDED: codes_js_1.ErrorCodes.GOOGLEROUTES_MAX_ROUTE_LENGTH_EXCEEDED.code,
+    INVALID_WAYPOINT: codes_1.ErrorCodes.GOOGLEROUTES_INVALID_WAYPOINT.code,
+    INVALID_REQUEST: codes_1.ErrorCodes.GOOGLEROUTES_INVALID_REQUEST.code,
+    MAX_WAYPOINTS_EXCEEDED: codes_1.ErrorCodes.GOOGLEROUTES_MAX_WAYPOINTS_EXCEEDED.code,
+    MAX_ROUTE_LENGTH_EXCEEDED: codes_1.ErrorCodes.GOOGLEROUTES_MAX_ROUTE_LENGTH_EXCEEDED.code,
     // API errors
-    API_ERROR: codes_js_1.ErrorCodes.GOOGLEROUTES_API_ERROR.code,
-    QUOTA_EXCEEDED: codes_js_1.ErrorCodes.GOOGLEROUTES_QUOTA_EXCEEDED.code,
-    REQUEST_DENIED: codes_js_1.ErrorCodes.GOOGLEROUTES_REQUEST_DENIED.code,
-    ZERO_RESULTS: codes_js_1.ErrorCodes.GOOGLEROUTES_ZERO_RESULTS.code,
-    TIMEOUT: codes_js_1.ErrorCodes.GOOGLEROUTES_TIMEOUT.code,
-    NETWORK_ERROR: codes_js_1.ErrorCodes.GOOGLEROUTES_NETWORK_ERROR.code,
+    API_ERROR: codes_1.ErrorCodes.GOOGLEROUTES_API_ERROR.code,
+    QUOTA_EXCEEDED: codes_1.ErrorCodes.GOOGLEROUTES_QUOTA_EXCEEDED.code,
+    REQUEST_DENIED: codes_1.ErrorCodes.GOOGLEROUTES_REQUEST_DENIED.code,
+    ZERO_RESULTS: codes_1.ErrorCodes.GOOGLEROUTES_ZERO_RESULTS.code,
+    TIMEOUT: codes_1.ErrorCodes.GOOGLEROUTES_TIMEOUT.code,
+    NETWORK_ERROR: codes_1.ErrorCodes.GOOGLEROUTES_NETWORK_ERROR.code,
 };
 /**
  * Maps HTTP status codes and API errors to internal error handling
@@ -102,7 +102,7 @@ function mapApiErrorToServiceError(statusCode, errorMessage, errorDetails) {
  * Validates that the API key is configured
  */
 function validateApiKey() {
-    const apiKey = index_js_1.config.googleMaps.apiKey;
+    const apiKey = index_1.config.googleMaps.apiKey;
     if (!apiKey || apiKey.trim().length === 0) {
         logger.error('Google Routes API key is not configured');
         return {

@@ -34,9 +34,9 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const bookingController = __importStar(require("../controllers/booking.controller.js"));
-const validation_js_1 = require("../middleware/validation.js");
-const fileUpload_js_1 = require("../middleware/fileUpload.js");
+const bookingController = __importStar(require("../controllers/booking.controller"));
+const validation_1 = require("../middleware/validation");
+const fileUpload_1 = require("../middleware/fileUpload");
 const router = (0, express_1.Router)();
 /**
  * GET /api/v1/bookings/template
@@ -62,31 +62,31 @@ router.get('/', bookingController.getAll);
  * GET /api/v1/bookings/:id
  * Get booking by ID
  */
-router.get('/:id', (0, validation_js_1.validateIdParam)('id'), bookingController.getById);
+router.get('/:id', (0, validation_1.validateIdParam)('id'), bookingController.getById);
 /**
  * POST /api/v1/bookings/upload
  * Upload CSV file with bookings
  */
-router.post('/upload', fileUpload_js_1.uploadCSV, fileUpload_js_1.requireFile, fileUpload_js_1.handleUploadError, bookingController.uploadCSV);
+router.post('/upload', fileUpload_1.uploadCSV, fileUpload_1.requireFile, fileUpload_1.handleUploadError, bookingController.uploadCSV);
 /**
  * POST /api/v1/bookings
  * Create a new booking
  */
-router.post('/', (0, validation_js_1.validateRequired)(['customerId', 'serviceId', 'bookingType', 'scheduledDate', 'scheduledStartTime']), bookingController.create);
+router.post('/', (0, validation_1.validateRequired)(['customerId', 'serviceId', 'bookingType', 'scheduledDate', 'scheduledStartTime']), bookingController.create);
 /**
  * PUT /api/v1/bookings/:id
  * Update booking
  */
-router.put('/:id', (0, validation_js_1.validateIdParam)('id'), bookingController.update);
+router.put('/:id', (0, validation_1.validateIdParam)('id'), bookingController.update);
 /**
  * DELETE /api/v1/bookings/:id
  * Soft delete booking
  */
-router.delete('/:id', (0, validation_js_1.validateIdParam)('id'), bookingController.remove);
+router.delete('/:id', (0, validation_1.validateIdParam)('id'), bookingController.remove);
 /**
  * POST /api/v1/bookings/:id/restore
  * Restore deleted booking
  */
-router.post('/:id/restore', (0, validation_js_1.validateIdParam)('id'), bookingController.restore);
+router.post('/:id/restore', (0, validation_1.validateIdParam)('id'), bookingController.restore);
 exports.default = router;
 //# sourceMappingURL=booking.routes.js.map

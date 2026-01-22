@@ -4,7 +4,7 @@
  * Provides CRUD operations and business logic for managing locations
  * in the Fleetillo application.
  */
-import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
+import type { Result, PaginationParams, PaginatedResponse } from '../types/index';
 /**
  * Location metadata for site-specific requirements
  */

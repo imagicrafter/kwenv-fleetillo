@@ -1,7 +1,7 @@
 /**
  * Service-related type definitions for RouteIQ application
  */
-import type { ID, Timestamps } from './index.js';
+import type { ID, Timestamps } from './index';
 /**
  * Service status options
  */

@@ -18,13 +18,13 @@ exports.countVehicles = countVehicles;
 exports.getVehiclesByServiceType = getVehiclesByServiceType;
 exports.updateVehicleLocation = updateVehicleLocation;
 exports.updateVehicleStatus = updateVehicleStatus;
-const supabase_js_1 = require("./supabase.js");
-const logger_js_1 = require("../utils/logger.js");
-const vehicle_js_1 = require("../types/vehicle.js");
+const supabase_1 = require("./supabase");
+const logger_1 = require("../utils/logger");
+const vehicle_1 = require("../types/vehicle");
 /**
  * Logger instance for vehicle operations
  */
-const logger = (0, logger_js_1.createContextLogger)('VehicleService');
+const logger = (0, logger_1.createContextLogger)('VehicleService');
 /**
  * Table name for vehicles
  */
@@ -101,8 +101,8 @@ async function createVehicle(input) {
         return { success: false, error: validationResult.error };
     }
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
-        const rowData = (0, vehicle_js_1.vehicleInputToRow)(input);
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
+        const rowData = (0, vehicle_1.vehicleInputToRow)(input);
         const { data, error } = await supabase
             .from(VEHICLES_TABLE)
             .insert(rowData)
@@ -115,7 +115,7 @@ async function createVehicle(input) {
                 error: new VehicleServiceError(`Failed to create vehicle: ${error.message}`, exports.VehicleErrorCodes.CREATE_FAILED, error),
             };
         }
-        const vehicle = (0, vehicle_js_1.rowToVehicle)(data);
+        const vehicle = (0, vehicle_1.rowToVehicle)(data);
         logger.info('Vehicle created successfully', { vehicleId: vehicle.id, name: vehicle.name });
         return { success: true, data: vehicle };
     }
@@ -133,7 +133,7 @@ async function createVehicle(input) {
 async function getVehicleById(id) {
     logger.debug('Getting vehicle by ID', { id });
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(VEHICLES_TABLE)
             .select()
@@ -153,7 +153,7 @@ async function getVehicleById(id) {
                 error: new VehicleServiceError(`Failed to get vehicle: ${error.message}`, exports.VehicleErrorCodes.QUERY_FAILED, error),
             };
         }
-        const vehicle = (0, vehicle_js_1.rowToVehicle)(data);
+        const vehicle = (0, vehicle_1.rowToVehicle)(data);
         return { success: true, data: vehicle };
     }
     catch (error) {
@@ -171,7 +171,7 @@ async function getVehicles(filters, pagination) {
     logger.debug('Getting vehicles', { filters, pagination });
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         let query = supabase.from(VEHICLES_TABLE).select('*', { count: 'exact' });
         // Apply filters
         if (!filters?.includeDeleted) {
@@ -219,7 +219,7 @@ async function getVehicles(filters, pagination) {
                 error: new VehicleServiceError(`Failed to get vehicles: ${error.message}`, exports.VehicleErrorCodes.QUERY_FAILED, error),
             };
         }
-        const vehicles = data.map(vehicle_js_1.rowToVehicle);
+        const vehicles = data.map(vehicle_1.rowToVehicle);
         const total = count ?? 0;
         return {
             success: true,
@@ -255,10 +255,10 @@ async function updateVehicle(input) {
         }
     }
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         // Build update object, excluding id
         const { id, ...updateData } = input;
-        const rowData = (0, vehicle_js_1.vehicleInputToRow)(updateData);
+        const rowData = (0, vehicle_1.vehicleInputToRow)(updateData);
         // Remove undefined values to only update fields that are actually provided
         // This prevents overwriting existing values with null
         const cleanRowData = Object.fromEntries(Object.entries(rowData).filter(([, value]) => value !== undefined));
@@ -283,7 +283,7 @@ async function updateVehicle(input) {
                 error: new VehicleServiceError(`Failed to update vehicle: ${error.message}`, exports.VehicleErrorCodes.UPDATE_FAILED, error),
             };
         }
-        const vehicle = (0, vehicle_js_1.rowToVehicle)(data);
+        const vehicle = (0, vehicle_1.rowToVehicle)(data);
         logger.info('Vehicle updated successfully', { vehicleId: vehicle.id });
         return { success: true, data: vehicle };
     }
@@ -301,7 +301,7 @@ async function updateVehicle(input) {
 async function deleteVehicle(id) {
     logger.debug('Deleting vehicle', { id });
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { error } = await supabase
             .from(VEHICLES_TABLE)
             .update({ deleted_at: new Date().toISOString() })
@@ -332,7 +332,7 @@ async function deleteVehicle(id) {
 async function hardDeleteVehicle(id) {
     logger.warn('Hard deleting vehicle', { id });
     try {
-        const adminClient = (0, supabase_js_1.getAdminSupabaseClient)();
+        const adminClient = (0, supabase_1.getAdminSupabaseClient)();
         if (!adminClient) {
             return {
                 success: false,
@@ -367,7 +367,7 @@ async function hardDeleteVehicle(id) {
 async function restoreVehicle(id) {
     logger.debug('Restoring vehicle', { id });
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(VEHICLES_TABLE)
             .update({ deleted_at: null })
@@ -388,7 +388,7 @@ async function restoreVehicle(id) {
                 error: new VehicleServiceError(`Failed to restore vehicle: ${error.message}`, exports.VehicleErrorCodes.UPDATE_FAILED, error),
             };
         }
-        const vehicle = (0, vehicle_js_1.rowToVehicle)(data);
+        const vehicle = (0, vehicle_1.rowToVehicle)(data);
         logger.info('Vehicle restored successfully', { vehicleId: vehicle.id });
         return { success: true, data: vehicle };
     }
@@ -409,7 +409,7 @@ async function restoreVehicle(id) {
 async function countVehicles(filters) {
     logger.debug('Counting vehicles', { filters });
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         let query = supabase.from(VEHICLES_TABLE).select('*', { count: 'exact', head: true });
         if (!filters?.includeDeleted) {
             query = query.is('deleted_at', null);
@@ -447,7 +447,7 @@ async function countVehicles(filters) {
 async function getVehiclesByServiceType(serviceType, filters) {
     logger.debug('Getting vehicles by service type', { serviceType });
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         let query = supabase
             .from(VEHICLES_TABLE)
             .select()
@@ -466,7 +466,7 @@ async function getVehiclesByServiceType(serviceType, filters) {
                 error: new VehicleServiceError(`Failed to get vehicles by service type: ${error.message}`, exports.VehicleErrorCodes.QUERY_FAILED, error),
             };
         }
-        const vehicles = data.map(vehicle_js_1.rowToVehicle);
+        const vehicles = data.map(vehicle_1.rowToVehicle);
         return { success: true, data: vehicles };
     }
     catch (error) {
@@ -496,7 +496,7 @@ async function updateVehicleLocation(id, latitude, longitude) {
         };
     }
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(VEHICLES_TABLE)
             .update({
@@ -521,7 +521,7 @@ async function updateVehicleLocation(id, latitude, longitude) {
                 error: new VehicleServiceError(`Failed to update vehicle location: ${error.message}`, exports.VehicleErrorCodes.UPDATE_FAILED, error),
             };
         }
-        const vehicle = (0, vehicle_js_1.rowToVehicle)(data);
+        const vehicle = (0, vehicle_1.rowToVehicle)(data);
         logger.info('Vehicle location updated successfully', { vehicleId: vehicle.id });
         return { success: true, data: vehicle };
     }
@@ -539,7 +539,7 @@ async function updateVehicleLocation(id, latitude, longitude) {
 async function updateVehicleStatus(id, status) {
     logger.debug('Updating vehicle status', { id, status });
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(VEHICLES_TABLE)
             .update({ status })
@@ -560,7 +560,7 @@ async function updateVehicleStatus(id, status) {
                 error: new VehicleServiceError(`Failed to update vehicle status: ${error.message}`, exports.VehicleErrorCodes.UPDATE_FAILED, error),
             };
         }
-        const vehicle = (0, vehicle_js_1.rowToVehicle)(data);
+        const vehicle = (0, vehicle_1.rowToVehicle)(data);
         logger.info('Vehicle status updated successfully', { vehicleId: vehicle.id, status });
         return { success: true, data: vehicle };
     }

@@ -2,8 +2,8 @@
  * Route Cost Service
  * Handles cost and revenue calculations for routes
  */
-import type { Result } from '../types/index.js';
-import { CostSettings } from '../types/settings.js';
+import type { Result } from '../types/index';
+import { CostSettings } from '../types/settings';
 /**
  * Route cost breakdown
  */

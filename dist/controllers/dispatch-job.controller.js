@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getActiveDrivers = exports.cancel = exports.getAll = exports.getById = exports.create = void 0;
-const dispatch_job_service_js_1 = require("../services/dispatch-job.service.js");
+const dispatch_job_service_1 = require("../services/dispatch-job.service");
 /**
  * Dispatch Job Controller
  * Handles HTTP requests for dispatch job operations
@@ -13,7 +13,7 @@ const dispatch_job_service_js_1 = require("../services/dispatch-job.service.js")
 const create = async (req, res, next) => {
     try {
         const input = req.body;
-        const result = await dispatch_job_service_js_1.dispatchJobService.createDispatchJob(input);
+        const result = await dispatch_job_service_1.dispatchJobService.createDispatchJob(input);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -42,7 +42,7 @@ const getById = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'ID is required' } });
             return;
         }
-        const result = await dispatch_job_service_js_1.dispatchJobService.getDispatchJobById(id);
+        const result = await dispatch_job_service_1.dispatchJobService.getDispatchJobById(id);
         if (!result.success) {
             res.status(404).json({
                 success: false,
@@ -72,7 +72,7 @@ const getAll = async (req, res, next) => {
             filters.status = status;
         if (driverId)
             filters.driverId = driverId;
-        const result = await dispatch_job_service_js_1.dispatchJobService.getDispatchJobs(filters);
+        const result = await dispatch_job_service_1.dispatchJobService.getDispatchJobs(filters);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -101,7 +101,7 @@ const cancel = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'ID is required' } });
             return;
         }
-        const result = await dispatch_job_service_js_1.dispatchJobService.cancelDispatchJob(id);
+        const result = await dispatch_job_service_1.dispatchJobService.cancelDispatchJob(id);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -125,7 +125,7 @@ exports.cancel = cancel;
  */
 const getActiveDrivers = async (_req, res, next) => {
     try {
-        const result = await dispatch_job_service_js_1.dispatchJobService.getDriversInActiveJobs();
+        const result = await dispatch_job_service_1.dispatchJobService.getDriversInActiveJobs();
         if (!result.success) {
             res.status(400).json({
                 success: false,

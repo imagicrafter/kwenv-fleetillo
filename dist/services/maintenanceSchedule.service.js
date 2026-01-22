@@ -18,13 +18,13 @@ exports.getMaintenanceSchedulesByVehicle = getMaintenanceSchedulesByVehicle;
 exports.getOverdueMaintenanceSchedules = getOverdueMaintenanceSchedules;
 exports.completeMaintenanceSchedule = completeMaintenanceSchedule;
 exports.getUpcomingMaintenanceSchedules = getUpcomingMaintenanceSchedules;
-const supabase_js_1 = require("./supabase.js");
-const logger_js_1 = require("../utils/logger.js");
-const maintenanceSchedule_js_1 = require("../types/maintenanceSchedule.js");
+const supabase_1 = require("./supabase");
+const logger_1 = require("../utils/logger");
+const maintenanceSchedule_1 = require("../types/maintenanceSchedule");
 /**
  * Logger instance for maintenance schedule operations
  */
-const logger = (0, logger_js_1.createContextLogger)('MaintenanceScheduleService');
+const logger = (0, logger_1.createContextLogger)('MaintenanceScheduleService');
 /**
  * Table name for maintenance schedules
  */
@@ -119,8 +119,8 @@ async function createMaintenanceSchedule(input) {
         };
     }
     try {
-        const supabase = (0, supabase_js_1.getSupabaseClient)();
-        const rowData = (0, maintenanceSchedule_js_1.maintenanceScheduleInputToRow)(input);
+        const supabase = (0, supabase_1.getSupabaseClient)();
+        const rowData = (0, maintenanceSchedule_1.maintenanceScheduleInputToRow)(input);
         const { data, error } = await supabase
             .from(MAINTENANCE_SCHEDULES_TABLE)
             .insert(rowData)
@@ -133,7 +133,7 @@ async function createMaintenanceSchedule(input) {
                 error: new MaintenanceScheduleServiceError(`Failed to create maintenance schedule: ${error.message}`, exports.MaintenanceScheduleErrorCodes.CREATE_FAILED, error),
             };
         }
-        const maintenanceSchedule = (0, maintenanceSchedule_js_1.rowToMaintenanceSchedule)(data);
+        const maintenanceSchedule = (0, maintenanceSchedule_1.rowToMaintenanceSchedule)(data);
         logger.info('Maintenance schedule created successfully', {
             scheduleId: maintenanceSchedule.id,
             vehicleId: maintenanceSchedule.vehicleId,
@@ -154,7 +154,7 @@ async function createMaintenanceSchedule(input) {
 async function getMaintenanceScheduleById(id) {
     logger.debug('Getting maintenance schedule by ID', { id });
     try {
-        const supabase = (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(MAINTENANCE_SCHEDULES_TABLE)
             .select()
@@ -174,7 +174,7 @@ async function getMaintenanceScheduleById(id) {
                 error: new MaintenanceScheduleServiceError(`Failed to get maintenance schedule: ${error.message}`, exports.MaintenanceScheduleErrorCodes.QUERY_FAILED, error),
             };
         }
-        const maintenanceSchedule = (0, maintenanceSchedule_js_1.rowToMaintenanceSchedule)(data);
+        const maintenanceSchedule = (0, maintenanceSchedule_1.rowToMaintenanceSchedule)(data);
         return { success: true, data: maintenanceSchedule };
     }
     catch (error) {
@@ -191,7 +191,7 @@ async function getMaintenanceScheduleById(id) {
 async function getMaintenanceSchedules(filters, pagination) {
     logger.debug('Getting maintenance schedules', { filters, pagination });
     try {
-        const supabase = (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getSupabaseClient)();
         let query = supabase.from(MAINTENANCE_SCHEDULES_TABLE).select('*', { count: 'exact' });
         // Apply filters
         if (!filters?.includeDeleted) {
@@ -244,7 +244,7 @@ async function getMaintenanceSchedules(filters, pagination) {
                 error: new MaintenanceScheduleServiceError(`Failed to get maintenance schedules: ${error.message}`, exports.MaintenanceScheduleErrorCodes.QUERY_FAILED, error),
             };
         }
-        const maintenanceSchedules = data.map(maintenanceSchedule_js_1.rowToMaintenanceSchedule);
+        const maintenanceSchedules = data.map(maintenanceSchedule_1.rowToMaintenanceSchedule);
         const total = count ?? 0;
         return {
             success: true,
@@ -289,10 +289,10 @@ async function updateMaintenanceSchedule(input) {
         }
     }
     try {
-        const supabase = (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getSupabaseClient)();
         // Build update object, excluding id
         const { id, ...updateData } = input;
-        const rowData = (0, maintenanceSchedule_js_1.maintenanceScheduleInputToRow)(updateData);
+        const rowData = (0, maintenanceSchedule_1.maintenanceScheduleInputToRow)(updateData);
         const { data, error } = await supabase
             .from(MAINTENANCE_SCHEDULES_TABLE)
             .update(rowData)
@@ -313,7 +313,7 @@ async function updateMaintenanceSchedule(input) {
                 error: new MaintenanceScheduleServiceError(`Failed to update maintenance schedule: ${error.message}`, exports.MaintenanceScheduleErrorCodes.UPDATE_FAILED, error),
             };
         }
-        const maintenanceSchedule = (0, maintenanceSchedule_js_1.rowToMaintenanceSchedule)(data);
+        const maintenanceSchedule = (0, maintenanceSchedule_1.rowToMaintenanceSchedule)(data);
         logger.info('Maintenance schedule updated successfully', { scheduleId: maintenanceSchedule.id });
         return { success: true, data: maintenanceSchedule };
     }
@@ -331,7 +331,7 @@ async function updateMaintenanceSchedule(input) {
 async function deleteMaintenanceSchedule(id) {
     logger.debug('Deleting maintenance schedule', { id });
     try {
-        const supabase = (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getSupabaseClient)();
         const { error } = await supabase
             .from(MAINTENANCE_SCHEDULES_TABLE)
             .update({ deleted_at: new Date().toISOString() })
@@ -362,7 +362,7 @@ async function deleteMaintenanceSchedule(id) {
 async function hardDeleteMaintenanceSchedule(id) {
     logger.warn('Hard deleting maintenance schedule', { id });
     try {
-        const adminClient = (0, supabase_js_1.getAdminSupabaseClient)();
+        const adminClient = (0, supabase_1.getAdminSupabaseClient)();
         if (!adminClient) {
             return {
                 success: false,
@@ -397,7 +397,7 @@ async function hardDeleteMaintenanceSchedule(id) {
 async function restoreMaintenanceSchedule(id) {
     logger.debug('Restoring maintenance schedule', { id });
     try {
-        const supabase = (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(MAINTENANCE_SCHEDULES_TABLE)
             .update({ deleted_at: null })
@@ -418,7 +418,7 @@ async function restoreMaintenanceSchedule(id) {
                 error: new MaintenanceScheduleServiceError(`Failed to restore maintenance schedule: ${error.message}`, exports.MaintenanceScheduleErrorCodes.UPDATE_FAILED, error),
             };
         }
-        const maintenanceSchedule = (0, maintenanceSchedule_js_1.rowToMaintenanceSchedule)(data);
+        const maintenanceSchedule = (0, maintenanceSchedule_1.rowToMaintenanceSchedule)(data);
         logger.info('Maintenance schedule restored successfully', { scheduleId: maintenanceSchedule.id });
         return { success: true, data: maintenanceSchedule };
     }
@@ -436,7 +436,7 @@ async function restoreMaintenanceSchedule(id) {
 async function getMaintenanceSchedulesByVehicle(vehicleId, filters) {
     logger.debug('Getting maintenance schedules by vehicle', { vehicleId });
     try {
-        const supabase = (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getSupabaseClient)();
         let query = supabase
             .from(MAINTENANCE_SCHEDULES_TABLE)
             .select()
@@ -456,7 +456,7 @@ async function getMaintenanceSchedulesByVehicle(vehicleId, filters) {
                 error: new MaintenanceScheduleServiceError(`Failed to get maintenance schedules by vehicle: ${error.message}`, exports.MaintenanceScheduleErrorCodes.QUERY_FAILED, error),
             };
         }
-        const maintenanceSchedules = data.map(maintenanceSchedule_js_1.rowToMaintenanceSchedule);
+        const maintenanceSchedules = data.map(maintenanceSchedule_1.rowToMaintenanceSchedule);
         return { success: true, data: maintenanceSchedules };
     }
     catch (error) {
@@ -473,7 +473,7 @@ async function getMaintenanceSchedulesByVehicle(vehicleId, filters) {
 async function getOverdueMaintenanceSchedules() {
     logger.debug('Getting overdue maintenance schedules');
     try {
-        const supabase = (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getSupabaseClient)();
         const today = new Date().toISOString().split('T')[0];
         const { data, error } = await supabase
             .from(MAINTENANCE_SCHEDULES_TABLE)
@@ -489,7 +489,7 @@ async function getOverdueMaintenanceSchedules() {
                 error: new MaintenanceScheduleServiceError(`Failed to get overdue maintenance schedules: ${error.message}`, exports.MaintenanceScheduleErrorCodes.QUERY_FAILED, error),
             };
         }
-        const maintenanceSchedules = data.map(maintenanceSchedule_js_1.rowToMaintenanceSchedule);
+        const maintenanceSchedules = data.map(maintenanceSchedule_1.rowToMaintenanceSchedule);
         return { success: true, data: maintenanceSchedules };
     }
     catch (error) {
@@ -506,7 +506,7 @@ async function getOverdueMaintenanceSchedules() {
 async function completeMaintenanceSchedule(id, completedDate, odometerReading, cost, notes) {
     logger.debug('Completing maintenance schedule', { id });
     try {
-        const supabase = (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getSupabaseClient)();
         const updateData = {
             status: 'completed',
             completed_date: (completedDate ?? new Date()).toISOString().split('T')[0],
@@ -540,7 +540,7 @@ async function completeMaintenanceSchedule(id, completedDate, odometerReading, c
                 error: new MaintenanceScheduleServiceError(`Failed to complete maintenance schedule: ${error.message}`, exports.MaintenanceScheduleErrorCodes.UPDATE_FAILED, error),
             };
         }
-        const maintenanceSchedule = (0, maintenanceSchedule_js_1.rowToMaintenanceSchedule)(data);
+        const maintenanceSchedule = (0, maintenanceSchedule_1.rowToMaintenanceSchedule)(data);
         logger.info('Maintenance schedule completed successfully', { scheduleId: maintenanceSchedule.id });
         return { success: true, data: maintenanceSchedule };
     }
@@ -558,7 +558,7 @@ async function completeMaintenanceSchedule(id, completedDate, odometerReading, c
 async function getUpcomingMaintenanceSchedules(daysAhead = 30) {
     logger.debug('Getting upcoming maintenance schedules', { daysAhead });
     try {
-        const supabase = (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getSupabaseClient)();
         const today = new Date();
         const futureDate = new Date();
         futureDate.setDate(today.getDate() + daysAhead);
@@ -578,7 +578,7 @@ async function getUpcomingMaintenanceSchedules(daysAhead = 30) {
                 error: new MaintenanceScheduleServiceError(`Failed to get upcoming maintenance schedules: ${error.message}`, exports.MaintenanceScheduleErrorCodes.QUERY_FAILED, error),
             };
         }
-        const maintenanceSchedules = data.map(maintenanceSchedule_js_1.rowToMaintenanceSchedule);
+        const maintenanceSchedules = data.map(maintenanceSchedule_1.rowToMaintenanceSchedule);
         return { success: true, data: maintenanceSchedules };
     }
     catch (error) {

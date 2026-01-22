@@ -5,8 +5,8 @@
  * Activity logs are primarily populated by database triggers, but this service
  * provides read access and the ability to manually create entries if needed.
  */
-import type { Result } from '../types/index.js';
-import type { ActivityLog, CreateActivityInput, ActivityFilters } from '../types/activity.js';
+import type { Result } from '../types/index';
+import type { ActivityLog, CreateActivityInput, ActivityFilters } from '../types/activity';
 /**
  * Activity service error
  */

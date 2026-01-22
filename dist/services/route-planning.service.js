@@ -14,22 +14,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RoutePlanningErrorCodes = exports.RoutePlanningServiceError = void 0;
 exports.previewRoutePlan = previewRoutePlan;
 exports.planRoutes = planRoutes;
-const logger_js_1 = require("../utils/logger.js");
-const booking_service_js_1 = require("./booking.service.js");
-const vehicle_service_js_1 = require("./vehicle.service.js");
-const service_service_js_1 = require("./service.service.js");
-const settings_service_js_1 = require("./settings.service.js");
-const route_service_js_1 = require("./route.service.js");
-const location_service_js_1 = require("./location.service.js");
-const vehicle_location_service_js_1 = require("./vehicle-location.service.js");
-const supabase_js_1 = require("./supabase.js");
-const settings_service_js_2 = require("./settings.service.js");
-const google_routes_service_js_1 = require("./google-routes.service.js");
-const google_routes_js_1 = require("../types/google-routes.js");
+const logger_1 = require("../utils/logger");
+const booking_service_1 = require("./booking.service");
+const vehicle_service_1 = require("./vehicle.service");
+const service_service_1 = require("./service.service");
+const settings_service_1 = require("./settings.service");
+const route_service_1 = require("./route.service");
+const location_service_1 = require("./location.service");
+const vehicle_location_service_1 = require("./vehicle-location.service");
+const supabase_1 = require("./supabase");
+const settings_service_2 = require("./settings.service");
+const google_routes_service_1 = require("./google-routes.service");
+const google_routes_1 = require("../types/google-routes");
 /**
  * Logger instance for route planning operations
  */
-const logger = (0, logger_js_1.createContextLogger)('RoutePlanningService');
+const logger = (0, logger_1.createContextLogger)('RoutePlanningService');
 /**
  * Default maximum stops per route per day
  */
@@ -142,7 +142,7 @@ async function createTimeAwareAllocation(bookings, vehicles, locationMap, servic
         return { allocations: [], orderedBookings: [], warnings: [] };
     }
     // Load dynamic settings
-    const params = await (0, settings_service_js_2.getRoutePlanningParams)();
+    const params = await (0, settings_service_2.getRoutePlanningParams)();
     const MAX_DAILY_MINUTES = params.maxDailyMinutes;
     const warnings = [];
     // State for each vehicle
@@ -350,23 +350,23 @@ async function optimizeBatch(bookings, options) {
     // Note: optimizeWaypointOrder is not supported with TRAFFIC_AWARE_OPTIMAL
     // Routing preference is configurable, defaults to TRAFFIC_UNAWARE for future dates
     const routingPref = options.routingPreference === 'TRAFFIC_AWARE'
-        ? google_routes_js_1.RoutingPreference.TRAFFIC_AWARE
-        : google_routes_js_1.RoutingPreference.TRAFFIC_UNAWARE;
+        ? google_routes_1.RoutingPreference.TRAFFIC_AWARE
+        : google_routes_1.RoutingPreference.TRAFFIC_UNAWARE;
     const routeInput = {
         origin,
         destination,
         intermediates: intermediates.length > 0 ? intermediates : undefined,
-        travelMode: google_routes_js_1.TravelMode.DRIVE,
+        travelMode: google_routes_1.TravelMode.DRIVE,
         routingPreference: routingPref,
         optimizeWaypointOrder: true,
-        polylineQuality: google_routes_js_1.PolylineQuality.HIGH_QUALITY,
+        polylineQuality: google_routes_1.PolylineQuality.HIGH_QUALITY,
         computeAlternativeRoutes: false,
     };
     logger.debug('Calling Google Routes API for optimization', {
         bookingCount: bookings.length,
         intermediateCount: intermediates.length,
     });
-    const routeResult = await (0, google_routes_service_js_1.computeRoutes)(routeInput);
+    const routeResult = await (0, google_routes_service_1.computeRoutes)(routeInput);
     if (!routeResult.success) {
         return {
             success: false,
@@ -511,7 +511,7 @@ async function generateUniqueRouteCode(date) {
     const dateStr = date.toISOString().split('T')[0].replace(/-/g, '');
     const prefix = `RT-${dateStr}-`;
     // Query existing route codes with this prefix (including soft-deleted)
-    const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+    const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
     const { data, error } = await supabase
         .from('routes')
         .select('route_code')
@@ -542,7 +542,7 @@ async function generateUniqueRouteCode(date) {
 async function findCompatibleVehicleBookings(bookings, serviceIdFilter) {
     const warnings = [];
     // Get all available vehicles
-    const vehiclesResult = await (0, vehicle_service_js_1.getVehicles)({ status: 'available' }, { page: 1, limit: 100 });
+    const vehiclesResult = await (0, vehicle_service_1.getVehicles)({ status: 'available' }, { page: 1, limit: 100 });
     if (!vehiclesResult.success || !vehiclesResult.data) {
         return {
             compatibleBookings: [],
@@ -630,7 +630,7 @@ async function previewRoutePlan(input) {
         bookingFilters.serviceId = input.serviceId;
     }
     // Fetch bookings
-    const bookingsResult = await (0, booking_service_js_1.getBookings)(bookingFilters, { page: 1, limit: 1000 });
+    const bookingsResult = await (0, booking_service_1.getBookings)(bookingFilters, { page: 1, limit: 1000 });
     if (!bookingsResult.success) {
         return {
             success: false,
@@ -650,14 +650,14 @@ async function previewRoutePlan(input) {
     warnings.push(...compatWarnings);
     // Fetch all depot/home type locations as available base locations
     // Import getAllLocations from location service if needed - using admin supabase directly
-    const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+    const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
     const { data: baseLocationsData } = await supabase
         .from('locations')
         .select('id, name, city, state, location_type')
         .in('location_type', ['depot', 'home', 'other'])
         .is('deleted_at', null);
     // Fetch services to get durations
-    const servicesResult = await (0, service_service_js_1.getServices)({}, { page: 1, limit: 1000 });
+    const servicesResult = await (0, service_service_1.getServices)({}, { page: 1, limit: 1000 });
     const servicesMap = new Map();
     if (servicesResult.success && servicesResult.data) {
         for (const service of servicesResult.data.data) {
@@ -668,7 +668,7 @@ async function previewRoutePlan(input) {
     const locationCoordsMap = new Map();
     const homeLocationIds = vehicles.map(v => v.homeLocationId).filter((id) => !!id);
     for (const locId of homeLocationIds) {
-        const locResult = await (0, location_service_js_1.getLocationById)(locId);
+        const locResult = await (0, location_service_1.getLocationById)(locId);
         if (locResult.success && locResult.data) {
             const loc = locResult.data;
             if (loc.latitude && loc.longitude) {
@@ -700,7 +700,7 @@ async function previewRoutePlan(input) {
                 city: "", state: ""
             });
         }
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { data: vehicleLocsData } = await supabase
             .from('vehicle_locations')
             .select(`
@@ -752,7 +752,7 @@ async function previewRoutePlan(input) {
  */
 async function planRoutes(input) {
     // Fetch route settings to get configured day start time
-    const settingsResult = await (0, settings_service_js_1.getRouteSettings)();
+    const settingsResult = await (0, settings_service_1.getRouteSettings)();
     const dayStartTime = settingsResult.success && settingsResult.data ? settingsResult.data.schedule.dayStartTime : '08:00';
     logger.info('Starting route planning', {
         routeDate: input.routeDate,
@@ -775,7 +775,7 @@ async function planRoutes(input) {
     }
     // Fetch bookings
     logger.debug('Fetching bookings for date', { routeDate });
-    const bookingsResult = await (0, booking_service_js_1.getBookings)(bookingFilters, { page: 1, limit: 1000 });
+    const bookingsResult = await (0, booking_service_1.getBookings)(bookingFilters, { page: 1, limit: 1000 });
     if (!bookingsResult.success) {
         return {
             success: false,
@@ -875,7 +875,7 @@ async function planRoutes(input) {
     let orderedBookings = compatibleBookings;
     if (!allocations || allocations.length === 0) {
         // Fetch services to get durations
-        const servicesResult = await (0, service_service_js_1.getServices)({}, { page: 1, limit: 1000 });
+        const servicesResult = await (0, service_service_1.getServices)({}, { page: 1, limit: 1000 });
         const servicesMap = new Map();
         if (servicesResult.success && servicesResult.data) {
             for (const service of servicesResult.data.data) {
@@ -885,7 +885,7 @@ async function planRoutes(input) {
         const locationCoordsMap = new Map();
         const homeLocationIds = vehicles.map(v => v.homeLocationId).filter((id) => !!id);
         for (const locId of homeLocationIds) {
-            const locResult = await (0, location_service_js_1.getLocationById)(locId);
+            const locResult = await (0, location_service_1.getLocationById)(locId);
             if (locResult.success && locResult.data) {
                 // We know locResult.data has lat/long but we need to check values
                 const loc = locResult.data;
@@ -953,7 +953,7 @@ async function planRoutes(input) {
             let startLocationIdToUse = allocation.startLocationId;
             // If no allocation override, try to get vehicle's primary location from vehicle_locations table
             if (!startLocationIdToUse) {
-                const primaryLocResult = await (0, vehicle_location_service_js_1.getVehiclePrimaryLocation)(vehicle.id);
+                const primaryLocResult = await (0, vehicle_location_service_1.getVehiclePrimaryLocation)(vehicle.id);
                 if (primaryLocResult.success && primaryLocResult.data) {
                     startLocationIdToUse = primaryLocResult.data.locationId;
                     logger.debug('Using primary location for vehicle', {
@@ -967,7 +967,7 @@ async function planRoutes(input) {
                 startLocationIdToUse = vehicle.homeLocationId;
             }
             if (!batchDepartureLocation && startLocationIdToUse) {
-                const startLocationResult = await (0, location_service_js_1.getLocationById)(startLocationIdToUse);
+                const startLocationResult = await (0, location_service_1.getLocationById)(startLocationIdToUse);
                 if (startLocationResult.success && startLocationResult.data) {
                     const startLoc = startLocationResult.data;
                     if (startLoc.latitude && startLoc.longitude) {
@@ -987,7 +987,7 @@ async function planRoutes(input) {
             if (allocation.endLocationId) {
                 // If a specific end location is set, don't return to start
                 shouldReturnToStart = false;
-                const endLocationResult = await (0, location_service_js_1.getLocationById)(allocation.endLocationId);
+                const endLocationResult = await (0, location_service_1.getLocationById)(allocation.endLocationId);
                 if (endLocationResult.success && endLocationResult.data) {
                     const endLoc = endLocationResult.data;
                     if (endLoc.latitude && endLoc.longitude) {
@@ -1164,7 +1164,7 @@ async function planRoutes(input) {
                 },
             };
             // Create the route
-            const createRouteResult = await (0, route_service_js_1.createRoute)(routeInput);
+            const createRouteResult = await (0, route_service_1.createRoute)(routeInput);
             if (!createRouteResult.success) {
                 logger.error('Failed to create route', { error: JSON.stringify(createRouteResult.error, Object.getOwnPropertyNames(createRouteResult.error)) });
                 unassignedBookings.push(...orderedBookings);
@@ -1177,7 +1177,7 @@ async function planRoutes(input) {
             // Update bookings with route ID, stop order, and timestamps
             let stopOrderIdx = 1;
             for (const update of bookingUpdates) {
-                const updateResult = await (0, booking_service_js_1.updateBooking)({
+                const updateResult = await (0, booking_service_1.updateBooking)({
                     id: update.id,
                     routeId: createdRoute.id,
                     stopOrder: stopOrderIdx,

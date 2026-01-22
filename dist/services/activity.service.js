@@ -12,13 +12,13 @@ exports.getRecentActivities = getRecentActivities;
 exports.getActivities = getActivities;
 exports.getActivitiesByEntity = getActivitiesByEntity;
 exports.createActivity = createActivity;
-const supabase_js_1 = require("./supabase.js");
-const logger_js_1 = require("../utils/logger.js");
-const activity_js_1 = require("../types/activity.js");
+const supabase_1 = require("./supabase");
+const logger_1 = require("../utils/logger");
+const activity_1 = require("../types/activity");
 /**
  * Logger instance for activity operations
  */
-const logger = (0, logger_js_1.createContextLogger)('ActivityService');
+const logger = (0, logger_1.createContextLogger)('ActivityService');
 /**
  * Table name for activity logs in the routeiq schema
  */
@@ -48,7 +48,7 @@ exports.ActivityErrorCodes = {
  * Helper to get the Supabase admin client
  */
 function getClient() {
-    const adminClient = (0, supabase_js_1.getAdminSupabaseClient)();
+    const adminClient = (0, supabase_1.getAdminSupabaseClient)();
     if (adminClient) {
         return adminClient;
     }
@@ -78,7 +78,7 @@ async function getRecentActivities(limit = 5) {
                 error: new ActivityServiceError(`Failed to get recent activities: ${error.message}`, exports.ActivityErrorCodes.QUERY_FAILED, error),
             };
         }
-        const activities = data.map(activity_js_1.rowToActivityLog);
+        const activities = data.map(activity_1.rowToActivityLog);
         logger.debug('Retrieved recent activities', { count: activities.length });
         return { success: true, data: activities };
     }
@@ -126,7 +126,7 @@ async function getActivities(filters) {
                 error: new ActivityServiceError(`Failed to get activities: ${error.message}`, exports.ActivityErrorCodes.QUERY_FAILED, error),
             };
         }
-        const activities = data.map(activity_js_1.rowToActivityLog);
+        const activities = data.map(activity_1.rowToActivityLog);
         return { success: true, data: activities };
     }
     catch (error) {
@@ -164,7 +164,7 @@ async function createActivity(input) {
     logger.debug('Creating activity manually', { entityType: input.entityType, action: input.action });
     try {
         const supabase = getClient();
-        const rowData = (0, activity_js_1.activityInputToRow)(input);
+        const rowData = (0, activity_1.activityInputToRow)(input);
         const { data, error } = await supabase
             .from(ACTIVITY_LOGS_TABLE)
             .insert(rowData)
@@ -177,7 +177,7 @@ async function createActivity(input) {
                 error: new ActivityServiceError(`Failed to create activity: ${error.message}`, exports.ActivityErrorCodes.CREATE_FAILED, error),
             };
         }
-        const activity = (0, activity_js_1.rowToActivityLog)(data);
+        const activity = (0, activity_1.rowToActivityLog)(data);
         logger.info('Activity created', { activityId: activity.id, title: activity.title });
         return { success: true, data: activity };
     }

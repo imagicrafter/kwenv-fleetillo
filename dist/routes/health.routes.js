@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const index_js_1 = require("../config/index.js");
+const index_1 = require("../config/index");
 const router = (0, express_1.Router)();
 /**
  * Health check endpoint
@@ -13,7 +13,7 @@ router.get('/', (_req, res) => {
         data: {
             status: 'healthy',
             timestamp: new Date().toISOString(),
-            environment: index_js_1.config.env,
+            environment: index_1.config.env,
             uptime: process.uptime(),
             version: process.env.npm_package_version || '1.0.0',
         },

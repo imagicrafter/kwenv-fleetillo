@@ -34,8 +34,8 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const routeController = __importStar(require("../controllers/route.controller.js"));
-const validation_js_1 = require("../middleware/validation.js");
+const routeController = __importStar(require("../controllers/route.controller"));
+const validation_1 = require("../middleware/validation");
 const router = (0, express_1.Router)();
 /**
  * GET /api/v1/routes/count
@@ -52,17 +52,17 @@ router.get('/date-range', routeController.getByDateRange);
  * GET /api/v1/routes/vehicle/:vehicleId
  * Get routes by vehicle ID
  */
-router.get('/vehicle/:vehicleId', (0, validation_js_1.validateIdParam)('vehicleId'), routeController.getByVehicle);
+router.get('/vehicle/:vehicleId', (0, validation_1.validateIdParam)('vehicleId'), routeController.getByVehicle);
 /**
  * POST /api/v1/routes/generate
  * Generate optimized routes from bookings
  */
-router.post('/generate', (0, validation_js_1.validateRequired)(['bookingIds']), routeController.generate);
+router.post('/generate', (0, validation_1.validateRequired)(['bookingIds']), routeController.generate);
 /**
  * POST /api/v1/routes/plan
  * Plan routes for a specific date
  */
-router.post('/plan', (0, validation_js_1.validateRequired)(['routeDate']), routeController.plan);
+router.post('/plan', (0, validation_1.validateRequired)(['routeDate']), routeController.plan);
 /**
  * GET /api/v1/routes
  * Get all routes with pagination and filters
@@ -72,31 +72,31 @@ router.get('/', routeController.getAll);
  * GET /api/v1/routes/:id
  * Get route by ID
  */
-router.get('/:id', (0, validation_js_1.validateIdParam)('id'), routeController.getById);
+router.get('/:id', (0, validation_1.validateIdParam)('id'), routeController.getById);
 /**
  * POST /api/v1/routes
  * Create a new route
  */
-router.post('/', (0, validation_js_1.validateRequired)(['routeName', 'routeDate']), routeController.create);
+router.post('/', (0, validation_1.validateRequired)(['routeName', 'routeDate']), routeController.create);
 /**
  * PUT /api/v1/routes/:id
  * Update route
  */
-router.put('/:id', (0, validation_js_1.validateIdParam)('id'), routeController.update);
+router.put('/:id', (0, validation_1.validateIdParam)('id'), routeController.update);
 /**
  * DELETE /api/v1/routes/:id
  * Soft delete route
  */
-router.delete('/:id', (0, validation_js_1.validateIdParam)('id'), routeController.remove);
+router.delete('/:id', (0, validation_1.validateIdParam)('id'), routeController.remove);
 /**
  * POST /api/v1/routes/:id/restore
  * Restore deleted route
  */
-router.post('/:id/restore', (0, validation_js_1.validateIdParam)('id'), routeController.restore);
+router.post('/:id/restore', (0, validation_1.validateIdParam)('id'), routeController.restore);
 /**
  * PATCH /api/v1/routes/:id/status
  * Update route status
  */
-router.patch('/:id/status', (0, validation_js_1.validateIdParam)('id'), (0, validation_js_1.validateRequired)(['status']), routeController.updateStatus);
+router.patch('/:id/status', (0, validation_1.validateIdParam)('id'), (0, validation_1.validateRequired)(['status']), routeController.updateStatus);
 exports.default = router;
 //# sourceMappingURL=route.routes.js.map
