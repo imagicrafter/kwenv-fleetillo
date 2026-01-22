@@ -105,6 +105,7 @@ Create these labels in GitHub:
 │   │       └── open_preview.sh  # Open markdown in VS Code preview
 │   ├── start-issue/             # Set up for implementation
 │   ├── task-state/              # Manage task status in tasks.md
+│   ├── plan-cleanup/            # Archive plans for closed issues
 │   ├── triage-issue/            # Score and label single issue
 │   ├── validate-plan/           # Check plan quality
 │   └── verification-loop/       # Comprehensive quality verification
