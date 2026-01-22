@@ -124,30 +124,52 @@ If no issues need plans, report that and stop.
 
 ### Step 3: Handle Medium Tier Issues (Parallel)
 
-For each medium issue, spawn a sub-agent using the Task tool:
+For each medium issue, spawn a sub-agent using the Task tool with the **planner agent**:
 
 ```
-Generate a plan for GitHub issue #[NUMBER].
+You are the planner agent. Generate a comprehensive plan for GitHub issue #[NUMBER].
 
-Use the generate-plan skill instructions from .claude/skills/generate-plan/SKILL.md
+## Agent Reference
+Read and follow the planner agent instructions at: .claude/agents/planner.md
 
-Issue details:
+## Issue Details
 - Number: [NUMBER]
 - Title: [TITLE]
 - Tier: medium
 
-Tasks:
-1. Read full issue with `gh issue view [NUMBER]`
-2. Analyze the codebase to understand scope and affected files
-3. Create directory: mkdir -p .claude/plans/issue-[N]-[slug]
-4. Generate plan.md following the template
-5. Add `plan ready` label: gh issue edit [NUMBER] --add-label "plan ready"
-6. Post summary comment to the issue
+## Required Tasks
 
-Return the plan location and confirmation.
+1. **Understand the Issue**
+   - Read full issue with `gh issue view [NUMBER]`
+   - Analyze the codebase to understand scope and affected files
+   - Identify dependencies and potential risks
+
+2. **Create Plan Directory**
+   - `mkdir -p .claude/plans/issue-[N]-[slug]`
+
+3. **Generate Comprehensive plan.md**
+   Following the planner agent approach, include:
+   - Overview and scope
+   - Risk assessment (technical, complexity, dependencies)
+   - Implementation phases with clear steps
+   - Affected files and components
+   - Testing requirements
+   - Estimated complexity
+
+4. **Finalize**
+   - Add `plan ready` label: `gh issue edit [NUMBER] --add-label "plan ready"`
+   - Post summary comment to the issue with plan highlights
+
+Return the plan location and key risk factors identified.
 ```
 
 **Run all medium sub-agents in parallel.**
+
+**Why Planner Agent?** The planner agent produces higher-quality plans with:
+- Risk assessment (technical debt, complexity, dependencies)
+- Phased implementation approach
+- Clear success criteria
+- Better estimation of affected components
 
 ### Step 4: Handle Complex Tier Issues (Sequential with Approval)
 

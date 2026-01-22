@@ -1243,7 +1243,72 @@ else
 fi
 ```
 
-### 7.6 Handle Validation Failures
+### 7.6 Generate Verification Report
+
+After running all validation phases, generate a verification report:
+
+```bash
+echo "📋 Generating verification report..."
+
+# Determine overall status
+if [ "$TYPE_CHECK_PASSED" = true ] && [ "$LINT_PASSED" = true ] && \
+   [ "$FORMAT_PASSED" = true ] && [ "$TESTS_PASSED" = true ] && \
+   [ "$BUILD_PASSED" = true ]; then
+  VERIFICATION_STATUS="✅ PASS"
+  READY_FOR_PR="YES"
+else
+  VERIFICATION_STATUS="❌ FAIL"
+  READY_FOR_PR="NO"
+fi
+
+# Check for console.log statements
+CONSOLE_LOGS=$(grep -rn "console\.log" --include="*.ts" --include="*.tsx" src/ 2>/dev/null | grep -v "\.test\." | wc -l | tr -d ' ')
+if [ "$CONSOLE_LOGS" -gt 0 ]; then
+  CONSOLE_STATUS="⚠️ $CONSOLE_LOGS found"
+else
+  CONSOLE_STATUS="✅ Clean"
+fi
+
+# Generate timestamp
+VERIFICATION_TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+# Create verification report
+VERIFICATION_REPORT="═══════════════════════════════════════════════════════════════
+                    VERIFICATION REPORT
+═══════════════════════════════════════════════════════════════
+
+Status:     $VERIFICATION_STATUS
+Timestamp:  $VERIFICATION_TIMESTAMP
+Issue:      #$ISSUE_NUMBER - $ISSUE_TITLE
+Branch:     $BRANCH_NAME
+
+───────────────────────────────────────────────────────────────
+                         RESULTS
+───────────────────────────────────────────────────────────────
+
+Build:      $([ \"$BUILD_PASSED\" = true ] && echo '✅ OK' || echo '❌ FAIL')
+Types:      $([ \"$TYPE_CHECK_PASSED\" = true ] && echo '✅ OK' || echo '❌ FAIL')
+Lint:       $([ \"$LINT_PASSED\" = true ] && echo '✅ OK' || echo '❌ FAIL')
+Format:     $([ \"$FORMAT_PASSED\" = true ] && echo '✅ OK' || echo '❌ FAIL')
+Tests:      $([ \"$TESTS_PASSED\" = true ] && echo '✅ OK' || echo '❌ FAIL')
+Console:    $CONSOLE_STATUS
+
+───────────────────────────────────────────────────────────────
+
+Ready for PR: $READY_FOR_PR
+
+═══════════════════════════════════════════════════════════════"
+
+echo "$VERIFICATION_REPORT"
+
+# Save verification report to plan folder
+if [ -n "$PLAN_FOLDER" ] && [ -d "$PLAN_FOLDER" ]; then
+  echo "$VERIFICATION_REPORT" > "$PLAN_FOLDER/verification-report.txt"
+  echo "📄 Saved report to: $PLAN_FOLDER/verification-report.txt"
+fi
+```
+
+### 7.7 Handle Validation Failures
 
 ```
 IF any validation failed (TYPE_CHECK, LINT, FORMAT, TESTS, or BUILD):
@@ -1281,7 +1346,7 @@ IF any validation failed (TYPE_CHECK, LINT, FORMAT, TESTS, or BUILD):
   END WHILE
 
   IF still failing after MAX_ATTEMPTS:
-    → Proceed to Error Handling (Step 10)
+    → Proceed to Error Handling (Step 11)
 ```
 
 ---
@@ -1371,6 +1436,83 @@ git push -u origin "$BRANCH_NAME"
 echo "✅ Pushed branch: $BRANCH_NAME"
 ```
 
+### 8.7 Optional: Automated Code Review (Medium/Complex Tiers Only)
+
+**Skip for simple tier issues to reduce latency.**
+
+For medium and complex tier issues, spawn the code-reviewer agent to analyze changes before PR creation:
+
+```bash
+# Only run code review for medium/complex tiers
+if [ "$TIER" != "simple" ]; then
+  echo "🔍 Running automated code review..."
+
+  # Get list of changed files
+  CHANGED_FILES=$(git diff origin/main --name-only | grep -E '\.(ts|tsx|js|jsx)$' | head -20)
+
+  if [ -n "$CHANGED_FILES" ]; then
+    # Code review will be performed by spawning code-reviewer agent
+    CODE_REVIEW_NEEDED=true
+  else
+    CODE_REVIEW_NEEDED=false
+    echo "⏭️ No TypeScript/JavaScript files changed, skipping code review"
+  fi
+else
+  CODE_REVIEW_NEEDED=false
+  echo "⏭️ Skipping code review for simple tier"
+fi
+```
+
+**If CODE_REVIEW_NEEDED is true**, spawn the code-reviewer agent:
+
+```
+You are the code-reviewer agent. Review the changes for this PR.
+
+## Agent Reference
+Read and follow the code-reviewer agent instructions at: .claude/agents/code-reviewer.md
+
+## Context
+- Issue: #[ISSUE_NUMBER] - [ISSUE_TITLE]
+- Branch: [BRANCH_NAME]
+- Tier: [TIER]
+
+## Changed Files
+[LIST OF CHANGED_FILES]
+
+## Tasks
+1. Review each changed file for:
+   - Code quality and readability
+   - Potential bugs or edge cases
+   - Security concerns (reference .claude/agents/security-reviewer.md if needed)
+   - Performance implications
+   - Test coverage adequacy
+
+2. Generate a brief review summary (3-5 bullet points)
+
+3. Flag any blocking issues that should be addressed before merge
+
+Return a structured review:
+- SUMMARY: [2-3 sentence overview]
+- ISSUES: [list of concerns, or "None"]
+- SUGGESTIONS: [optional improvements]
+- VERDICT: [APPROVE / REQUEST_CHANGES / COMMENT]
+```
+
+**Store the review result:**
+
+```bash
+CODE_REVIEW_SUMMARY="[Agent's summary response]"
+CODE_REVIEW_VERDICT="[APPROVE/REQUEST_CHANGES/COMMENT]"
+
+# If blocking issues found, report but continue (don't block PR creation)
+if [ "$CODE_REVIEW_VERDICT" = "REQUEST_CHANGES" ]; then
+  echo "⚠️ Code review found issues to address:"
+  echo "$CODE_REVIEW_SUMMARY"
+  echo ""
+  echo "Continuing with PR creation - issues will be noted in PR body."
+fi
+```
+
 ---
 
 ## Step 9: Create Pull Request (FINAL DELIVERABLE)
@@ -1413,14 +1555,28 @@ $(if [ -n "$FILES_MODIFIED" ]; then echo "$FILES_MODIFIED" | sed 's/^/- \`/' | s
 **Deleted:**
 $(if [ -n "$FILES_DELETED" ]; then echo "$FILES_DELETED" | sed 's/^/- \`/' | sed 's/$/\`/'; else echo "- None"; fi)
 
-## Validation
+## Verification Report
 
-All checks passed:
-$([ -n "$TYPE_CHECK_CMD" ] && echo "- ✅ Type checking (\`$TYPE_CHECK_CMD\`)" || echo "- ⏭️ Type checking (skipped)")
-$([ -n "$LINT_CMD" ] && echo "- ✅ Linting (\`$LINT_CMD\`)" || echo "- ⏭️ Linting (skipped)")
-$([ -n "$FORMAT_CMD" ] && echo "- ✅ Formatting (\`$FORMAT_CMD\`)" || echo "- ⏭️ Formatting (skipped)")
-$([ -n "$TEST_CMD" ] && echo "- ✅ Tests (\`$TEST_CMD\`)" || echo "- ⏭️ Tests (skipped)")
-$([ -n "$BUILD_CMD" ] && echo "- ✅ Build (\`$BUILD_CMD\`)" || echo "- ⏭️ Build (skipped)")
+| Check | Status | Command |
+|-------|--------|---------|
+| Build | $([ \"$BUILD_PASSED\" = true ] && echo '✅ Pass' || echo '❌ Fail') | \`${BUILD_CMD:-skipped}\` |
+| Types | $([ \"$TYPE_CHECK_PASSED\" = true ] && echo '✅ Pass' || echo '❌ Fail') | \`${TYPE_CHECK_CMD:-skipped}\` |
+| Lint | $([ \"$LINT_PASSED\" = true ] && echo '✅ Pass' || echo '❌ Fail') | \`${LINT_CMD:-skipped}\` |
+| Format | $([ \"$FORMAT_PASSED\" = true ] && echo '✅ Pass' || echo '❌ Fail') | \`${FORMAT_CMD:-skipped}\` |
+| Tests | $([ \"$TESTS_PASSED\" = true ] && echo '✅ Pass' || echo '❌ Fail') | \`${TEST_CMD:-skipped}\` |
+| Console.log | $CONSOLE_STATUS | grep audit |
+
+**Verification**: $VERIFICATION_STATUS
+**Report**: \`$PLAN_FOLDER/verification-report.txt\`
+
+$(if [ "$CODE_REVIEW_NEEDED" = true ]; then
+echo "## Automated Code Review
+
+**Verdict**: $CODE_REVIEW_VERDICT
+
+$CODE_REVIEW_SUMMARY
+"
+fi)
 
 ---
 
@@ -1458,7 +1614,7 @@ gh issue edit "$ISSUE_NUMBER" --remove-label "plan ready" 2>/dev/null || true
 
 ---
 
-## Step 10: Final Report
+## Step 10: Final Report (Success)
 
 ```markdown
 ## ✅ Execution Complete
@@ -1497,7 +1653,7 @@ gh issue edit "$ISSUE_NUMBER" --remove-label "plan ready" 2>/dev/null || true
 
 ---
 
-## Error Handling
+## Step 11: Error Handling
 
 ### Unrecoverable Test/Validation Failures
 

@@ -1,28 +1,51 @@
 ---
 name: plan-cleanup
-description: Archive plan folders for closed issues and clean up duplicates.
+description: Archive plan folders for closed issues and clean up duplicates
 allowed-tools:
   - Bash(gh:*)
-  - Bash(git:*)
+  - Bash(mkdir:*)
   - Bash(mv:*)
   - Bash(rm:*)
-  - Bash(mkdir:*)
   - Bash(ls:*)
+  - Bash(test:*)
+  - Bash([*)
+  - Bash(for *)
   - Bash(find:*)
-  - Bash(rmdir:*)
+  - Bash(basename:*)
   - Read
   - Glob
 ---
 
-# Plan Cleanup Command
+# Plan Cleanup
 
-Archive plan folders for closed issues and clean up duplicates.
+Archive plan folders for closed GitHub issues and clean up the `.claude/plans` directory.
 
-## Step 1: Scan for Stale Plans
+## Usage
+
+```
+/plan-cleanup
+```
+
+## Process
+
+Execute the following steps autonomously:
+
+### Step 1: Setup
 
 ```bash
-echo "## Scanning plan folders..."
+echo "Setting up archive directories..."
+mkdir -p .claude/plans/archive/completed
+mkdir -p .claude/plans/archive/duplicates
+```
+
+### Step 2: Archive Closed Issue Plans
+
+```bash
 echo ""
+echo "Scanning for closed issue plans to archive..."
+echo "============================================="
+
+ARCHIVED_COUNT=0
 
 for dir in .claude/plans/issue-*/; do
   [ -d "$dir" ] || continue
@@ -30,86 +53,74 @@ for dir in .claude/plans/issue-*/; do
   issue_num=$(basename "$dir" | grep -oE '[0-9]+' | head -1)
 
   if [ -n "$issue_num" ]; then
-    state=$(gh issue view "$issue_num" --json state --jq '.state' 2>/dev/null || echo "NOT_FOUND")
-    echo "Issue #$issue_num: $state - $dir"
+    state=$(gh issue view "$issue_num" --json state --jq '.state' 2>/dev/null || echo "UNKNOWN")
+
+    if [ "$state" = "CLOSED" ]; then
+      folder_name=$(basename "$dir")
+
+      if [ -d ".claude/plans/archive/completed/$folder_name" ]; then
+        echo "  DUPLICATE: $folder_name (removing active copy)"
+        rm -rf "$dir"
+      else
+        echo "  ARCHIVING: $folder_name (issue #$issue_num is closed)"
+        mv "$dir" .claude/plans/archive/completed/
+        ARCHIVED_COUNT=$((ARCHIVED_COUNT + 1))
+      fi
+    fi
+  fi
+done
+
+echo ""
+echo "Archived $ARCHIVED_COUNT plan folder(s)"
+```
+
+### Step 3: Report Status
+
+```bash
+echo ""
+echo "Current Plan Folder Status"
+echo "=========================="
+
+ACTIVE_COUNT=$(find .claude/plans -maxdepth 1 -type d -name "issue-*" 2>/dev/null | wc -l | tr -d ' ')
+ARCHIVED_COUNT=$(find .claude/plans/archive/completed -maxdepth 1 -type d -name "issue-*" 2>/dev/null | wc -l | tr -d ' ')
+
+echo "Active plans:   $ACTIVE_COUNT"
+echo "Archived plans: $ARCHIVED_COUNT"
+
+echo ""
+echo "Active Plan Folders:"
+for dir in .claude/plans/issue-*/; do
+  [ -d "$dir" ] || continue
+  issue_num=$(basename "$dir" | grep -oE '[0-9]+' | head -1)
+  if [ -n "$issue_num" ]; then
+    state=$(gh issue view "$issue_num" --json state --jq '.state' 2>/dev/null || echo "?")
+    echo "  #$issue_num ($state): $(basename "$dir")"
   fi
 done
 ```
 
-## Step 2: Identify Actions Needed
-
-Categorize each plan folder:
-
-| State | Action |
-|-------|--------|
-| CLOSED | Archive to `.claude/plans/archive/completed/` |
-| NOT_FOUND | Archive to `.claude/plans/archive/orphaned/` |
-| OPEN | Keep in place |
-| Duplicate | Keep newest, archive older |
-
-## Step 3: Archive Closed Issue Plans
-
-For each closed issue:
+### Step 4: Check Stale Worktrees
 
 ```bash
-# Create archive directory
-mkdir -p .claude/plans/archive/completed
+echo ""
+echo "Worktree Status"
+echo "==============="
 
-# Move the plan folder
-mv ".claude/plans/issue-[N]-[slug]" ".claude/plans/archive/completed/"
+git worktree list 2>/dev/null | while read -r line; do
+  worktree_path=$(echo "$line" | awk '{print $1}')
+  worktree_name=$(basename "$worktree_path")
 
-echo "Archived: issue-[N]-[slug] (issue #[N] is closed)"
+  if [[ "$worktree_name" =~ -issue-([0-9]+) ]]; then
+    issue_num="${BASH_REMATCH[1]}"
+    state=$(gh issue view "$issue_num" --json state --jq '.state' 2>/dev/null || echo "?")
+
+    if [ "$state" = "CLOSED" ]; then
+      echo "  STALE: $worktree_name (issue #$issue_num closed)"
+      echo "         Remove: git worktree remove \"$worktree_path\""
+    fi
+  fi
+done
+
+echo ""
+echo "Cleanup complete"
 ```
-
-## Step 4: Handle Duplicates
-
-If multiple folders exist for the same issue number:
-1. Compare modification times
-2. Keep the most recently modified
-3. Archive the older one to `.claude/plans/archive/duplicates/`
-
-```bash
-# Find duplicates (multiple folders for same issue number)
-# Example: issue-21-remove-electron and issue-21-refactor-frontend...
-
-mkdir -p .claude/plans/archive/duplicates
-
-# Archive the older duplicate
-mv ".claude/plans/[older-duplicate]" ".claude/plans/archive/duplicates/"
-```
-
-## Step 5: Handle Orphaned Plans
-
-If issue doesn't exist (NOT_FOUND):
-
-```bash
-mkdir -p .claude/plans/archive/orphaned
-mv ".claude/plans/issue-[N]-[slug]" ".claude/plans/archive/orphaned/"
-```
-
-## Step 6: Report
-
-```markdown
-## Plan Cleanup Complete
-
-### Archived (Closed Issues)
-- `issue-5-dispatch-button/` → `archive/completed/`
-- `issue-14-clients-to-customers/` → `archive/completed/`
-
-### Archived (Duplicates)
-- `issue-21-remove-electron/` → `archive/duplicates/` (kept issue-21-refactor-frontend...)
-
-### Archived (Orphaned)
-- (none)
-
-### Remaining Active Plans
-| Issue | Folder |
-|-------|--------|
-| #10 | `issue-10-github-issues-support/` |
-| #21 | `issue-21-refactor-frontend-to-remove-electron-dependency/` |
-| ... | ... |
-```
-
-## Dry Run Option
-
-If user says "dry run" or "preview", only report what would be done without making changes.
