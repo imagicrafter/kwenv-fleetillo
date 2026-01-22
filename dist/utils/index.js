@@ -23,7 +23,7 @@ exports.isDefined = isDefined;
 exports.generateId = generateId;
 exports.deepClone = deepClone;
 // Re-export logger utilities
-__exportStar(require("./logger.js"), exports);
+__exportStar(require("./logger"), exports);
 /**
  * Sleep utility for async operations
  * @param ms - Milliseconds to sleep

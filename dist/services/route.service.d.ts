@@ -4,8 +4,8 @@
  * Provides CRUD operations and business logic for managing routes
  * in the RouteIQ application.
  */
-import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
-import type { Route, CreateRouteInput, UpdateRouteInput, RouteFilters } from '../types/route.js';
+import type { Result, PaginationParams, PaginatedResponse } from '../types/index';
+import type { Route, CreateRouteInput, UpdateRouteInput, RouteFilters } from '../types/route';
 /**
  * Route service error
  */

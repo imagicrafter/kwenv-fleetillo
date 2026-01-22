@@ -1,4 +1,4 @@
-import type { Result } from '../types/index.js';
+import type { Result } from '../types/index';
 /**
  * Mark all dispatched routes as completed
  * Called by the end-of-day scheduled job

@@ -15,14 +15,14 @@ exports.deleteCustomer = deleteCustomer;
 exports.hardDeleteCustomer = hardDeleteCustomer;
 exports.restoreCustomer = restoreCustomer;
 exports.countCustomers = countCustomers;
-const supabase_js_1 = require("./supabase.js");
-const logger_js_1 = require("../utils/logger.js");
-const customer_js_1 = require("../types/customer.js");
-const location_service_js_1 = require("./location.service.js");
+const supabase_1 = require("./supabase");
+const logger_1 = require("../utils/logger");
+const customer_1 = require("../types/customer");
+const location_service_1 = require("./location.service");
 /**
  * Logger instance for customer operations
  */
-const logger = (0, logger_js_1.createContextLogger)('CustomerService');
+const logger = (0, logger_1.createContextLogger)('CustomerService');
 /**
  * Table name for customers in the fleetillo schema
  */
@@ -94,7 +94,7 @@ function isValidEmail(email) {
  * Prefers admin client for privileged operations, falls back to standard client
  */
 function getClient() {
-    const adminClient = (0, supabase_js_1.getAdminSupabaseClient)();
+    const adminClient = (0, supabase_1.getAdminSupabaseClient)();
     if (adminClient) {
         logger.debug('Using Admin Supabase Client');
         return adminClient;
@@ -115,7 +115,7 @@ async function createCustomer(input, options) {
     }
     try {
         const supabase = getClient();
-        const rowData = (0, customer_js_1.customerInputToRow)(input);
+        const rowData = (0, customer_1.customerInputToRow)(input);
         const { data, error } = await supabase
             .from(CUSTOMERS_TABLE)
             .insert(rowData)
@@ -128,7 +128,7 @@ async function createCustomer(input, options) {
                 error: new CustomerServiceError(`Failed to create customer: ${error.message}`, exports.CustomerErrorCodes.CREATE_FAILED, error),
             };
         }
-        const customer = (0, customer_js_1.rowToCustomer)(data);
+        const customer = (0, customer_1.rowToCustomer)(data);
         logger.info('Customer created successfully', { customerId: customer.id, name: customer.name });
         // Create a primary location for the customer if address details are present AND not skipped
         if (!options?.skipLocationCreation && input.addressLine1 && input.city && input.state && input.postalCode) {
@@ -148,7 +148,7 @@ async function createCustomer(input, options) {
                     longitude: input.longitude,
                     tags: []
                 };
-                await (0, location_service_js_1.createLocation)(locationInput);
+                await (0, location_service_1.createLocation)(locationInput);
                 logger.info('Created default primary location for customer', { customerId: customer.id });
             }
             catch (locError) {
@@ -172,7 +172,7 @@ async function createCustomer(input, options) {
 async function getCustomerById(id) {
     logger.debug('Getting customer by ID', { id });
     try {
-        const supabase = (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(CUSTOMERS_TABLE)
             .select()
@@ -192,7 +192,7 @@ async function getCustomerById(id) {
                 error: new CustomerServiceError(`Failed to get customer: ${error.message}`, exports.CustomerErrorCodes.QUERY_FAILED, error),
             };
         }
-        const customer = (0, customer_js_1.rowToCustomer)(data);
+        const customer = (0, customer_1.rowToCustomer)(data);
         return { success: true, data: customer };
     }
     catch (error) {
@@ -248,7 +248,7 @@ async function getCustomers(filters, pagination) {
                 error: new CustomerServiceError(`Failed to get customers: ${error.message}`, exports.CustomerErrorCodes.QUERY_FAILED, error),
             };
         }
-        const customers = data.map(customer_js_1.rowToCustomer);
+        const customers = data.map(customer_1.rowToCustomer);
         const total = count ?? 0;
         return {
             success: true,
@@ -287,7 +287,7 @@ async function updateCustomer(input) {
         const supabase = getClient();
         // Build update object, excluding id
         const { id, ...updateData } = input;
-        const rowData = (0, customer_js_1.customerInputToRow)(updateData);
+        const rowData = (0, customer_1.customerInputToRow)(updateData);
         const { data, error } = await supabase
             .from(CUSTOMERS_TABLE)
             .update(rowData)
@@ -308,7 +308,7 @@ async function updateCustomer(input) {
                 error: new CustomerServiceError(`Failed to update customer: ${error.message}`, exports.CustomerErrorCodes.UPDATE_FAILED, error),
             };
         }
-        const customer = (0, customer_js_1.rowToCustomer)(data);
+        const customer = (0, customer_1.rowToCustomer)(data);
         logger.info('Customer updated successfully', { customerId: customer.id });
         return { success: true, data: customer };
     }
@@ -357,7 +357,7 @@ async function deleteCustomer(id) {
 async function hardDeleteCustomer(id) {
     logger.warn('Hard deleting customer', { id });
     try {
-        const adminClient = (0, supabase_js_1.getAdminSupabaseClient)();
+        const adminClient = (0, supabase_1.getAdminSupabaseClient)();
         if (!adminClient) {
             return {
                 success: false,
@@ -392,7 +392,7 @@ async function hardDeleteCustomer(id) {
 async function restoreCustomer(id) {
     logger.debug('Restoring customer', { id });
     try {
-        const supabase = (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(CUSTOMERS_TABLE)
             .update({ deleted_at: null })
@@ -413,7 +413,7 @@ async function restoreCustomer(id) {
                 error: new CustomerServiceError(`Failed to restore customer: ${error.message}`, exports.CustomerErrorCodes.UPDATE_FAILED, error),
             };
         }
-        const customer = (0, customer_js_1.rowToCustomer)(data);
+        const customer = (0, customer_1.rowToCustomer)(data);
         logger.info('Customer restored successfully', { customerId: customer.id });
         return { success: true, data: customer };
     }

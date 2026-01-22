@@ -1,17 +1,17 @@
 /**
  * Common type definitions for RouteIQ application
  */
-export * from './logger.js';
-export * from './errors.js';
-export * from './customer.js';
-export * from './service.js';
-export * from './vehicle.js';
-export * from './driver.js';
-export * from './booking.js';
-export * from './maintenanceSchedule.js';
-export * from './route.js';
-export * from './googlemaps.js';
-export * from './address-validation.js';
+export * from './logger';
+export * from './errors';
+export * from './customer';
+export * from './service';
+export * from './vehicle';
+export * from './driver';
+export * from './booking';
+export * from './maintenanceSchedule';
+export * from './route';
+export * from './googlemaps';
+export * from './address-validation';
 /**
  * Generic result type for operations that can fail
  */

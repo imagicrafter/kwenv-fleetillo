@@ -1,5 +1,5 @@
-export * from './error-handler.js';
-export * from './request-logger.js';
-export * from './validation.js';
-export * from './fileUpload.js';
+export * from './error-handler';
+export * from './request-logger';
+export * from './validation';
+export * from './fileUpload';
 //# sourceMappingURL=index.d.ts.map

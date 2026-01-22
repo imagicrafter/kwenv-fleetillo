@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.count = exports.remove = exports.update = exports.getAll = exports.getById = exports.create = void 0;
-const driver_service_js_1 = require("../services/driver.service.js");
+const driver_service_1 = require("../services/driver.service");
 /**
  * Driver Controller
  * Handles HTTP requests for driver operations
@@ -13,7 +13,7 @@ const driver_service_js_1 = require("../services/driver.service.js");
 const create = async (req, res, next) => {
     try {
         const input = req.body;
-        const result = await (0, driver_service_js_1.createDriver)(input);
+        const result = await (0, driver_service_1.createDriver)(input);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -42,7 +42,7 @@ const getById = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'ID is required' } });
             return;
         }
-        const result = await (0, driver_service_js_1.getDriverById)(id);
+        const result = await (0, driver_service_1.getDriverById)(id);
         if (!result.success) {
             res.status(404).json({
                 success: false,
@@ -80,7 +80,7 @@ const getAll = async (req, res, next) => {
             filters.searchTerm = searchTerm;
         if (includeDeleted === 'true')
             filters.includeDeleted = true;
-        const result = await (0, driver_service_js_1.getDrivers)(filters, pagination);
+        const result = await (0, driver_service_1.getDrivers)(filters, pagination);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -110,7 +110,7 @@ const update = async (req, res, next) => {
             return;
         }
         const input = req.body;
-        const result = await (0, driver_service_js_1.updateDriver)(id, input);
+        const result = await (0, driver_service_1.updateDriver)(id, input);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -139,7 +139,7 @@ const remove = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'ID is required' } });
             return;
         }
-        const result = await (0, driver_service_js_1.deleteDriver)(id);
+        const result = await (0, driver_service_1.deleteDriver)(id);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -168,7 +168,7 @@ const count = async (req, res, next) => {
             filters.searchTerm = searchTerm;
         if (includeDeleted === 'true')
             filters.includeDeleted = true;
-        const result = await (0, driver_service_js_1.countDrivers)(filters);
+        const result = await (0, driver_service_1.countDrivers)(filters);
         if (!result.success) {
             res.status(400).json({
                 success: false,

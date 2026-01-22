@@ -9,7 +9,7 @@ exports.validateCSVRow = validateCSVRow;
 exports.parseAndValidateCSV = parseAndValidateCSV;
 exports.formatCSVErrors = formatCSVErrors;
 const sync_1 = require("csv-parse/sync");
-const validation_js_1 = require("../middleware/validation.js");
+const validation_1 = require("../middleware/validation");
 /**
  * Required CSV columns
  */
@@ -130,7 +130,7 @@ function validateCSVRow(row, rowNumber) {
     if (!row.customerId || row.customerId.trim() === '') {
         errors.push('customerId is required');
     }
-    else if (!(0, validation_js_1.isValidUUID)(row.customerId.trim())) {
+    else if (!(0, validation_1.isValidUUID)(row.customerId.trim())) {
         errors.push(`customerId must be a valid UUID (got: ${row.customerId})`);
     }
     if (!row.bookingType || row.bookingType.trim() === '') {
@@ -146,13 +146,13 @@ function validateCSVRow(row, rowNumber) {
         errors.push(`scheduledDate must be in YYYY-MM-DD format (got: ${row.scheduledDate})`);
     }
     // Validate optional fields
-    if (row.locationId && row.locationId.trim() !== '' && !(0, validation_js_1.isValidUUID)(row.locationId.trim())) {
+    if (row.locationId && row.locationId.trim() !== '' && !(0, validation_1.isValidUUID)(row.locationId.trim())) {
         errors.push(`locationId must be a valid UUID (got: ${row.locationId})`);
     }
     if (row.serviceIds && row.serviceIds.trim() !== '') {
         const serviceIds = parseUUIDs(row.serviceIds);
         for (const serviceId of serviceIds) {
-            if (!(0, validation_js_1.isValidUUID)(serviceId)) {
+            if (!(0, validation_1.isValidUUID)(serviceId)) {
                 errors.push(`serviceIds must be comma-separated UUIDs (invalid: ${serviceId})`);
             }
         }

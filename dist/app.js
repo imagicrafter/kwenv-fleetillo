@@ -9,13 +9,13 @@ const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const path_1 = __importDefault(require("path"));
 require("express-async-errors");
-const index_js_1 = require("./config/index.js");
-const error_handler_js_1 = require("./middleware/error-handler.js");
-const request_logger_js_1 = require("./middleware/request-logger.js");
-const validation_js_1 = require("./middleware/validation.js");
-const index_js_2 = __importDefault(require("./routes/index.js"));
-const health_routes_js_1 = __importDefault(require("./routes/health.routes.js"));
-const logger_js_1 = require("./utils/logger.js");
+const index_1 = require("./config/index");
+const error_handler_1 = require("./middleware/error-handler");
+const request_logger_1 = require("./middleware/request-logger");
+const validation_1 = require("./middleware/validation");
+const index_2 = __importDefault(require("./routes/index"));
+const health_routes_1 = __importDefault(require("./routes/health.routes"));
+const logger_1 = require("./utils/logger");
 /**
  * Create and configure Express application
  */
@@ -39,7 +39,7 @@ const createApp = () => {
     }));
     // CORS configuration
     app.use((0, cors_1.default)({
-        origin: index_js_1.config.env === 'production'
+        origin: index_1.config.env === 'production'
             ? [] // Configure allowed origins in production
             : '*',
         credentials: true,
@@ -50,10 +50,10 @@ const createApp = () => {
     app.use(express_1.default.json({ limit: '10mb' }));
     app.use(express_1.default.urlencoded({ extended: true, limit: '10mb' }));
     // Request logging
-    app.use((0, request_logger_js_1.requestLogger)());
-    app.use(request_logger_js_1.logRequest);
+    app.use((0, request_logger_1.requestLogger)());
+    app.use(request_logger_1.logRequest);
     // Body sanitization
-    app.use(validation_js_1.sanitizeBody);
+    app.use(validation_1.sanitizeBody);
     // Root endpoint
     app.get('/', (_req, res) => {
         res.json({
@@ -62,13 +62,13 @@ const createApp = () => {
                 name: 'RouteIQ API',
                 version: '1.0.0',
                 status: 'running',
-                environment: index_js_1.config.env,
-                apiPrefix: `${index_js_1.config.api.prefix}/${index_js_1.config.api.version}`,
+                environment: index_1.config.env,
+                apiPrefix: `${index_1.config.api.prefix}/${index_1.config.api.version}`,
             },
         });
     });
     // Health check route (no prefix)
-    app.use('/health', health_routes_js_1.default);
+    app.use('/health', health_routes_1.default);
     // Static files serving
     // In development, prioritize shared/public (source)
     // In production, use dist/public (build artifact)
@@ -80,15 +80,15 @@ const createApp = () => {
         app.use('/ui', express_1.default.static(path_1.default.join(process.cwd(), 'dist', 'public')));
     }
     // API routes with prefix
-    app.use(`${index_js_1.config.api.prefix}/${index_js_1.config.api.version}`, index_js_2.default);
+    app.use(`${index_1.config.api.prefix}/${index_1.config.api.version}`, index_2.default);
     // 404 handler
-    app.use(error_handler_js_1.notFoundHandler);
+    app.use(error_handler_1.notFoundHandler);
     // Global error handler (must be last)
-    app.use(error_handler_js_1.errorHandler);
-    logger_js_1.logger.info('Express application configured successfully', {
-        nodeEnv: index_js_1.config.env,
-        apiPrefix: index_js_1.config.api.prefix,
-        apiVersion: index_js_1.config.api.version,
+    app.use(error_handler_1.errorHandler);
+    logger_1.logger.info('Express application configured successfully', {
+        nodeEnv: index_1.config.env,
+        apiPrefix: index_1.config.api.prefix,
+        apiVersion: index_1.config.api.version,
     });
     return app;
 };

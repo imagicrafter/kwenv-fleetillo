@@ -34,8 +34,8 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const driverController = __importStar(require("../controllers/driver.controller.js"));
-const validation_js_1 = require("../middleware/validation.js");
+const driverController = __importStar(require("../controllers/driver.controller"));
+const validation_1 = require("../middleware/validation");
 const router = (0, express_1.Router)();
 /**
  * GET /api/v1/drivers/count
@@ -51,21 +51,21 @@ router.get('/', driverController.getAll);
  * GET /api/v1/drivers/:id
  * Get driver by ID
  */
-router.get('/:id', (0, validation_js_1.validateIdParam)('id'), driverController.getById);
+router.get('/:id', (0, validation_1.validateIdParam)('id'), driverController.getById);
 /**
  * POST /api/v1/drivers
  * Create a new driver
  */
-router.post('/', (0, validation_js_1.validateRequired)(['firstName', 'lastName']), driverController.create);
+router.post('/', (0, validation_1.validateRequired)(['firstName', 'lastName']), driverController.create);
 /**
  * PUT /api/v1/drivers/:id
  * Update driver
  */
-router.put('/:id', (0, validation_js_1.validateIdParam)('id'), driverController.update);
+router.put('/:id', (0, validation_1.validateIdParam)('id'), driverController.update);
 /**
  * DELETE /api/v1/drivers/:id
  * Soft delete driver
  */
-router.delete('/:id', (0, validation_js_1.validateIdParam)('id'), driverController.remove);
+router.delete('/:id', (0, validation_1.validateIdParam)('id'), driverController.remove);
 exports.default = router;
 //# sourceMappingURL=driver.routes.js.map

@@ -733,7 +733,8 @@
         </div>
     </div>
 
-    <script src="preload.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/api-client.js"></script>
     <script src="confirmation-modal.js"></script>
     <script>
         const tableBody = document.getElementById('routes-table-body');
@@ -743,8 +744,8 @@
         // Load settings on startup
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                if (window.electronAPI && window.electronAPI.settings) {
-                    const settings = await window.electronAPI.settings.getRouteSettings();
+                if (window.apiClient && window.apiClient.settings) {
+                    const settings = await window.apiClient.settings.getRouteSettings();
                     if (settings && settings.schedule && settings.schedule.timeZone) {
                         userTimeZone = settings.schedule.timeZone;
                     }
@@ -928,7 +929,7 @@
                 // Hide map when reloading list
                 closeMap();
 
-                const result = await window.electronAPI.routes.getAll(filters, { page: 1, limit: 100 });
+                const result = await window.apiClient.routes.getAll(filters, { page: 1, limit: 100 });
                 allRoutes = result.data || [];
                 renderRoutes(allRoutes);
             } catch (error) {
@@ -953,7 +954,7 @@
         async function loadGoogleMaps() {
             if (googleMapsLoaded) return;
 
-            const apiKey = await window.electronAPI.config.getGoogleMapsApiKey();
+            const apiKey = await window.apiClient.config.getGoogleMapsApiKey();
             if (!apiKey) {
                 console.error('Google Maps API key not found');
                 return;
@@ -1024,7 +1025,7 @@
 
             try {
                 // 1. Get Route Details with geometry
-                const routeDetails = await window.electronAPI.routes.getById(id);
+                const routeDetails = await window.apiClient.routes.getById(id);
                 if (!routeDetails) throw new Error('Route not found');
 
                 titleEl.textContent = `Route: ${routeDetails.routeName}`;
@@ -1036,7 +1037,7 @@
                 }
 
                 // Fetch bookings by IDs
-                const bookingsRes = await window.electronAPI.bookings.getAll({
+                const bookingsRes = await window.apiClient.bookings.getAll({
                     ids: routeDetails.stopSequence
                 }, { page: 1, limit: 100 });
 
@@ -1225,7 +1226,7 @@
             if (!await showConfirm('Are you sure you want to delete this route?', 'Delete Route', 'Delete', 'Cancel')) return;
 
             try {
-                await window.electronAPI.routes.delete(id);
+                await window.apiClient.routes.delete(id);
                 await loadRoutes();
                 if (typeof calendar !== 'undefined') await calendar.render();
             } catch (error) {
@@ -1240,7 +1241,7 @@
 
             // Try to get the earliest confirmed booking date
             try {
-                const result = await window.electronAPI.bookings.getAll(
+                const result = await window.apiClient.bookings.getAll(
                     { status: 'confirmed' },
                     { page: 1, limit: 1, sortBy: 'scheduled_date', sortOrder: 'asc' }
                 );
@@ -1337,7 +1338,7 @@
             resultDiv.innerHTML = '<div class="alert alert-warning">Fetching bookings and vehicles...</div>';
 
             try {
-                const preview = await window.electronAPI.routes.previewPlan({
+                const preview = await window.apiClient.routes.previewPlan({
                     routeDate: routeDate,
                     maxStopsPerRoute: maxStops
                 });
@@ -1538,7 +1539,7 @@
             resultDiv.innerHTML = '<div class="alert alert-warning">Planning routes, please wait...</div>';
 
             try {
-                const result = await window.electronAPI.routes.plan({
+                const result = await window.apiClient.routes.plan({
                     routeDate: routeDate,
                     maxStopsPerRoute: maxStops,
                     routingPreference: routingPreference,
@@ -1619,7 +1620,7 @@
                 try {
                     // Fetch next available route date or defaut to today
                     // Backend now returns "YYYY-MM-DD" string (or null) - robust against timezone
-                    const nextDateStr = await window.electronAPI.routes.getNextAvailableDate(new Date());
+                    const nextDateStr = await window.apiClient.routes.getNextAvailableDate(new Date());
                     let targetDate = new Date();
 
                     if (nextDateStr && typeof nextDateStr === 'string') {
@@ -1678,7 +1679,7 @@
                     const eStr = this.formatDateString(endOfWeek);
 
                     // Backend now handles string range logic precisely
-                    stats = await window.electronAPI.routes.getStatsByDateRange(
+                    stats = await window.apiClient.routes.getStatsByDateRange(
                         sStr,
                         eStr
                     );
@@ -1849,7 +1850,7 @@
                 document.body.appendChild(statusMsg);
 
                 // Delete the old route first (this will unassign bookings)
-                const deleteResult = await window.electronAPI.routes.delete(routeId);
+                const deleteResult = await window.apiClient.routes.delete(routeId);
                 if (!deleteResult.success) {
                     throw new Error(deleteResult.error?.message || 'Failed to delete existing route');
                 }
@@ -1858,7 +1859,7 @@
                 const planDate = typeof routeDate === 'string' ? routeDate : new Date(routeDate).toISOString().split('T')[0];
 
                 // Trigger route planning for the date
-                const planResult = await window.electronAPI.routes.planRoutes({
+                const planResult = await window.apiClient.routes.planRoutes({
                     targetDate: planDate,
                     routingPreference: 'TRAFFIC_UNAWARE' // Default preference
                 });

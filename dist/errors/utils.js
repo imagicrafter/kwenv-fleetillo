@@ -21,14 +21,14 @@ exports.assertDefined = assertDefined;
 exports.createErrorFactory = createErrorFactory;
 exports.getUserFriendlyMessage = getUserFriendlyMessage;
 exports.shouldLogAsError = shouldLogAsError;
-const AppError_js_1 = require("./AppError.js");
-const codes_js_1 = require("./codes.js");
-const index_js_1 = require("../types/index.js");
+const AppError_1 = require("./AppError");
+const codes_1 = require("./codes");
+const index_1 = require("../types/index");
 /**
  * Type guard to check if a value is an AppError
  */
 function isAppError(error) {
-    return error instanceof AppError_js_1.AppError;
+    return error instanceof AppError_1.AppError;
 }
 /**
  * Type guard to check if a value is an Error
@@ -66,16 +66,16 @@ function normalizeError(error, defaultCode) {
         return error;
     }
     if (isError(error)) {
-        return AppError_js_1.AppError.wrap(error, defaultCode);
+        return AppError_1.AppError.wrap(error, defaultCode);
     }
     // Handle non-Error values (strings, objects, etc.)
     const message = typeof error === 'string' ? error : String(error);
-    return new AppError_js_1.AppError({
-        code: (defaultCode ?? codes_js_1.ErrorCodes.UNEXPECTED_ERROR).code,
+    return new AppError_1.AppError({
+        code: (defaultCode ?? codes_1.ErrorCodes.UNEXPECTED_ERROR).code,
         message,
-        statusCode: (defaultCode ?? codes_js_1.ErrorCodes.UNEXPECTED_ERROR).statusCode,
-        category: (defaultCode ?? codes_js_1.ErrorCodes.UNEXPECTED_ERROR).category,
-        severity: (defaultCode ?? codes_js_1.ErrorCodes.UNEXPECTED_ERROR).severity,
+        statusCode: (defaultCode ?? codes_1.ErrorCodes.UNEXPECTED_ERROR).statusCode,
+        category: (defaultCode ?? codes_1.ErrorCodes.UNEXPECTED_ERROR).category,
+        severity: (defaultCode ?? codes_1.ErrorCodes.UNEXPECTED_ERROR).severity,
     });
 }
 /**
@@ -134,7 +134,7 @@ async function retryWithBackoff(operation, options = {}) {
         if (isAppError(error)) {
             return error.isRetryable();
         }
-        return (0, codes_js_1.isRetryableError)(String(error));
+        return (0, codes_1.isRetryableError)(String(error));
     }, onRetry, } = options;
     let lastError;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -187,17 +187,17 @@ function createAsyncBoundary(fn, errorHandler) {
 /**
  * Assert a condition, throwing an AppError if false
  */
-function assertCondition(condition, message, code = codes_js_1.ErrorCodes.INTERNAL_ERROR) {
+function assertCondition(condition, message, code = codes_1.ErrorCodes.INTERNAL_ERROR) {
     if (!condition) {
-        throw AppError_js_1.AppError.fromCode(code, { message });
+        throw AppError_1.AppError.fromCode(code, { message });
     }
 }
 /**
  * Assert a value is defined (not null or undefined)
  */
-function assertDefined(value, message, code = codes_js_1.ErrorCodes.INTERNAL_ERROR) {
+function assertDefined(value, message, code = codes_1.ErrorCodes.INTERNAL_ERROR) {
     if (value === null || value === undefined) {
-        throw AppError_js_1.AppError.fromCode(code, { message });
+        throw AppError_1.AppError.fromCode(code, { message });
     }
 }
 /**
@@ -207,30 +207,30 @@ function assertDefined(value, message, code = codes_js_1.ErrorCodes.INTERNAL_ERR
 function createErrorFactory(defaultContext) {
     return {
         validation: (message, field) => {
-            const error = AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.VALIDATION_ERROR, { message });
+            const error = AppError_1.AppError.fromCode(codes_1.ErrorCodes.VALIDATION_ERROR, { message });
             return error.withContext({ ...defaultContext, field });
         },
         notFound: (resourceType, resourceId) => {
             const message = resourceId
                 ? `${resourceType} with ID '${resourceId}' not found`
                 : `${resourceType} not found`;
-            const error = AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.RESOURCE_NOT_FOUND, { message });
+            const error = AppError_1.AppError.fromCode(codes_1.ErrorCodes.RESOURCE_NOT_FOUND, { message });
             return error.withContext({ ...defaultContext, resourceType, resourceId });
         },
         unauthorized: (message) => {
-            const error = AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.AUTHENTICATION_REQUIRED, {
-                message: message ?? codes_js_1.ErrorCodes.AUTHENTICATION_REQUIRED.message,
+            const error = AppError_1.AppError.fromCode(codes_1.ErrorCodes.AUTHENTICATION_REQUIRED, {
+                message: message ?? codes_1.ErrorCodes.AUTHENTICATION_REQUIRED.message,
             });
             return error.withContext(defaultContext);
         },
         forbidden: (message) => {
-            const error = AppError_js_1.AppError.fromCode(codes_js_1.ErrorCodes.ACCESS_DENIED, {
-                message: message ?? codes_js_1.ErrorCodes.ACCESS_DENIED.message,
+            const error = AppError_1.AppError.fromCode(codes_1.ErrorCodes.ACCESS_DENIED, {
+                message: message ?? codes_1.ErrorCodes.ACCESS_DENIED.message,
             });
             return error.withContext(defaultContext);
         },
         internal: (message, cause) => {
-            return new AppError_js_1.InternalError(message, cause, defaultContext);
+            return new AppError_1.InternalError(message, cause, defaultContext);
         },
     };
 }
@@ -244,16 +244,16 @@ function getUserFriendlyMessage(error) {
     }
     // Map categories to user-friendly messages
     const categoryMessages = {
-        [index_js_1.ErrorCategory.VALIDATION]: error.message,
-        [index_js_1.ErrorCategory.AUTHENTICATION]: 'Please sign in to continue.',
-        [index_js_1.ErrorCategory.AUTHORIZATION]: 'You do not have permission to perform this action.',
-        [index_js_1.ErrorCategory.RESOURCE]: error.message,
-        [index_js_1.ErrorCategory.BUSINESS]: error.message,
-        [index_js_1.ErrorCategory.EXTERNAL]: 'A service is temporarily unavailable. Please try again later.',
-        [index_js_1.ErrorCategory.DATABASE]: 'A database error occurred. Please try again later.',
-        [index_js_1.ErrorCategory.CONFIGURATION]: 'A system configuration error occurred. Please contact support.',
-        [index_js_1.ErrorCategory.NETWORK]: 'A network error occurred. Please check your connection and try again.',
-        [index_js_1.ErrorCategory.INTERNAL]: 'An unexpected error occurred. Please try again later.',
+        [index_1.ErrorCategory.VALIDATION]: error.message,
+        [index_1.ErrorCategory.AUTHENTICATION]: 'Please sign in to continue.',
+        [index_1.ErrorCategory.AUTHORIZATION]: 'You do not have permission to perform this action.',
+        [index_1.ErrorCategory.RESOURCE]: error.message,
+        [index_1.ErrorCategory.BUSINESS]: error.message,
+        [index_1.ErrorCategory.EXTERNAL]: 'A service is temporarily unavailable. Please try again later.',
+        [index_1.ErrorCategory.DATABASE]: 'A database error occurred. Please try again later.',
+        [index_1.ErrorCategory.CONFIGURATION]: 'A system configuration error occurred. Please contact support.',
+        [index_1.ErrorCategory.NETWORK]: 'A network error occurred. Please check your connection and try again.',
+        [index_1.ErrorCategory.INTERNAL]: 'An unexpected error occurred. Please try again later.',
     };
     return categoryMessages[error.category] ?? error.message;
 }
@@ -266,20 +266,20 @@ function shouldLogAsError(error) {
         return true;
     }
     // Operational errors at low severity shouldn't be logged as errors
-    if (error.isOperational && error.severity === index_js_1.ErrorSeverity.LOW) {
+    if (error.isOperational && error.severity === index_1.ErrorSeverity.LOW) {
         return false;
     }
     // Authentication/authorization errors are often expected
-    if (error.category === index_js_1.ErrorCategory.AUTHENTICATION ||
-        error.category === index_js_1.ErrorCategory.AUTHORIZATION) {
+    if (error.category === index_1.ErrorCategory.AUTHENTICATION ||
+        error.category === index_1.ErrorCategory.AUTHORIZATION) {
         return false;
     }
     // Validation errors are expected
-    if (error.category === index_js_1.ErrorCategory.VALIDATION) {
+    if (error.category === index_1.ErrorCategory.VALIDATION) {
         return false;
     }
     // Resource not found is often expected
-    if (error.code === codes_js_1.ErrorCodes.RESOURCE_NOT_FOUND.code) {
+    if (error.code === codes_1.ErrorCodes.RESOURCE_NOT_FOUND.code) {
         return false;
     }
     return true;

@@ -4,8 +4,8 @@
  * Provides route computation and optimization functionality using the Google Routes API (v2).
  * Includes proper error handling, retry logic, and batching capabilities for efficient processing.
  */
-import type { Result } from '../types/index.js';
-import type { ComputeRoutesInput, ComputeRoutesResponse, ComputeRouteMatrixInput, ComputeRouteMatrixResponse, BatchComputeRoutesItem, BatchComputeRoutesResult, Route } from '../types/google-routes.js';
+import type { Result } from '../types/index';
+import type { ComputeRoutesInput, ComputeRoutesResponse, ComputeRouteMatrixInput, ComputeRouteMatrixResponse, BatchComputeRoutesItem, BatchComputeRoutesResult, Route } from '../types/google-routes';
 /**
  * Google Routes API service error
  */

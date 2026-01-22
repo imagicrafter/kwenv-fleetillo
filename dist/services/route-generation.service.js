@@ -9,14 +9,14 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RouteGenerationErrorCodes = exports.RouteGenerationServiceError = void 0;
 exports.generateOptimizedRoutes = generateOptimizedRoutes;
-const logger_js_1 = require("../utils/logger.js");
-const booking_service_js_1 = require("./booking.service.js");
-const google_routes_service_js_1 = require("./google-routes.service.js");
-const google_routes_js_1 = require("../types/google-routes.js");
+const logger_1 = require("../utils/logger");
+const booking_service_1 = require("./booking.service");
+const google_routes_service_1 = require("./google-routes.service");
+const google_routes_1 = require("../types/google-routes");
 /**
  * Logger instance for route generation operations
  */
-const logger = (0, logger_js_1.createContextLogger)('RouteGenerationService');
+const logger = (0, logger_1.createContextLogger)('RouteGenerationService');
 /**
  * Route generation service error
  */
@@ -185,10 +185,10 @@ async function optimizeBatchRoute(batch, options) {
         origin,
         destination,
         intermediates: intermediates.length > 0 ? intermediates : undefined,
-        travelMode: options.travelMode || google_routes_js_1.TravelMode.DRIVE,
-        routingPreference: options.routingPreference || google_routes_js_1.RoutingPreference.TRAFFIC_AWARE_OPTIMAL,
+        travelMode: options.travelMode || google_routes_1.TravelMode.DRIVE,
+        routingPreference: options.routingPreference || google_routes_1.RoutingPreference.TRAFFIC_AWARE_OPTIMAL,
         optimizeWaypointOrder: options.optimizeWaypointOrder ?? true,
-        polylineQuality: google_routes_js_1.PolylineQuality.HIGH_QUALITY,
+        polylineQuality: google_routes_1.PolylineQuality.HIGH_QUALITY,
         computeAlternativeRoutes: false,
     };
     logger.debug('Calling Google Routes API', {
@@ -198,7 +198,7 @@ async function optimizeBatchRoute(batch, options) {
         optimizeWaypointOrder: routeInput.optimizeWaypointOrder,
     });
     // Call Google Routes API
-    const routeResult = await (0, google_routes_service_js_1.computeRoutes)(routeInput);
+    const routeResult = await (0, google_routes_service_1.computeRoutes)(routeInput);
     if (!routeResult.success) {
         logger.error('Failed to compute route for batch', routeResult.error, {
             vehicleId: batch.vehicleId,
@@ -396,7 +396,7 @@ async function generateOptimizedRoutes(input) {
         logger.debug('Fetching bookings by ID', { count: input.bookingIds.length });
         bookings = [];
         for (const id of input.bookingIds) {
-            const result = await (0, booking_service_js_1.getBookingById)(id);
+            const result = await (0, booking_service_1.getBookingById)(id);
             if (!result.success) {
                 logger.error('Failed to fetch booking', result.error, { bookingId: id });
                 return {
