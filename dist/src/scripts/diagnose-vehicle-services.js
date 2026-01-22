@@ -5,15 +5,15 @@
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv/config");
-const supabase_js_1 = require("../services/supabase.js");
+const supabase_1 = require("../services/supabase");
 // Initialize Supabase with environment variables
-(0, supabase_js_1.initializeSupabase)({
+(0, supabase_1.initializeSupabase)({
     url: process.env.SUPABASE_URL || '',
     anonKey: process.env.SUPABASE_KEY || '',
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
 });
 async function diagnose() {
-    const supabase = (0, supabase_js_1.getAdminSupabaseClient)();
+    const supabase = (0, supabase_1.getAdminSupabaseClient)();
     console.log('='.repeat(80));
     console.log('DIAGNOSTIC REPORT: Vehicle-Service Matching for Route Planning');
     console.log('='.repeat(80));

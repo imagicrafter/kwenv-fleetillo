@@ -1,23 +1,23 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 require("dotenv/config");
-const supabase_js_1 = require("../services/supabase.js");
-const route_planning_service_js_1 = require("../services/route-planning.service.js");
-const supabase_js_2 = require("../services/supabase.js");
+const supabase_1 = require("../services/supabase");
+const route_planning_service_1 = require("../services/route-planning.service");
+const supabase_2 = require("../services/supabase");
 // Initialize Supabase
-(0, supabase_js_1.initializeSupabase)({
+(0, supabase_1.initializeSupabase)({
     url: process.env.SUPABASE_URL || '',
     anonKey: process.env.SUPABASE_KEY || '',
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
 });
 async function verifyRouteTiming() {
     console.log('Starting Route Timing Verification...');
-    const supabase = (0, supabase_js_2.getAdminSupabaseClient)();
+    const supabase = (0, supabase_2.getAdminSupabaseClient)();
     // Target date from the seed script
     const targetDate = new Date('2026-01-19');
     console.log(`Planning routes for ${targetDate.toISOString().split('T')[0]}...`);
     // Call the route planner
-    const result = await (0, route_planning_service_js_1.planRoutes)({
+    const result = await (0, route_planning_service_1.planRoutes)({
         routeDate: targetDate
     });
     if (!result.success || !result.data) {

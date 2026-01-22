@@ -4,8 +4,8 @@
  * Provides CRUD operations and business logic for managing bookings
  * in the Fleetillo application.
  */
-import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
-import type { Booking, CreateBookingInput, UpdateBookingInput, BookingFilters } from '../types/booking.js';
+import type { Result, PaginationParams, PaginatedResponse } from '../types/index';
+import type { Booking, CreateBookingInput, UpdateBookingInput, BookingFilters } from '../types/booking';
 /**
  * Booking service error
  */

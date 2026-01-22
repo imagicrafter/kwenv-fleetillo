@@ -588,8 +588,7 @@
                     <input type="text" placeholder="Search routes..." id="search-input">
                 </div>
                 <div class="actions">
-                    <button class="btn-primary" id="plan-routes-btn">🗓️ Plan Routes</button>
-                    <button class="btn-icon">⚙️</button>
+                    <button class="btn-primary" id="plan-routes-btn">+ Route</button>
                 </div>
             </header>
 
@@ -734,7 +733,8 @@
         </div>
     </div>
 
-    <script src="preload.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/api-client.js"></script>
     <script src="confirmation-modal.js"></script>
     <script>
         const tableBody = document.getElementById('routes-table-body');
@@ -744,8 +744,8 @@
         // Load settings on startup
         document.addEventListener('DOMContentLoaded', async () => {
             try {
-                if (window.electronAPI && window.electronAPI.settings) {
-                    const settings = await window.electronAPI.settings.getRouteSettings();
+                if (window.apiClient && window.apiClient.settings) {
+                    const settings = await window.apiClient.settings.getRouteSettings();
                     if (settings && settings.schedule && settings.schedule.timeZone) {
                         userTimeZone = settings.schedule.timeZone;
                     }
@@ -879,13 +879,20 @@
                     <td>
                         <div style="font-weight: 600;">${route.totalStops || 0}</div>
                     </td>
-                    <td><span class="status-badge" style="${statusStyle}">${(route.status || 'unknown').replace('_', ' ')}</span></td>
+                    <td><span class="status-badge" style="${statusStyle}">${(route.status || 'unknown').replace('_', ' ')}</span>${route.needsRecalculation ? '<span class="status-badge" style="color: #d29922; border-color: rgba(210,153,34,0.3); background-color: rgba(210,153,34,0.15); margin-left: 6px;" data-tooltip="This route needs to be re-planned due to booking changes"><svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" style="vertical-align: middle; margin-right: 2px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>Needs Re-plan</span>' : ''}</td>
                     <td>
                         <div>${costDisplay}</div>
                         <div style="font-size: 0.7rem; color: var(--text-secondary);">${costLabel}</div>
                     </td>
                     <td>
                         <div style="display: flex; gap: 4px;">
+                            ${route.needsRecalculation ? `<button type="button" class="action-btn" style="color: #d29922; border-color: rgba(210,153,34,0.3);" onclick="replanRoute('${route.routeDate}', '${route.id}'); return false;" data-tooltip="Re-plan Route">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="23 4 23 10 17 10"></polyline>
+                                    <polyline points="1 20 1 14 7 14"></polyline>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                </svg>
+                            </button>` : '<div style="width: 32px;"></div>'}
                             <button type="button" class="action-btn" onclick="dispatchRoute('${route.id}', '${route.driverId || route.assignedDriverId}'); return false;" data-tooltip="Dispatch Route">
                                 <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -922,7 +929,7 @@
                 // Hide map when reloading list
                 closeMap();
 
-                const result = await window.electronAPI.routes.getAll(filters, { page: 1, limit: 100 });
+                const result = await window.apiClient.routes.getAll(filters, { page: 1, limit: 100 });
                 allRoutes = result.data || [];
                 renderRoutes(allRoutes);
             } catch (error) {
@@ -947,7 +954,7 @@
         async function loadGoogleMaps() {
             if (googleMapsLoaded) return;
 
-            const apiKey = await window.electronAPI.config.getGoogleMapsApiKey();
+            const apiKey = await window.apiClient.config.getGoogleMapsApiKey();
             if (!apiKey) {
                 console.error('Google Maps API key not found');
                 return;
@@ -1018,7 +1025,7 @@
 
             try {
                 // 1. Get Route Details with geometry
-                const routeDetails = await window.electronAPI.routes.getById(id);
+                const routeDetails = await window.apiClient.routes.getById(id);
                 if (!routeDetails) throw new Error('Route not found');
 
                 titleEl.textContent = `Route: ${routeDetails.routeName}`;
@@ -1030,7 +1037,7 @@
                 }
 
                 // Fetch bookings by IDs
-                const bookingsRes = await window.electronAPI.bookings.getAll({
+                const bookingsRes = await window.apiClient.bookings.getAll({
                     ids: routeDetails.stopSequence
                 }, { page: 1, limit: 100 });
 
@@ -1219,7 +1226,7 @@
             if (!await showConfirm('Are you sure you want to delete this route?', 'Delete Route', 'Delete', 'Cancel')) return;
 
             try {
-                await window.electronAPI.routes.delete(id);
+                await window.apiClient.routes.delete(id);
                 await loadRoutes();
                 if (typeof calendar !== 'undefined') await calendar.render();
             } catch (error) {
@@ -1234,7 +1241,7 @@
 
             // Try to get the earliest confirmed booking date
             try {
-                const result = await window.electronAPI.bookings.getAll(
+                const result = await window.apiClient.bookings.getAll(
                     { status: 'confirmed' },
                     { page: 1, limit: 1, sortBy: 'scheduled_date', sortOrder: 'asc' }
                 );
@@ -1272,7 +1279,9 @@
         // Update traffic options visibility based on selected date
         function updateTrafficOptions() {
             const selectedDate = document.getElementById('route-date').value;
-            const today = new Date().toISOString().split('T')[0];
+            // Use local date (not UTC) for comparison
+            const now = new Date();
+            const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
             const trafficGroup = document.getElementById('traffic-options-group');
 
             if (selectedDate === today) {
@@ -1329,7 +1338,7 @@
             resultDiv.innerHTML = '<div class="alert alert-warning">Fetching bookings and vehicles...</div>';
 
             try {
-                const preview = await window.electronAPI.routes.previewPlan({
+                const preview = await window.apiClient.routes.previewPlan({
                     routeDate: routeDate,
                     maxStopsPerRoute: maxStops
                 });
@@ -1530,7 +1539,7 @@
             resultDiv.innerHTML = '<div class="alert alert-warning">Planning routes, please wait...</div>';
 
             try {
-                const result = await window.electronAPI.routes.plan({
+                const result = await window.apiClient.routes.plan({
                     routeDate: routeDate,
                     maxStopsPerRoute: maxStops,
                     routingPreference: routingPreference,
@@ -1611,7 +1620,7 @@
                 try {
                     // Fetch next available route date or defaut to today
                     // Backend now returns "YYYY-MM-DD" string (or null) - robust against timezone
-                    const nextDateStr = await window.electronAPI.routes.getNextAvailableDate(new Date());
+                    const nextDateStr = await window.apiClient.routes.getNextAvailableDate(new Date());
                     let targetDate = new Date();
 
                     if (nextDateStr && typeof nextDateStr === 'string') {
@@ -1670,7 +1679,7 @@
                     const eStr = this.formatDateString(endOfWeek);
 
                     // Backend now handles string range logic precisely
-                    stats = await window.electronAPI.routes.getStatsByDateRange(
+                    stats = await window.apiClient.routes.getStatsByDateRange(
                         sStr,
                         eStr
                     );
@@ -1818,6 +1827,71 @@
                 } else {
                     alert('Dispatch failed: ' + error.message);
                 }
+            }
+        }
+
+        // Replan a route that needs recalculation
+        async function replanRoute(routeDate, routeId) {
+            const confirmed = await showConfirm(
+                'Re-plan Route',
+                'This will delete the existing route and re-plan it with the updated bookings. The bookings will be temporarily unassigned during replanning. Continue?',
+                'Re-plan Now',
+                'Cancel'
+            );
+
+            if (!confirmed) return;
+
+            try {
+                // Show loading indicator
+                const statusMsg = document.createElement('div');
+                statusMsg.id = 'replan-status';
+                statusMsg.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card-bg); padding: 24px 32px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.4); z-index: 10001; text-align: center;';
+                statusMsg.innerHTML = '<div style="font-size: 1.2rem; margin-bottom: 8px;">Re-planning route...</div><div style="color: var(--text-secondary);">This may take a moment</div>';
+                document.body.appendChild(statusMsg);
+
+                // Delete the old route first (this will unassign bookings)
+                const deleteResult = await window.apiClient.routes.delete(routeId);
+                if (!deleteResult.success) {
+                    throw new Error(deleteResult.error?.message || 'Failed to delete existing route');
+                }
+
+                // Format the date for planning
+                const planDate = typeof routeDate === 'string' ? routeDate : new Date(routeDate).toISOString().split('T')[0];
+
+                // Trigger route planning for the date
+                const planResult = await window.apiClient.routes.planRoutes({
+                    targetDate: planDate,
+                    routingPreference: 'TRAFFIC_UNAWARE' // Default preference
+                });
+
+                // Remove loading indicator
+                const statusEl = document.getElementById('replan-status');
+                if (statusEl) statusEl.remove();
+
+                if (planResult.success) {
+                    const summary = planResult.data?.summary;
+                    await showConfirm(
+                        'Route Re-planned Successfully',
+                        `Created ${summary?.routesCreated || 1} route(s) with ${summary?.assignedBookings || 0} bookings.`,
+                        'OK',
+                        null
+                    );
+                    loadRoutes(); // Refresh the routes list
+                } else {
+                    throw new Error(planResult.error?.message || 'Failed to plan routes');
+                }
+            } catch (error) {
+                // Remove loading indicator
+                const statusEl = document.getElementById('replan-status');
+                if (statusEl) statusEl.remove();
+
+                console.error('Error replanning route:', error);
+                await showConfirm(
+                    'Re-plan Failed',
+                    `Error: ${error.message}`,
+                    'OK',
+                    null
+                );
             }
         }
 

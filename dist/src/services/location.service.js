@@ -12,12 +12,12 @@ exports.getAllLocations = getAllLocations;
 exports.getCustomerLocations = getCustomerLocations;
 exports.updateLocation = updateLocation;
 exports.deleteLocation = deleteLocation;
-const supabase_js_1 = require("./supabase.js");
-const logger_js_1 = require("../utils/logger.js");
+const supabase_1 = require("./supabase");
+const logger_1 = require("../utils/logger");
 /**
  * Logger instance for location operations
  */
-const logger = (0, logger_js_1.createContextLogger)('LocationService');
+const logger = (0, logger_1.createContextLogger)('LocationService');
 /**
  * Table name for locations
  */
@@ -26,7 +26,7 @@ const LOCATIONS_TABLE = 'locations';
  * Helper to get the appropriate Supabase client
  */
 function getConnection() {
-    return (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+    return (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
 }
 /**
  * Converts DB row metadata (snake_case) to LocationMetadata (camelCase)

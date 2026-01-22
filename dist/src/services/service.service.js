@@ -17,13 +17,13 @@ exports.hardDeleteService = hardDeleteService;
 exports.restoreService = restoreService;
 exports.getServices = getServices;
 exports.countServices = countServices;
-const supabase_js_1 = require("./supabase.js");
-const logger_js_1 = require("../utils/logger.js");
-const service_js_1 = require("../types/service.js");
+const supabase_1 = require("./supabase");
+const logger_1 = require("../utils/logger");
+const service_1 = require("../types/service");
 /**
  * Logger instance for service operations
  */
-const logger = (0, logger_js_1.createContextLogger)('ServiceService');
+const logger = (0, logger_1.createContextLogger)('ServiceService');
 /**
  * Table name for services in the routeiq schema
  */
@@ -122,8 +122,8 @@ async function createService(input) {
     }
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
-        const rowData = (0, service_js_1.serviceInputToRow)(input);
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
+        const rowData = (0, service_1.serviceInputToRow)(input);
         const { data, error } = await supabase
             .from(SERVICES_TABLE)
             .insert(rowData)
@@ -143,7 +143,7 @@ async function createService(input) {
                 error: new ServiceServiceError(`Failed to create service: ${error.message}`, exports.ServiceErrorCodes.CREATE_FAILED, error),
             };
         }
-        const service = (0, service_js_1.rowToService)(data);
+        const service = (0, service_1.rowToService)(data);
         logger.info('Service created successfully', { serviceId: service.id, name: service.name });
         return { success: true, data: service };
     }
@@ -162,7 +162,7 @@ async function getServiceById(id) {
     logger.debug('Getting service by ID', { id });
     try {
         // Use admin client if available to bypass RLS permissions
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(SERVICES_TABLE)
             .select()
@@ -182,7 +182,7 @@ async function getServiceById(id) {
                 error: new ServiceServiceError(`Failed to get service: ${error.message}`, exports.ServiceErrorCodes.QUERY_FAILED, error),
             };
         }
-        const service = (0, service_js_1.rowToService)(data);
+        const service = (0, service_1.rowToService)(data);
         return { success: true, data: service };
     }
     catch (error) {
@@ -200,7 +200,7 @@ async function getServiceByCode(code) {
     logger.debug('Getting service by code', { code });
     try {
         // Use admin client if available to bypass RLS permissions
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(SERVICES_TABLE)
             .select()
@@ -220,7 +220,7 @@ async function getServiceByCode(code) {
                 error: new ServiceServiceError(`Failed to get service: ${error.message}`, exports.ServiceErrorCodes.QUERY_FAILED, error),
             };
         }
-        const service = (0, service_js_1.rowToService)(data);
+        const service = (0, service_1.rowToService)(data);
         return { success: true, data: service };
     }
     catch (error) {
@@ -263,10 +263,10 @@ async function updateService(input) {
     }
     try {
         // Use admin client if available to bypass RLS permissions
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         // Build update object, excluding id
         const { id, ...updateData } = input;
-        const rowData = (0, service_js_1.serviceInputToRow)(updateData);
+        const rowData = (0, service_1.serviceInputToRow)(updateData);
         // Remove undefined values
         const cleanRowData = Object.fromEntries(Object.entries(rowData).filter(([, value]) => value !== undefined));
         const { data, error } = await supabase
@@ -296,7 +296,7 @@ async function updateService(input) {
                 error: new ServiceServiceError(`Failed to update service: ${error.message}`, exports.ServiceErrorCodes.UPDATE_FAILED, error),
             };
         }
-        const service = (0, service_js_1.rowToService)(data);
+        const service = (0, service_1.rowToService)(data);
         logger.info('Service updated successfully', { serviceId: service.id });
         return { success: true, data: service };
     }
@@ -315,7 +315,7 @@ async function deleteService(id) {
     logger.debug('Deleting service', { id });
     try {
         // Use admin client if available to bypass RLS permissions
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { error } = await supabase
             .from(SERVICES_TABLE)
             .update({ deleted_at: new Date().toISOString() })
@@ -346,7 +346,7 @@ async function deleteService(id) {
 async function hardDeleteService(id) {
     logger.warn('Hard deleting service', { id });
     try {
-        const adminClient = (0, supabase_js_1.getAdminSupabaseClient)();
+        const adminClient = (0, supabase_1.getAdminSupabaseClient)();
         if (!adminClient) {
             return {
                 success: false,
@@ -382,7 +382,7 @@ async function restoreService(id) {
     logger.debug('Restoring service', { id });
     try {
         // Use admin client if available to bypass RLS permissions
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(SERVICES_TABLE)
             .update({ deleted_at: null })
@@ -403,7 +403,7 @@ async function restoreService(id) {
                 error: new ServiceServiceError(`Failed to restore service: ${error.message}`, exports.ServiceErrorCodes.UPDATE_FAILED, error),
             };
         }
-        const service = (0, service_js_1.rowToService)(data);
+        const service = (0, service_1.rowToService)(data);
         logger.info('Service restored successfully', { serviceId: service.id });
         return { success: true, data: service };
     }
@@ -422,7 +422,7 @@ async function getServices(filters, pagination) {
     logger.debug('Getting services', { filters, pagination });
     try {
         // Use admin client if available to bypass RLS permissions
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         let query = supabase.from(SERVICES_TABLE).select('*', { count: 'exact' });
         // Filter out soft-deleted records by default
         if (!filters?.includeDeleted) {
@@ -454,7 +454,7 @@ async function getServices(filters, pagination) {
                 error: new ServiceServiceError(`Failed to get services: ${error.message}`, exports.ServiceErrorCodes.QUERY_FAILED, error),
             };
         }
-        const services = data.map(service_js_1.rowToService);
+        const services = data.map(service_1.rowToService);
         const total = count ?? 0;
         return {
             success: true,
@@ -484,7 +484,7 @@ async function countServices(filters) {
     logger.debug('Counting services', { filters });
     try {
         // Use admin client if available to bypass RLS permissions
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         let query = supabase.from(SERVICES_TABLE).select('*', { count: 'exact', head: true });
         if (!filters?.includeDeleted) {
             query = query.is('deleted_at', null);

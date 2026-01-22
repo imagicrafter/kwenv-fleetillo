@@ -9,7 +9,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Logger = exports.logger = void 0;
 exports.createLogger = createLogger;
 exports.createContextLogger = createContextLogger;
-const index_js_1 = require("../config/index.js");
+const index_1 = require("../config/index");
 /**
  * Numeric values for log levels for comparison
  */
@@ -64,8 +64,8 @@ class Logger {
      * @param context - Optional context string for the logger
      */
     constructor(configOverrides, context) {
-        const envLevel = index_js_1.config.logLevel;
-        const isProduction = index_js_1.config.env === 'production';
+        const envLevel = index_1.config.logLevel;
+        const isProduction = index_1.config.env === 'production';
         this.config = {
             ...DEFAULT_CONFIG,
             level: envLevel || DEFAULT_CONFIG.level,

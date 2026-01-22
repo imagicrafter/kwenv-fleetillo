@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.plan = exports.generate = exports.updateStatus = exports.getByDateRange = exports.getByVehicle = exports.count = exports.restore = exports.remove = exports.update = exports.getAll = exports.getById = exports.create = void 0;
-const route_service_js_1 = require("../services/route.service.js");
-const route_generation_service_js_1 = require("../services/route-generation.service.js");
-const route_planning_service_js_1 = require("../services/route-planning.service.js");
+const route_service_1 = require("../services/route.service");
+const route_generation_service_1 = require("../services/route-generation.service");
+const route_planning_service_1 = require("../services/route-planning.service");
 /**
  * Route Controller
  * Handles HTTP requests for route operations
@@ -18,7 +18,7 @@ const create = async (req, res, next) => {
             ...req.body,
             routeDate: req.body.routeDate ? new Date(req.body.routeDate) : undefined,
         };
-        const result = await (0, route_service_js_1.createRoute)(input);
+        const result = await (0, route_service_1.createRoute)(input);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -47,7 +47,7 @@ const getById = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'ID is required' } });
             return;
         }
-        const result = await (0, route_service_js_1.getRouteById)(id);
+        const result = await (0, route_service_1.getRouteById)(id);
         if (!result.success) {
             res.status(404).json({
                 success: false,
@@ -108,7 +108,7 @@ const getAll = async (req, res, next) => {
                 filters.tags = tags;
             }
         }
-        const result = await (0, route_service_js_1.getRoutes)(filters, pagination);
+        const result = await (0, route_service_1.getRoutes)(filters, pagination);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -144,7 +144,7 @@ const update = async (req, res, next) => {
             actualStartTime: req.body.actualStartTime ? new Date(req.body.actualStartTime) : undefined,
             actualEndTime: req.body.actualEndTime ? new Date(req.body.actualEndTime) : undefined,
         };
-        const result = await (0, route_service_js_1.updateRoute)(input);
+        const result = await (0, route_service_1.updateRoute)(input);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -173,7 +173,7 @@ const remove = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'ID is required' } });
             return;
         }
-        const result = await (0, route_service_js_1.deleteRoute)(id);
+        const result = await (0, route_service_1.deleteRoute)(id);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -199,7 +199,7 @@ const restore = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'ID is required' } });
             return;
         }
-        const result = await (0, route_service_js_1.restoreRoute)(id);
+        const result = await (0, route_service_1.restoreRoute)(id);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -233,7 +233,7 @@ const count = async (req, res, next) => {
             filters.optimizationType = optimizationType;
         if (includeDeleted === 'true')
             filters.includeDeleted = true;
-        const result = await (0, route_service_js_1.countRoutes)(filters);
+        const result = await (0, route_service_1.countRoutes)(filters);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -272,7 +272,7 @@ const getByVehicle = async (req, res, next) => {
             filters.routeDate = new Date(routeDate);
         if (includeDeleted === 'true')
             filters.includeDeleted = true;
-        const result = await (0, route_service_js_1.getRoutesByVehicle)(vehicleId, filters);
+        const result = await (0, route_service_1.getRoutesByVehicle)(vehicleId, filters);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -311,7 +311,7 @@ const getByDateRange = async (req, res, next) => {
             filters.vehicleId = vehicleId;
         if (includeDeleted === 'true')
             filters.includeDeleted = true;
-        const result = await (0, route_service_js_1.getRoutesByDateRange)(new Date(startDate), new Date(endDate), filters);
+        const result = await (0, route_service_1.getRoutesByDateRange)(new Date(startDate), new Date(endDate), filters);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -362,7 +362,7 @@ const updateStatus = async (req, res, next) => {
             });
             return;
         }
-        const result = await (0, route_service_js_1.updateRouteStatus)(id, status);
+        const result = await (0, route_service_1.updateRouteStatus)(id, status);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -394,7 +394,7 @@ const generate = async (req, res, next) => {
             });
             return;
         }
-        const result = await (0, route_generation_service_js_1.generateOptimizedRoutes)({
+        const result = await (0, route_generation_service_1.generateOptimizedRoutes)({
             bookingIds,
             departureLocation,
             returnToStart,
@@ -433,7 +433,7 @@ const plan = async (req, res, next) => {
             });
             return;
         }
-        const result = await (0, route_planning_service_js_1.planRoutes)({
+        const result = await (0, route_planning_service_1.planRoutes)({
             routeDate: typeof routeDate === 'string' ? new Date(routeDate) : routeDate,
             serviceId,
             maxStopsPerRoute,

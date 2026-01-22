@@ -4,8 +4,8 @@
  * Provides CRUD operations and business logic for managing maintenance schedules
  * in the RouteIQ application.
  */
-import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
-import type { MaintenanceSchedule, CreateMaintenanceScheduleInput, UpdateMaintenanceScheduleInput, MaintenanceScheduleFilters } from '../types/maintenanceSchedule.js';
+import type { Result, PaginationParams, PaginatedResponse } from '../types/index';
+import type { MaintenanceSchedule, CreateMaintenanceScheduleInput, UpdateMaintenanceScheduleInput, MaintenanceScheduleFilters } from '../types/maintenanceSchedule';
 /**
  * Maintenance schedule service error
  */

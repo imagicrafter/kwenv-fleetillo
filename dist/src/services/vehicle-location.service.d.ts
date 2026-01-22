@@ -2,8 +2,8 @@
  * Vehicle Location Service
  * Manages the many-to-many relationship between vehicles and locations
  */
-import type { Result } from '../types/index.js';
-import type { VehicleLocation, SetVehicleLocationInput } from '../types/vehicle-location.js';
+import type { Result } from '../types/index';
+import type { VehicleLocation, SetVehicleLocationInput } from '../types/vehicle-location';
 /**
  * Get all locations associated with a vehicle
  */

@@ -8,10 +8,10 @@ exports.runEndOfDayCheck = runEndOfDayCheck;
  * End-of-Day Service
  * Handles automatic completion of dispatched routes at end of business day
  */
-const supabase_js_1 = require("./supabase.js");
-const logger_js_1 = require("../utils/logger.js");
-const settings_service_js_1 = require("./settings.service.js");
-const logger = (0, logger_js_1.createContextLogger)('EndOfDayService');
+const supabase_1 = require("./supabase");
+const logger_1 = require("../utils/logger");
+const settings_service_1 = require("./settings.service");
+const logger = (0, logger_1.createContextLogger)('EndOfDayService');
 /**
  * Mark all dispatched routes as completed
  * Called by the end-of-day scheduled job
@@ -19,7 +19,7 @@ const logger = (0, logger_js_1.createContextLogger)('EndOfDayService');
 async function markDispatchedRoutesCompleted() {
     logger.info('Running end-of-day route completion');
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         // Get today's date
         const today = new Date().toISOString().split('T')[0];
         // Find all routes with status 'dispatched' for today
@@ -78,7 +78,7 @@ async function markDispatchedRoutesCompleted() {
  */
 async function isPastDayEndTime() {
     try {
-        const settingsResult = await (0, settings_service_js_1.getAllSettings)();
+        const settingsResult = await (0, settings_service_1.getAllSettings)();
         if (!settingsResult.success || !settingsResult.data) {
             // Default to 6 PM if settings not available
             const now = new Date();

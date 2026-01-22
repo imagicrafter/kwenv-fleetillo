@@ -9,12 +9,9 @@ class DispatchClient {
 
     /**
      * Helper for making authenticated requests
-     * @param {string} endpoint - API endpoint
-     * @param {Object} options - fetch options
-     * @param {string} altBaseUrl - Optional alternative base URL (e.g., '/api/v1' for main API)
      */
-    async _request(endpoint, options = {}, altBaseUrl = null) {
-        const url = altBaseUrl ? `${altBaseUrl}${endpoint}` : `${this.baseUrl}${endpoint}`;
+    async _request(endpoint, options = {}) {
+        const url = `${this.baseUrl}${endpoint}`;
         const headers = {
             'Content-Type': 'application/json',
             ...options.headers
@@ -129,6 +126,18 @@ class DispatchClient {
         });
     }
 
+    /**
+     * Send a dispatch for a specific driver and route
+     * @param {string} routeId 
+     * @param {string} driverId 
+     */
+    async sendDispatch(routeId, driverId) {
+        return this._request('/dispatch', {
+            method: 'POST',
+            body: JSON.stringify({ routeId, driverId, channels: ['telegram', 'email'] })
+        });
+    }
+
     // ===== Dispatch Job Methods =====
 
     /**
@@ -136,7 +145,7 @@ class DispatchClient {
      * @param {Object} payload { driverIds: string[], scheduledTime: string, name?: string }
      */
     async createDispatchJob(payload) {
-        return this._request('/dispatch-jobs', {
+        return this._requestAlt('/dispatch-jobs', {
             method: 'POST',
             body: JSON.stringify(payload)
         }, '/api/v1');
@@ -150,7 +159,7 @@ class DispatchClient {
         const params = new URLSearchParams();
         if (filters.status) params.append('status', filters.status);
         if (filters.driverId) params.append('driverId', filters.driverId);
-        return this._request(`/dispatch-jobs?${params.toString()}`, {}, '/api/v1');
+        return this._requestAlt(`/dispatch-jobs?${params.toString()}`, {}, '/api/v1');
     }
 
     /**
@@ -158,7 +167,7 @@ class DispatchClient {
      * @returns {Promise<string[]>} Array of driver IDs
      */
     async getActiveDriverIds() {
-        const result = await this._request('/dispatch-jobs/active-drivers', {}, '/api/v1');
+        const result = await this._requestAlt('/dispatch-jobs/active-drivers', {}, '/api/v1');
         return result.data || [];
     }
 
@@ -167,17 +176,17 @@ class DispatchClient {
      * @param {string} jobId
      */
     async cancelDispatchJob(jobId) {
-        return this._request(`/dispatch-jobs/${jobId}/cancel`, {
+        return this._requestAlt(`/dispatch-jobs/${jobId}/cancel`, {
             method: 'POST'
         }, '/api/v1');
     }
 
     /**
-     * Helper for making requests to either dispatch or main API
+     * Helper for making requests to main API (not dispatch service)
      * @private
      */
-    async _requestAlt(endpoint, options = {}, altBaseUrl = null) {
-        const url = altBaseUrl ? `${altBaseUrl}${endpoint}` : `${this.baseUrl}${endpoint}`;
+    async _requestAlt(endpoint, options = {}, altBaseUrl) {
+        const url = `${altBaseUrl}${endpoint}`;
         const headers = {
             'Content-Type': 'application/json',
             ...options.headers

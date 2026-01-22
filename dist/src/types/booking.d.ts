@@ -1,7 +1,7 @@
 /**
  * Booking-related type definitions for Fleetillo application
  */
-import type { ID, Timestamps } from './index.js';
+import type { ID, Timestamps } from './index';
 /**
  * Booking type options
  */

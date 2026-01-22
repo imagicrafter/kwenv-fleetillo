@@ -2,7 +2,7 @@
  * Error codes registry for RouteIQ application
  * Provides centralized error code definitions with associated metadata
  */
-import { ErrorCategory, ErrorSeverity, HttpStatusCode, type RetryConfig } from '../types/errors.js';
+import { ErrorCategory, ErrorSeverity, HttpStatusCode, type RetryConfig } from '../types/errors';
 /**
  * Error code definition with metadata
  */

@@ -13,9 +13,9 @@
  * - Batch address processing
  * - Detailed validation feedback
  */
-import type { Result } from '../types/index.js';
-import type { AddressInput, AddressValidationResponse, AddressValidationOptions, BatchValidationRequest, BatchValidationResponse, StandardizeAddressInput, StandardizeAddressResponse, GeocodeWithValidationInput, GeocodeWithValidationResponse } from '../types/address-validation.js';
-import type { Coordinates } from '../types/googlemaps.js';
+import type { Result } from '../types/index';
+import type { AddressInput, AddressValidationResponse, AddressValidationOptions, BatchValidationRequest, BatchValidationResponse, StandardizeAddressInput, StandardizeAddressResponse, GeocodeWithValidationInput, GeocodeWithValidationResponse } from '../types/address-validation';
+import type { Coordinates } from '../types/googlemaps';
 /**
  * Address Validation service error
  */

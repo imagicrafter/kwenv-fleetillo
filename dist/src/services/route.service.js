@@ -20,13 +20,13 @@ exports.updateRouteStatus = updateRouteStatus;
 exports.getRoutesByDateRange = getRoutesByDateRange;
 exports.getNextAvailableRouteDate = getNextAvailableRouteDate;
 exports.getRouteStatsByDateRange = getRouteStatsByDateRange;
-const supabase_js_1 = require("./supabase.js");
-const logger_js_1 = require("../utils/logger.js");
-const route_js_1 = require("../types/route.js");
+const supabase_1 = require("./supabase");
+const logger_1 = require("../utils/logger");
+const route_1 = require("../types/route");
 /**
  * Logger instance for route operations
  */
-const logger = (0, logger_js_1.createContextLogger)('RouteService');
+const logger = (0, logger_1.createContextLogger)('RouteService');
 /**
  * Table name for routes
  */
@@ -104,8 +104,8 @@ async function createRoute(input) {
     }
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
-        const rowData = (0, route_js_1.routeInputToRow)(input);
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
+        const rowData = (0, route_1.routeInputToRow)(input);
         const { data, error } = await supabase
             .from(ROUTES_TABLE)
             .insert(rowData)
@@ -119,7 +119,7 @@ async function createRoute(input) {
                 error: new RouteServiceError(`Failed to create route: ${error.message}`, exports.RouteErrorCodes.CREATE_FAILED, error),
             };
         }
-        const route = (0, route_js_1.rowToRoute)(data);
+        const route = (0, route_1.rowToRoute)(data);
         logger.info('Route created successfully', { routeId: route.id, name: route.routeName });
         return { success: true, data: route };
     }
@@ -138,7 +138,7 @@ async function getRouteById(id) {
     logger.debug('Getting route by ID', { id });
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(ROUTES_TABLE)
             .select()
@@ -158,7 +158,7 @@ async function getRouteById(id) {
                 error: new RouteServiceError(`Failed to get route: ${error.message}`, exports.RouteErrorCodes.QUERY_FAILED, error),
             };
         }
-        const route = (0, route_js_1.rowToRoute)(data);
+        const route = (0, route_1.rowToRoute)(data);
         return { success: true, data: route };
     }
     catch (error) {
@@ -176,7 +176,7 @@ async function getRoutes(filters, pagination) {
     logger.debug('Getting routes', { filters, pagination });
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         let query = supabase.from(ROUTES_TABLE).select('*', { count: 'exact' });
         // Apply filters
         if (!filters?.includeDeleted) {
@@ -243,7 +243,7 @@ async function getRoutes(filters, pagination) {
                 error: new RouteServiceError(`Failed to get routes: ${error.message}`, exports.RouteErrorCodes.QUERY_FAILED, error),
             };
         }
-        const routes = data.map(route_js_1.rowToRoute);
+        const routes = data.map(route_1.rowToRoute);
         const total = count ?? 0;
         // Fetch vehicle names and assigned driver IDs for routes that have a vehicleId
         const vehicleIds = [...new Set(routes.filter(r => r.vehicleId).map(r => r.vehicleId))];
@@ -327,10 +327,10 @@ async function updateRoute(input) {
     }
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         // Build update object
         const { id } = input;
-        const rowData = (0, route_js_1.updateRouteInputToRow)(input);
+        const rowData = (0, route_1.updateRouteInputToRow)(input);
         const { data, error } = await supabase
             .from(ROUTES_TABLE)
             .update(rowData)
@@ -351,7 +351,7 @@ async function updateRoute(input) {
                 error: new RouteServiceError(`Failed to update route: ${error.message}`, exports.RouteErrorCodes.UPDATE_FAILED, error),
             };
         }
-        const route = (0, route_js_1.rowToRoute)(data);
+        const route = (0, route_1.rowToRoute)(data);
         logger.info('Route updated successfully', { routeId: route.id });
         return { success: true, data: route };
     }
@@ -371,7 +371,7 @@ async function deleteRoute(id) {
     logger.debug('Deleting route', { id });
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         // First, get the route to find its booking IDs (stopSequence) and vehicle/date for fallback
         const { data: route, error: fetchError } = await supabase
             .from(ROUTES_TABLE)
@@ -464,7 +464,7 @@ async function deleteRoute(id) {
 async function hardDeleteRoute(id) {
     logger.warn('Hard deleting route', { id });
     try {
-        const adminClient = (0, supabase_js_1.getAdminSupabaseClient)();
+        const adminClient = (0, supabase_1.getAdminSupabaseClient)();
         if (!adminClient) {
             return {
                 success: false,
@@ -500,7 +500,7 @@ async function restoreRoute(id) {
     logger.debug('Restoring route', { id });
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(ROUTES_TABLE)
             .update({ deleted_at: null })
@@ -521,7 +521,7 @@ async function restoreRoute(id) {
                 error: new RouteServiceError(`Failed to restore route: ${error.message}`, exports.RouteErrorCodes.UPDATE_FAILED, error),
             };
         }
-        const route = (0, route_js_1.rowToRoute)(data);
+        const route = (0, route_1.rowToRoute)(data);
         logger.info('Route restored successfully', { routeId: route.id });
         return { success: true, data: route };
     }
@@ -540,7 +540,7 @@ async function countRoutes(filters) {
     logger.debug('Counting routes', { filters });
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         let query = supabase.from(ROUTES_TABLE).select('*', { count: 'exact', head: true });
         if (!filters?.includeDeleted) {
             query = query.is('deleted_at', null);
@@ -579,7 +579,7 @@ async function getRoutesByVehicle(vehicleId, filters) {
     logger.debug('Getting routes by vehicle', { vehicleId });
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         let query = supabase
             .from(ROUTES_TABLE)
             .select()
@@ -602,7 +602,7 @@ async function getRoutesByVehicle(vehicleId, filters) {
                 error: new RouteServiceError(`Failed to get routes by vehicle: ${error.message}`, exports.RouteErrorCodes.QUERY_FAILED, error),
             };
         }
-        const routes = data.map(route_js_1.rowToRoute);
+        const routes = data.map(route_1.rowToRoute);
         return { success: true, data: routes };
     }
     catch (error) {
@@ -620,7 +620,7 @@ async function updateRouteStatus(id, status) {
     logger.debug('Updating route status', { id, status });
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(ROUTES_TABLE)
             .update({ status })
@@ -641,7 +641,7 @@ async function updateRouteStatus(id, status) {
                 error: new RouteServiceError(`Failed to update route status: ${error.message}`, exports.RouteErrorCodes.UPDATE_FAILED, error),
             };
         }
-        const route = (0, route_js_1.rowToRoute)(data);
+        const route = (0, route_1.rowToRoute)(data);
         logger.info('Route status updated successfully', { routeId: route.id, status });
         return { success: true, data: route };
     }
@@ -660,7 +660,7 @@ async function getRoutesByDateRange(startDate, endDate, filters) {
     logger.debug('Getting routes by date range', { startDate, endDate });
     try {
         // Use admin client if available to bypass RLS policies
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const startDateStr = startDate.toISOString().split('T')[0];
         const endDateStr = endDate.toISOString().split('T')[0];
         let query = supabase
@@ -686,7 +686,7 @@ async function getRoutesByDateRange(startDate, endDate, filters) {
                 error: new RouteServiceError(`Failed to get routes by date range: ${error.message}`, exports.RouteErrorCodes.QUERY_FAILED, error),
             };
         }
-        const routes = data.map(route_js_1.rowToRoute);
+        const routes = data.map(route_1.rowToRoute);
         return { success: true, data: routes };
     }
     catch (error) {
@@ -704,7 +704,7 @@ async function getRoutesByDateRange(startDate, endDate, filters) {
 async function getNextAvailableRouteDate(fromDate) {
     logger.debug('Getting next available route date', { fromDate });
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         // Handle both Date objects and strings (from JSON RPC)
         const dateObj = fromDate instanceof Date ? fromDate : new Date(fromDate);
         // Default to today if invalid date passed
@@ -747,7 +747,7 @@ async function getNextAvailableRouteDate(fromDate) {
 async function getRouteStatsByDateRange(startDateStr, endDateStr) {
     logger.debug('Getting route stats by date range', { startDateStr, endDateStr });
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(ROUTES_TABLE)
             .select('route_date, status')

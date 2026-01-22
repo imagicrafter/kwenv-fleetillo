@@ -11,28 +11,28 @@ exports.calculateMaterialsCost = calculateMaterialsCost;
 exports.calculateRouteRevenue = calculateRouteRevenue;
 exports.calculateRouteCostBreakdown = calculateRouteCostBreakdown;
 exports.updateRouteEstimatedCost = updateRouteEstimatedCost;
-const supabase_js_1 = require("./supabase.js");
-const logger_js_1 = require("../utils/logger.js");
-const settings_service_js_1 = require("./settings.service.js");
-const settings_js_1 = require("../types/settings.js");
-const logger = (0, logger_js_1.createContextLogger)('RouteCostService');
+const supabase_1 = require("./supabase");
+const logger_1 = require("../utils/logger");
+const settings_service_1 = require("./settings.service");
+const settings_1 = require("../types/settings");
+const logger = (0, logger_1.createContextLogger)('RouteCostService');
 // Constants for unit conversion
 const KM_TO_MILES = 0.621371;
 /**
  * Get cost settings from database
  */
 async function getCostSettings() {
-    const laborRate = await (0, settings_service_js_1.getSetting)(settings_js_1.SettingKeys.COSTS_LABOR_RATE_PER_HOUR);
-    const gasolinePrice = await (0, settings_service_js_1.getSetting)(settings_js_1.SettingKeys.COSTS_GASOLINE_PRICE_PER_GALLON);
-    const dieselPrice = await (0, settings_service_js_1.getSetting)(settings_js_1.SettingKeys.COSTS_DIESEL_PRICE_PER_GALLON);
-    const includeBuffer = await (0, settings_service_js_1.getSetting)(settings_js_1.SettingKeys.COSTS_INCLUDE_TRAFFIC_BUFFER);
+    const laborRate = await (0, settings_service_1.getSetting)(settings_1.SettingKeys.COSTS_LABOR_RATE_PER_HOUR);
+    const gasolinePrice = await (0, settings_service_1.getSetting)(settings_1.SettingKeys.COSTS_GASOLINE_PRICE_PER_GALLON);
+    const dieselPrice = await (0, settings_service_1.getSetting)(settings_1.SettingKeys.COSTS_DIESEL_PRICE_PER_GALLON);
+    const includeBuffer = await (0, settings_service_1.getSetting)(settings_1.SettingKeys.COSTS_INCLUDE_TRAFFIC_BUFFER);
     return {
-        laborRatePerHour: laborRate.success && laborRate.data ? Number(laborRate.data) : settings_js_1.DEFAULT_COST_SETTINGS.laborRatePerHour,
-        gasolinePricePerGallon: gasolinePrice.success && gasolinePrice.data ? Number(gasolinePrice.data) : settings_js_1.DEFAULT_COST_SETTINGS.gasolinePricePerGallon,
-        dieselPricePerGallon: dieselPrice.success && dieselPrice.data ? Number(dieselPrice.data) : settings_js_1.DEFAULT_COST_SETTINGS.dieselPricePerGallon,
+        laborRatePerHour: laborRate.success && laborRate.data ? Number(laborRate.data) : settings_1.DEFAULT_COST_SETTINGS.laborRatePerHour,
+        gasolinePricePerGallon: gasolinePrice.success && gasolinePrice.data ? Number(gasolinePrice.data) : settings_1.DEFAULT_COST_SETTINGS.gasolinePricePerGallon,
+        dieselPricePerGallon: dieselPrice.success && dieselPrice.data ? Number(dieselPrice.data) : settings_1.DEFAULT_COST_SETTINGS.dieselPricePerGallon,
         includeTrafficBuffer: includeBuffer.success && includeBuffer.data !== undefined
             ? Boolean(includeBuffer.data)
-            : settings_js_1.DEFAULT_COST_SETTINGS.includeTrafficBuffer,
+            : settings_1.DEFAULT_COST_SETTINGS.includeTrafficBuffer,
     };
 }
 /**
@@ -84,7 +84,7 @@ async function calculateMaterialsCost(bookingIds) {
         return 0;
     }
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         // Get bookings with their services
         const { data: bookings, error } = await supabase
             .from('bookings')
@@ -122,7 +122,7 @@ async function calculateRouteRevenue(bookingIds) {
         return 0;
     }
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         // Get bookings with their services
         const { data: bookings, error } = await supabase
             .from('bookings')
@@ -158,7 +158,7 @@ async function calculateRouteRevenue(bookingIds) {
 async function calculateRouteCostBreakdown(routeId) {
     logger.info('Calculating cost breakdown for route', { routeId });
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         // Fetch route with vehicle data
         const { data: route, error: routeError } = await supabase
             .from('routes')
@@ -237,7 +237,7 @@ async function updateRouteEstimatedCost(routeId) {
         return { success: false, error: breakdownResult.error };
     }
     try {
-        const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
         const { error } = await supabase
             .from('routes')
             .update({

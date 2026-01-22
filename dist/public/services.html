@@ -557,7 +557,8 @@
         }
     </style>
 
-    <script src="preload.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/api-client.js"></script>
     <script src="confirmation-modal.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -638,9 +639,9 @@
 
                     try {
                         if (isEditing) {
-                            await window.electronAPI.services.update(serviceData);
+                            await window.apiClient.services.update(serviceData);
                         } else {
-                            await window.electronAPI.services.create(serviceData);
+                            await window.apiClient.services.create(serviceData);
                         }
                         closeModal();
                         loadServices();
@@ -697,7 +698,7 @@
                     const filters = searchTerm ? { searchTerm } : {};
                     const pagination = { page: currentPage, limit };
 
-                    const response = await window.electronAPI.services.getAll(filters, pagination);
+                    const response = await window.apiClient.services.getAll(filters, pagination);
 
                     let services = [];
                     if (response.pagination) {

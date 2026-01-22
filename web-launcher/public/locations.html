@@ -1324,11 +1324,17 @@
                     const row = document.createElement('tr');
 
                     let badgeClass = 'inactive';
-                    if (loc.locationType === 'client') badgeClass = 'active';
-                    else if (loc.locationType === 'depot') badgeClass = 'success';
-                    else if (loc.locationType === 'maintenance') badgeClass = 'warning';
+                    let typeLabel = loc.locationType;
+                    if (loc.locationType === 'client') {
+                        badgeClass = 'active';
+                        typeLabel = 'customer';
+                    } else if (loc.locationType === 'depot') {
+                        badgeClass = 'success';
+                    } else if (loc.locationType === 'maintenance') {
+                        badgeClass = 'warning';
+                    }
 
-                    const typeBadge = `<span class="status-badge ${badgeClass}">${loc.locationType}</span>`;
+                    const typeBadge = `<span class="status-badge ${badgeClass}">${typeLabel}</span>`;
 
                     // Show coords indicator if available
                     const coordsIndicator = (loc.latitude && loc.longitude)
@@ -1348,7 +1354,7 @@
                             <div>${loc.addressLine1} ${coordsIndicator}</div>
                             ${loc.addressLine2 ? `<div style="font-size: 0.8rem; color: var(--text-secondary);">${loc.addressLine2}</div>` : ''}
                         </td>
-                        <td>${loc.clientName ? `<div style="font-weight:500">${loc.clientName}</div>` : (loc.clientId ? `<span style="font-family: monospace; color: var(--text-secondary);">${loc.clientId.substr(0, 8)}...</span>` : '<span style="color: var(--text-secondary);">-</span>')}</td>
+                        <td>${loc.customerName || loc.clientName ? `<div style="font-weight:500">${loc.customerName || loc.clientName}</div>` : (loc.customerId || loc.clientId ? `<span style="font-family: monospace; color: var(--text-secondary);">${(loc.customerId || loc.clientId).substr(0, 8)}...</span>` : '<span style="color: var(--text-secondary);">-</span>')}</td>
                         <td>${loc.city}, ${loc.state}</td>
                         <td>${tagsHtml || '<span style="color: var(--text-muted);">-</span>'}</td>
                         <td>${loc.isPrimary ? '<span style="color: var(--success); font-size: 0.8rem;">★ Primary</span>' : '-'}</td>
@@ -1417,15 +1423,18 @@
                     // Client Handling for Edit
                     modeExisting.checked = true;
 
-                    if (data.clientId) {
-                        if (data.clientName) {
-                            selectedClientIdInput.value = data.clientId;
-                            selectedClientName.textContent = data.clientName;
+                    if (data.customerId || data.clientId) {
+                        const customerId = data.customerId || data.clientId;
+                        const customerName = data.customerName || data.clientName;
+
+                        if (customerName) {
+                            selectedClientIdInput.value = customerId;
+                            selectedClientName.textContent = customerName;
                             clientSearchInput.style.display = 'none';
                             selectedClientDisplay.style.display = 'flex';
                         } else {
-                            selectedClientIdInput.value = data.clientId;
-                            selectedClientName.textContent = `Client ID: ${data.clientId.substr(0, 8)}...`;
+                            selectedClientIdInput.value = customerId;
+                            selectedClientName.textContent = `Customer ID: ${customerId.substr(0, 8)}...`;
                             clientSearchInput.style.display = 'none';
                             selectedClientDisplay.style.display = 'flex';
                         }

@@ -4,8 +4,8 @@
  * Provides CRUD operations and business logic for managing customers
  * in the Fleetillo application.
  */
-import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
-import type { Customer, CreateCustomerInput, UpdateCustomerInput, CustomerFilters } from '../types/customer.js';
+import type { Result, PaginationParams, PaginatedResponse } from '../types/index';
+import type { Customer, CreateCustomerInput, UpdateCustomerInput, CustomerFilters } from '../types/customer';
 /**
  * Customer service error
  */

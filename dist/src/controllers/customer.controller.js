@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.count = exports.restore = exports.remove = exports.update = exports.getAll = exports.getById = exports.create = void 0;
-const customer_service_js_1 = require("../services/customer.service.js");
+const customer_service_1 = require("../services/customer.service");
 /**
  * Customer Controller
  * Handles HTTP requests for customer operations
@@ -13,7 +13,7 @@ const customer_service_js_1 = require("../services/customer.service.js");
 const create = async (req, res, next) => {
     try {
         const input = req.body;
-        const result = await (0, customer_service_js_1.createCustomer)(input);
+        const result = await (0, customer_service_1.createCustomer)(input);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -42,7 +42,7 @@ const getById = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'ID is required' } });
             return;
         }
-        const result = await (0, customer_service_js_1.getCustomerById)(id);
+        const result = await (0, customer_service_1.getCustomerById)(id);
         if (!result.success) {
             res.status(404).json({
                 success: false,
@@ -73,7 +73,7 @@ const getAll = async (req, res, next) => {
             sortBy: sortBy,
             sortOrder: sortOrder,
         };
-        const result = await (0, customer_service_js_1.getCustomers)(filters, pagination);
+        const result = await (0, customer_service_1.getCustomers)(filters, pagination);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -106,7 +106,7 @@ const update = async (req, res, next) => {
             id,
             ...req.body,
         };
-        const result = await (0, customer_service_js_1.updateCustomer)(input);
+        const result = await (0, customer_service_1.updateCustomer)(input);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -135,7 +135,7 @@ const remove = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'ID is required' } });
             return;
         }
-        const result = await (0, customer_service_js_1.deleteCustomer)(id);
+        const result = await (0, customer_service_1.deleteCustomer)(id);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -161,7 +161,7 @@ const restore = async (req, res, next) => {
             res.status(400).json({ success: false, error: { message: 'ID is required' } });
             return;
         }
-        const result = await (0, customer_service_js_1.restoreCustomer)(id);
+        const result = await (0, customer_service_1.restoreCustomer)(id);
         if (!result.success) {
             res.status(400).json({
                 success: false,
@@ -186,7 +186,7 @@ exports.restore = restore;
 const count = async (req, res, next) => {
     try {
         const filters = req.query;
-        const result = await (0, customer_service_js_1.countCustomers)(filters);
+        const result = await (0, customer_service_1.countCustomers)(filters);
         if (!result.success) {
             res.status(400).json({
                 success: false,

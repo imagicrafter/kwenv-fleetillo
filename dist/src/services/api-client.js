@@ -32,14 +32,14 @@ exports.apiClient = exports.ApiClient = void 0;
 exports.getApiClient = getApiClient;
 exports.createApiClient = createApiClient;
 exports.resetApiClient = resetApiClient;
-const supabase_js_1 = require("./supabase.js");
-const logger_js_1 = require("../utils/logger.js");
-const index_js_1 = require("../errors/index.js");
-const codes_js_1 = require("../errors/codes.js");
+const supabase_1 = require("./supabase");
+const logger_1 = require("../utils/logger");
+const index_1 = require("../errors/index");
+const codes_1 = require("../errors/codes");
 /**
  * Logger instance for API client operations
  */
-const logger = (0, logger_js_1.createContextLogger)('ApiClient');
+const logger = (0, logger_1.createContextLogger)('ApiClient');
 /**
  * Default API client options
  */
@@ -66,45 +66,45 @@ function mapPostgresError(error, table, operation) {
     switch (code) {
         // Unique violation
         case '23505':
-            return index_js_1.ResourceError.alreadyExists(table, details || undefined);
+            return index_1.ResourceError.alreadyExists(table, details || undefined);
         // Foreign key violation
         case '23503':
-            return new index_js_1.ValidationError(`Foreign key constraint violated: ${message}`, [
+            return new index_1.ValidationError(`Foreign key constraint violated: ${message}`, [
                 { field: 'reference', message: details || 'Referenced record does not exist' },
             ]);
         // Not null violation
         case '23502':
-            return new index_js_1.ValidationError(`Required field is missing: ${message}`, [
+            return new index_1.ValidationError(`Required field is missing: ${message}`, [
                 { field: details || 'unknown', message: 'This field is required' },
             ]);
         // Check constraint violation
         case '23514':
-            return new index_js_1.ValidationError(`Constraint violation: ${message}`, [
+            return new index_1.ValidationError(`Constraint violation: ${message}`, [
                 { field: 'constraint', message: details || 'Check constraint failed' },
             ]);
         // Invalid text representation (bad input)
         case '22P02':
-            return new index_js_1.ValidationError(`Invalid input format: ${message}`);
+            return new index_1.ValidationError(`Invalid input format: ${message}`);
         // Relation does not exist
         case '42P01':
-            return index_js_1.ResourceError.notFound('Table', table);
+            return index_1.ResourceError.notFound('Table', table);
         // Column does not exist
         case '42703':
-            return new index_js_1.ValidationError(`Invalid column: ${message}`);
+            return new index_1.ValidationError(`Invalid column: ${message}`);
         // Insufficient privilege
         case '42501':
-            return index_js_1.DatabaseError.queryError(`Insufficient privileges for ${operation} on ${table}`, new Error(message));
+            return index_1.DatabaseError.queryError(`Insufficient privileges for ${operation} on ${table}`, new Error(message));
         // Connection errors
         case '08000':
         case '08003':
         case '08006':
-            return index_js_1.DatabaseError.connectionError(new Error(message));
+            return index_1.DatabaseError.connectionError(new Error(message));
         // PGRST codes (PostgREST specific)
         case 'PGRST116': // Not found (single row expected)
-            return index_js_1.ResourceError.notFound(table);
+            return index_1.ResourceError.notFound(table);
         // Default database error
         default:
-            return new index_js_1.DatabaseError(`Database operation failed: ${message}`, codes_js_1.ErrorCodes.DATABASE_QUERY_ERROR, new Error(message), { table, operation, code });
+            return new index_1.DatabaseError(`Database operation failed: ${message}`, codes_1.ErrorCodes.DATABASE_QUERY_ERROR, new Error(message), { table, operation, code });
     }
 }
 /**
@@ -120,17 +120,17 @@ class ApiClient {
      * Gets the appropriate Supabase client based on options
      */
     getClient() {
-        if (!(0, supabase_js_1.isSupabaseInitialized)()) {
-            throw new index_js_1.DatabaseError('Supabase client is not initialized. Call initializeSupabase() first.', codes_js_1.ErrorCodes.DATABASE_CONNECTION_ERROR);
+        if (!(0, supabase_1.isSupabaseInitialized)()) {
+            throw new index_1.DatabaseError('Supabase client is not initialized. Call initializeSupabase() first.', codes_1.ErrorCodes.DATABASE_CONNECTION_ERROR);
         }
         if (this.options.useAdmin) {
-            const adminClient = (0, supabase_js_1.getAdminSupabaseClient)();
+            const adminClient = (0, supabase_1.getAdminSupabaseClient)();
             if (!adminClient) {
-                throw new index_js_1.DatabaseError('Admin client is not available. Service role key may be missing.', codes_js_1.ErrorCodes.DATABASE_CONNECTION_ERROR);
+                throw new index_1.DatabaseError('Admin client is not available. Service role key may be missing.', codes_1.ErrorCodes.DATABASE_CONNECTION_ERROR);
             }
             return adminClient;
         }
-        return (0, supabase_js_1.getSupabaseClient)();
+        return (0, supabase_1.getSupabaseClient)();
     }
     /**
      * Logs query performance and details
@@ -260,14 +260,14 @@ class ApiClient {
             if (error) {
                 const mappedError = mapPostgresError(error, table, 'select');
                 this.logQuery('select', table, durationMs, 0, mappedError);
-                return { success: false, error: (0, index_js_1.normalizeError)(mappedError) };
+                return { success: false, error: (0, index_1.normalizeError)(mappedError) };
             }
             this.logQuery('select', table, durationMs, rowCount);
             return { success: true, data: data ?? [] };
         }
         catch (error) {
             const durationMs = Date.now() - startTime;
-            const normalizedError = (0, index_js_1.normalizeError)(error);
+            const normalizedError = (0, index_1.normalizeError)(error);
             this.logQuery('select', table, durationMs, 0, normalizedError);
             return { success: false, error: normalizedError };
         }
@@ -293,14 +293,14 @@ class ApiClient {
             if (error) {
                 const mappedError = mapPostgresError(error, table, 'select');
                 this.logQuery('select', table, durationMs, 0, mappedError);
-                return { success: false, error: (0, index_js_1.normalizeError)(mappedError) };
+                return { success: false, error: (0, index_1.normalizeError)(mappedError) };
             }
             this.logQuery('select', table, durationMs, data ? 1 : 0);
             return { success: true, data: data ?? null };
         }
         catch (error) {
             const durationMs = Date.now() - startTime;
-            const normalizedError = (0, index_js_1.normalizeError)(error);
+            const normalizedError = (0, index_1.normalizeError)(error);
             this.logQuery('select', table, durationMs, 0, normalizedError);
             return { success: false, error: normalizedError };
         }
@@ -332,7 +332,7 @@ class ApiClient {
         if (result.data === null) {
             return {
                 success: false,
-                error: index_js_1.ResourceError.notFound(table),
+                error: index_1.ResourceError.notFound(table),
             };
         }
         return { success: true, data: result.data };
@@ -359,14 +359,14 @@ class ApiClient {
             if (error) {
                 const mappedError = mapPostgresError(error, table, 'insert');
                 this.logQuery('insert', table, durationMs, 0, mappedError);
-                return { success: false, error: (0, index_js_1.normalizeError)(mappedError) };
+                return { success: false, error: (0, index_1.normalizeError)(mappedError) };
             }
             this.logQuery('insert', table, durationMs, 1);
             return { success: true, data: result };
         }
         catch (error) {
             const durationMs = Date.now() - startTime;
-            const normalizedError = (0, index_js_1.normalizeError)(error);
+            const normalizedError = (0, index_1.normalizeError)(error);
             this.logQuery('insert', table, durationMs, 0, normalizedError);
             return { success: false, error: normalizedError };
         }
@@ -395,14 +395,14 @@ class ApiClient {
             if (error) {
                 const mappedError = mapPostgresError(error, table, 'insert');
                 this.logQuery('insert', table, durationMs, 0, mappedError);
-                return { success: false, error: (0, index_js_1.normalizeError)(mappedError) };
+                return { success: false, error: (0, index_1.normalizeError)(mappedError) };
             }
             this.logQuery('insert', table, durationMs, result?.length ?? 0);
             return { success: true, data: result ?? [] };
         }
         catch (error) {
             const durationMs = Date.now() - startTime;
-            const normalizedError = (0, index_js_1.normalizeError)(error);
+            const normalizedError = (0, index_1.normalizeError)(error);
             this.logQuery('insert', table, durationMs, 0, normalizedError);
             return { success: false, error: normalizedError };
         }
@@ -430,14 +430,14 @@ class ApiClient {
             if (error) {
                 const mappedError = mapPostgresError(error, table, 'update');
                 this.logQuery('update', table, durationMs, 0, mappedError);
-                return { success: false, error: (0, index_js_1.normalizeError)(mappedError) };
+                return { success: false, error: (0, index_1.normalizeError)(mappedError) };
             }
             this.logQuery('update', table, durationMs, result?.length ?? 0);
             return { success: true, data: result ?? [] };
         }
         catch (error) {
             const durationMs = Date.now() - startTime;
-            const normalizedError = (0, index_js_1.normalizeError)(error);
+            const normalizedError = (0, index_1.normalizeError)(error);
             this.logQuery('update', table, durationMs, 0, normalizedError);
             return { success: false, error: normalizedError };
         }
@@ -485,14 +485,14 @@ class ApiClient {
             if (error) {
                 const mappedError = mapPostgresError(error, table, 'upsert');
                 this.logQuery('upsert', table, durationMs, 0, mappedError);
-                return { success: false, error: (0, index_js_1.normalizeError)(mappedError) };
+                return { success: false, error: (0, index_1.normalizeError)(mappedError) };
             }
             this.logQuery('upsert', table, durationMs, 1);
             return { success: true, data: result };
         }
         catch (error) {
             const durationMs = Date.now() - startTime;
-            const normalizedError = (0, index_js_1.normalizeError)(error);
+            const normalizedError = (0, index_1.normalizeError)(error);
             this.logQuery('upsert', table, durationMs, 0, normalizedError);
             return { success: false, error: normalizedError };
         }
@@ -515,14 +515,14 @@ class ApiClient {
             if (error) {
                 const mappedError = mapPostgresError(error, table, 'delete');
                 this.logQuery('delete', table, durationMs, 0, mappedError);
-                return { success: false, error: (0, index_js_1.normalizeError)(mappedError) };
+                return { success: false, error: (0, index_1.normalizeError)(mappedError) };
             }
             this.logQuery('delete', table, durationMs, result?.length ?? 0);
             return { success: true, data: result ?? [] };
         }
         catch (error) {
             const durationMs = Date.now() - startTime;
-            const normalizedError = (0, index_js_1.normalizeError)(error);
+            const normalizedError = (0, index_1.normalizeError)(error);
             this.logQuery('delete', table, durationMs, 0, normalizedError);
             return { success: false, error: normalizedError };
         }
@@ -562,14 +562,14 @@ class ApiClient {
             if (error) {
                 const mappedError = mapPostgresError(error, table, 'select');
                 this.logQuery('select', table, durationMs, 0, mappedError);
-                return { success: false, error: (0, index_js_1.normalizeError)(mappedError) };
+                return { success: false, error: (0, index_1.normalizeError)(mappedError) };
             }
             this.logQuery('select', table, durationMs, count ?? 0);
             return { success: true, data: count ?? 0 };
         }
         catch (error) {
             const durationMs = Date.now() - startTime;
-            const normalizedError = (0, index_js_1.normalizeError)(error);
+            const normalizedError = (0, index_1.normalizeError)(error);
             this.logQuery('select', table, durationMs, 0, normalizedError);
             return { success: false, error: normalizedError };
         }
@@ -622,7 +622,7 @@ class ApiClient {
             if (error) {
                 const mappedError = mapPostgresError(error, table, 'select');
                 this.logQuery('select', table, durationMs, 0, mappedError);
-                return { success: false, error: (0, index_js_1.normalizeError)(mappedError) };
+                return { success: false, error: (0, index_1.normalizeError)(mappedError) };
             }
             const totalPages = Math.ceil(total / pagination.limit);
             const result = {
@@ -639,7 +639,7 @@ class ApiClient {
         }
         catch (error) {
             const durationMs = Date.now() - startTime;
-            const normalizedError = (0, index_js_1.normalizeError)(error);
+            const normalizedError = (0, index_1.normalizeError)(error);
             this.logQuery('select', table, durationMs, 0, normalizedError);
             return { success: false, error: normalizedError };
         }
@@ -660,14 +660,14 @@ class ApiClient {
             if (error) {
                 const mappedError = mapPostgresError(error, functionName, 'rpc');
                 logger.error(`RPC ${functionName} failed`, mappedError, { durationMs });
-                return { success: false, error: (0, index_js_1.normalizeError)(mappedError) };
+                return { success: false, error: (0, index_1.normalizeError)(mappedError) };
             }
             logger.debug(`RPC ${functionName}`, { durationMs });
             return { success: true, data: data };
         }
         catch (error) {
             const durationMs = Date.now() - startTime;
-            const normalizedError = (0, index_js_1.normalizeError)(error);
+            const normalizedError = (0, index_1.normalizeError)(error);
             logger.error(`RPC ${functionName} failed`, normalizedError, { durationMs });
             return { success: false, error: normalizedError };
         }
@@ -682,7 +682,7 @@ class ApiClient {
     async withRetry(operation, options = {}) {
         const { maxRetries = 3, baseDelay = 1000, shouldRetry } = options;
         try {
-            const result = await (0, index_js_1.retryWithBackoff)(async () => {
+            const result = await (0, index_1.retryWithBackoff)(async () => {
                 const opResult = await operation();
                 if (!opResult.success) {
                     throw opResult.error;
@@ -693,8 +693,8 @@ class ApiClient {
                 baseDelay,
                 shouldRetry: shouldRetry ?? ((error) => {
                     // Retry on connection errors
-                    if (error instanceof index_js_1.DatabaseError) {
-                        return error.code === codes_js_1.ErrorCodes.DATABASE_CONNECTION_ERROR.code;
+                    if (error instanceof index_1.DatabaseError) {
+                        return error.code === codes_1.ErrorCodes.DATABASE_CONNECTION_ERROR.code;
                     }
                     return false;
                 }),
@@ -705,7 +705,7 @@ class ApiClient {
             return { success: true, data: result };
         }
         catch (error) {
-            return { success: false, error: (0, index_js_1.normalizeError)(error) };
+            return { success: false, error: (0, index_1.normalizeError)(error) };
         }
     }
     /**
