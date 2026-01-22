@@ -253,6 +253,13 @@
             margin-left: 4px;
         }
 
+        .booking-vehicle {
+            font-size: 0.65rem;
+            color: var(--accent-primary);
+            font-weight: 500;
+            margin-left: 4px;
+        }
+
         .more-bookings {
             font-size: 0.7rem;
             color: var(--accent-primary);
@@ -1033,6 +1040,11 @@
             <span class="popup-detail-label">Status:</span>
             <span class="popup-detail-value" id="popup-status">-</span>
         </div>
+        <div class="popup-detail" id="popup-vehicle-row" style="display: none;">
+            <span class="popup-detail-icon">🚗</span>
+            <span class="popup-detail-label">Vehicle:</span>
+            <span class="popup-detail-value" id="popup-vehicle">-</span>
+        </div>
         <div class="popup-detail">
             <span class="popup-detail-icon">💵</span>
             <span class="popup-detail-label">Price:</span>
@@ -1722,9 +1734,11 @@
                             const event = document.createElement('div');
                             event.className = `week-booking status-${booking.status}`;
                             event.style.height = `${(duration / 60) * 60}px`;
+                            const vehicleDisplay = booking.vehicleName ? `<div style="font-size: 0.65rem; color: var(--accent-primary); font-weight: 500;">${booking.vehicleName}</div>` : '';
                             event.innerHTML = `
                                 <div style="font-weight: 600; font-size: 0.7rem;">${formatTime(booking.scheduledStartTime)}</div>
-                                <div style="font-size: 0.7rem; color: var(--text-secondary);">${booking.clientName || 'Unknown'}</div>
+                                <div style="font-size: 0.7rem; color: var(--text-secondary);">${booking.customerName || booking.clientName || 'Unknown'}</div>
+                                ${vehicleDisplay}
                             `;
                             event.addEventListener('click', (e) => {
                                 e.stopPropagation();
@@ -1898,9 +1912,11 @@
             function createBookingEvent(booking) {
                 const event = document.createElement('div');
                 event.className = `booking-event status-${booking.status}`;
+                const vehicleDisplay = booking.vehicleName ? `<span class="booking-vehicle">[${booking.vehicleName}]</span>` : '';
                 event.innerHTML = `
                     <span class="booking-time">${formatTime(booking.scheduledStartTime)}</span>
-                    <span class="booking-client">${booking.clientName || 'Unknown'}</span>
+                    <span class="booking-client">${booking.customerName || booking.clientName || 'Unknown'}</span>
+                    ${vehicleDisplay}
                 `;
                 event.addEventListener('click', (e) => {
                     e.stopPropagation();
@@ -1916,11 +1932,20 @@
                 document.getElementById('popup-title').textContent = booking.bookingNumber || 'Booking Details';
                 document.getElementById('popup-date').textContent = parseBookingDate(booking.scheduledDate)?.toLocaleDateString() || '-';
                 document.getElementById('popup-time').textContent = formatTime(booking.scheduledStartTime) || '-';
-                document.getElementById('popup-client').textContent = booking.clientName || 'Unknown';
+                document.getElementById('popup-client').textContent = booking.customerName || booking.clientName || 'Unknown';
                 document.getElementById('popup-service').textContent = booking.serviceName || 'Unknown';
                 document.getElementById('popup-status').textContent = booking.status || '-';
                 document.getElementById('popup-status').style.cssText = getStatusBadge(booking.status).style + 'padding: 2px 8px; border-radius: 10px;';
                 document.getElementById('popup-price').textContent = formatCurrency(booking.quotedPrice);
+
+                // Show/hide vehicle row based on assignment
+                const vehicleRow = document.getElementById('popup-vehicle-row');
+                if (booking.vehicleName) {
+                    vehicleRow.style.display = 'flex';
+                    document.getElementById('popup-vehicle').textContent = booking.vehicleName;
+                } else {
+                    vehicleRow.style.display = 'none';
+                }
 
                 // Position popup near click
                 const rect = event.target.getBoundingClientRect ? event.target.getBoundingClientRect() : event.target;

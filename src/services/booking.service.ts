@@ -73,7 +73,10 @@ function validateBookingInput(input: CreateBookingInput): Result<void> {
     };
   }
 
-  if ((!input.serviceId || input.serviceId.trim().length === 0) && (!input.serviceItems || input.serviceItems.length === 0)) {
+  if (
+    (!input.serviceId || input.serviceId.trim().length === 0) &&
+    (!input.serviceItems || input.serviceItems.length === 0)
+  ) {
     return {
       success: false,
       error: new BookingServiceError(
@@ -168,7 +171,10 @@ function validateBookingInput(input: CreateBookingInput): Result<void> {
   }
 
   // Validate location coordinates if provided
-  if (input.serviceLatitude !== undefined && (input.serviceLatitude < -90 || input.serviceLatitude > 90)) {
+  if (
+    input.serviceLatitude !== undefined &&
+    (input.serviceLatitude < -90 || input.serviceLatitude > 90)
+  ) {
     return {
       success: false,
       error: new BookingServiceError(
@@ -179,7 +185,10 @@ function validateBookingInput(input: CreateBookingInput): Result<void> {
     };
   }
 
-  if (input.serviceLongitude !== undefined && (input.serviceLongitude < -180 || input.serviceLongitude > 180)) {
+  if (
+    input.serviceLongitude !== undefined &&
+    (input.serviceLongitude < -180 || input.serviceLongitude > 180)
+  ) {
     return {
       success: false,
       error: new BookingServiceError(
@@ -197,7 +206,10 @@ function validateBookingInput(input: CreateBookingInput): Result<void> {
  * Creates a new booking
  */
 export async function createBooking(input: CreateBookingInput): Promise<Result<Booking>> {
-  logger.debug('Creating booking', { customerId: input.customerId, serviceItemsCount: input.serviceItems?.length });
+  logger.debug('Creating booking', {
+    customerId: input.customerId,
+    serviceItemsCount: input.serviceItems?.length,
+  });
 
   // Validate input
   const validationResult = validateBookingInput(input);
@@ -216,9 +228,10 @@ export async function createBooking(input: CreateBookingInput): Promise<Result<B
       let dateStr: string;
       const scheduledDate = input.scheduledDate;
       if (scheduledDate) {
-        const dateValue = typeof scheduledDate === 'string'
-          ? scheduledDate
-          : scheduledDate.toISOString().split('T')[0];
+        const dateValue =
+          typeof scheduledDate === 'string'
+            ? scheduledDate
+            : scheduledDate.toISOString().split('T')[0];
         dateStr = (dateValue ?? '').replace(/-/g, '');
       } else {
         dateStr = new Date().toISOString().split('T')[0]!.replace(/-/g, '');
@@ -235,7 +248,9 @@ export async function createBooking(input: CreateBookingInput): Promise<Result<B
     const { data, error } = await supabase
       .from(BOOKINGS_TABLE)
       .insert(rowData)
-      .select('*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)')
+      .select(
+        '*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code, vehicle_id)'
+      )
       .single();
 
     if (error) {
@@ -279,7 +294,9 @@ export async function getBookingById(id: string): Promise<Result<Booking>> {
 
     const { data, error } = await supabase
       .from(BOOKINGS_TABLE)
-      .select('*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)')
+      .select(
+        '*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code, vehicle_id)'
+      )
       .eq('id', id)
       .is('deleted_at', null)
       .single();
@@ -288,11 +305,9 @@ export async function getBookingById(id: string): Promise<Result<Booking>> {
       if (error.code === 'PGRST116') {
         return {
           success: false,
-          error: new BookingServiceError(
-            `Booking not found: ${id}`,
-            BookingErrorCodes.NOT_FOUND,
-            { id }
-          ),
+          error: new BookingServiceError(`Booking not found: ${id}`, BookingErrorCodes.NOT_FOUND, {
+            id,
+          }),
         };
       }
       logger.error('Failed to get booking', error);
@@ -334,7 +349,12 @@ export async function getBookings(
     // Use admin client if available to bypass RLS policies
     const supabase = getAdminSupabaseClient() || getSupabaseClient();
 
-    let query = supabase.from(BOOKINGS_TABLE).select('*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code)', { count: 'exact' });
+    let query = supabase
+      .from(BOOKINGS_TABLE)
+      .select(
+        '*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code, vehicle_id)',
+        { count: 'exact' }
+      );
 
     // Apply filters
     if (!filters?.includeDeleted) {
@@ -372,16 +392,18 @@ export async function getBookings(
     }
 
     if (filters?.scheduledDateFrom) {
-      const dateFrom = typeof filters.scheduledDateFrom === 'string'
-        ? filters.scheduledDateFrom
-        : filters.scheduledDateFrom.toISOString().split('T')[0];
+      const dateFrom =
+        typeof filters.scheduledDateFrom === 'string'
+          ? filters.scheduledDateFrom
+          : filters.scheduledDateFrom.toISOString().split('T')[0];
       query = query.gte('scheduled_date', dateFrom);
     }
 
     if (filters?.scheduledDateTo) {
-      const dateTo = typeof filters.scheduledDateTo === 'string'
-        ? filters.scheduledDateTo
-        : filters.scheduledDateTo.toISOString().split('T')[0];
+      const dateTo =
+        typeof filters.scheduledDateTo === 'string'
+          ? filters.scheduledDateTo
+          : filters.scheduledDateTo.toISOString().split('T')[0];
       query = query.lte('scheduled_date', dateTo);
     }
 
@@ -434,6 +456,23 @@ export async function getBookings(
 
     let bookings = (data as BookingRow[]).map(convertRowToBooking);
 
+    // Enrich bookings with vehicle names
+    const vehicleIds = [...new Set(bookings.map(b => b.vehicleId).filter(Boolean))] as string[];
+    if (vehicleIds.length > 0) {
+      const { data: vehicles } = await supabase
+        .from('vehicles')
+        .select('id, unit_number')
+        .in('id', vehicleIds);
+
+      if (vehicles) {
+        const vehicleMap = new Map(vehicles.map(v => [v.id, v.unit_number]));
+        bookings = bookings.map(b => ({
+          ...b,
+          vehicleName: b.vehicleId ? vehicleMap.get(b.vehicleId) : undefined,
+        }));
+      }
+    }
+
     // Client-side filtering for related table fields (customer name, service name, location name)
     // since Supabase .or() doesn't support related table columns
     if (searchTerm) {
@@ -482,7 +521,9 @@ export async function getBookings(
 /**
  * Updates an existing booking
  */
-export async function updateBooking(input: UpdateBookingInput): Promise<Result<Booking & { routeWasInvalidated?: boolean; invalidatedRouteId?: string }>> {
+export async function updateBooking(
+  input: UpdateBookingInput
+): Promise<Result<Booking & { routeWasInvalidated?: boolean; invalidatedRouteId?: string }>> {
   logger.debug('Updating booking', { id: input.id });
 
   // Only validate core required fields if entity references are being changed
@@ -557,18 +598,18 @@ export async function updateBooking(input: UpdateBookingInput): Promise<Result<B
       .update(rowData)
       .eq('id', id)
       .is('deleted_at', null)
-      .select('*, customers(name, email), services(name, code), locations(name, latitude, longitude)')
+      .select(
+        '*, customers(name, email), services(name, code), locations(name, latitude, longitude), routes(route_code, vehicle_id)'
+      )
       .single();
 
     if (error) {
       if (error.code === 'PGRST116') {
         return {
           success: false,
-          error: new BookingServiceError(
-            `Booking not found: ${id}`,
-            BookingErrorCodes.NOT_FOUND,
-            { id }
-          ),
+          error: new BookingServiceError(`Booking not found: ${id}`, BookingErrorCodes.NOT_FOUND, {
+            id,
+          }),
         };
       }
       logger.error('Failed to update booking', error);
@@ -594,7 +635,10 @@ export async function updateBooking(input: UpdateBookingInput): Promise<Result<B
         .is('deleted_at', null);
 
       if (routeFlagError) {
-        logger.error('Failed to flag route for recalculation', { routeId: invalidatedRouteId, error: routeFlagError });
+        logger.error('Failed to flag route for recalculation', {
+          routeId: invalidatedRouteId,
+          error: routeFlagError,
+        });
         // Don't fail the booking update, but log the issue
       } else {
         logger.info('Route flagged for recalculation', { routeId: invalidatedRouteId });
@@ -641,44 +685,70 @@ function detectRouteAffectingChanges(existing: Booking, input: UpdateBookingInpu
     const existingDate = normalizeDate(existing.scheduledDate);
     const newDate = normalizeDate(input.scheduledDate);
     if (existingDate !== newDate) {
-      logger.debug('Route-affecting change: scheduledDate', { existing: existingDate, new: newDate });
+      logger.debug('Route-affecting change: scheduledDate', {
+        existing: existingDate,
+        new: newDate,
+      });
       return true;
     }
   }
 
   // Check locationId change
   if (input.locationId !== undefined && input.locationId !== existing.locationId) {
-    logger.debug('Route-affecting change: locationId', { existing: existing.locationId, new: input.locationId });
+    logger.debug('Route-affecting change: locationId', {
+      existing: existing.locationId,
+      new: input.locationId,
+    });
     return true;
   }
 
   // Check service latitude/longitude change
   if (input.serviceLatitude !== undefined && input.serviceLatitude !== existing.serviceLatitude) {
-    logger.debug('Route-affecting change: serviceLatitude', { existing: existing.serviceLatitude, new: input.serviceLatitude });
+    logger.debug('Route-affecting change: serviceLatitude', {
+      existing: existing.serviceLatitude,
+      new: input.serviceLatitude,
+    });
     return true;
   }
-  if (input.serviceLongitude !== undefined && input.serviceLongitude !== existing.serviceLongitude) {
-    logger.debug('Route-affecting change: serviceLongitude', { existing: existing.serviceLongitude, new: input.serviceLongitude });
+  if (
+    input.serviceLongitude !== undefined &&
+    input.serviceLongitude !== existing.serviceLongitude
+  ) {
+    logger.debug('Route-affecting change: serviceLongitude', {
+      existing: existing.serviceLongitude,
+      new: input.serviceLongitude,
+    });
     return true;
   }
 
   // Check estimatedDurationMinutes change
-  if (input.estimatedDurationMinutes !== undefined && input.estimatedDurationMinutes !== existing.estimatedDurationMinutes) {
-    logger.debug('Route-affecting change: estimatedDurationMinutes', { existing: existing.estimatedDurationMinutes, new: input.estimatedDurationMinutes });
+  if (
+    input.estimatedDurationMinutes !== undefined &&
+    input.estimatedDurationMinutes !== existing.estimatedDurationMinutes
+  ) {
+    logger.debug('Route-affecting change: estimatedDurationMinutes', {
+      existing: existing.estimatedDurationMinutes,
+      new: input.estimatedDurationMinutes,
+    });
     return true;
   }
 
   // Check status change to cancelled or completed (booking effectively removed from route)
-  if (input.status !== undefined && (input.status === 'cancelled' || input.status === 'completed')) {
+  if (
+    input.status !== undefined &&
+    (input.status === 'cancelled' || input.status === 'completed')
+  ) {
     if (existing.status !== input.status) {
-      logger.debug('Route-affecting change: status to cancelled/completed', { existing: existing.status, new: input.status });
+      logger.debug('Route-affecting change: status to cancelled/completed', {
+        existing: existing.status,
+        new: input.status,
+      });
       return true;
     }
   }
 
   return false;
 }
-
 
 /**
  * Soft deletes a booking by setting deleted_at timestamp
@@ -743,10 +813,7 @@ export async function hardDeleteBooking(id: string): Promise<Result<void>> {
       };
     }
 
-    const { error } = await adminClient
-      .from(BOOKINGS_TABLE)
-      .delete()
-      .eq('id', id);
+    const { error } = await adminClient.from(BOOKINGS_TABLE).delete().eq('id', id);
 
     if (error) {
       logger.error('Failed to hard delete booking', error);
@@ -790,7 +857,9 @@ export async function restoreBooking(id: string): Promise<Result<Booking>> {
       .update({ deleted_at: null })
       .eq('id', id)
       .not('deleted_at', 'is', null)
-      .select('*, customers(name, email), services(name, code), locations(name, latitude, longitude)')
+      .select(
+        '*, customers(name, email), services(name, code), locations(name, latitude, longitude), routes(route_code, vehicle_id)'
+      )
       .single();
 
     if (error) {
@@ -896,7 +965,9 @@ export async function getBookingByNumber(bookingNumber: string): Promise<Result<
 
     const { data, error } = await supabase
       .from(BOOKINGS_TABLE)
-      .select('*, customers(name, email), services(name, code), locations(name, latitude, longitude)')
+      .select(
+        '*, customers(name, email), services(name, code), locations(name, latitude, longitude), routes(route_code, vehicle_id)'
+      )
       .eq('booking_number', bookingNumber)
       .is('deleted_at', null)
       .single();
@@ -945,7 +1016,7 @@ export async function getBookingByNumber(bookingNumber: string): Promise<Result<
  * 2. Renumbers remaining bookings on the route
  * 3. Flags the route as needing recalculation
  * 4. Updates the route's total_stops count
- * 
+ *
  * @param bookingId - The ID of the booking to remove from its route
  * @returns Result indicating success or failure
  */
@@ -1170,7 +1241,9 @@ export async function bulkCreateBookings(
     const { data, error } = await supabase
       .from(BOOKINGS_TABLE)
       .insert(rowsData)
-      .select('*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)');
+      .select(
+        '*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code, vehicle_id)'
+      );
 
     if (error) {
       logger.error('Failed to bulk create bookings', error);

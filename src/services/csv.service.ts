@@ -4,7 +4,12 @@
 
 import { parse } from 'csv-parse/sync';
 import type { Result } from '../types/index.js';
-import type { CreateBookingInput, BookingType, BookingStatus, BookingPriority } from '../types/booking.js';
+import type {
+  CreateBookingInput,
+  BookingType,
+  BookingStatus,
+  BookingPriority,
+} from '../types/booking.js';
 import { isValidUUID } from '../middleware/validation.js';
 
 /**
@@ -101,11 +106,11 @@ export async function parseCSV(buffer: Buffer): Promise<Result<CSVBookingRow[]>>
       skip_empty_lines: true,
       trim: true,
       bom: true, // Handle UTF-8 BOM if present
-    }) as CSVBookingRow[];
+    });
 
     return {
       success: true,
-      data: records,
+      data: records as CSVBookingRow[],
     };
   } catch (error) {
     return {
@@ -188,7 +193,10 @@ function parseTags(tagString: string): string[] {
 /**
  * Validate a single CSV row and convert to CreateBookingInput
  */
-export function validateCSVRow(row: CSVBookingRow, rowNumber: number): Result<CreateBookingInput, CSVError> {
+export function validateCSVRow(
+  row: CSVBookingRow,
+  rowNumber: number
+): Result<CreateBookingInput, CSVError> {
   const errors: string[] = [];
 
   // Validate required fields
@@ -209,9 +217,7 @@ export function validateCSVRow(row: CSVBookingRow, rowNumber: number): Result<Cr
   if (!row.scheduledDate || row.scheduledDate.trim() === '') {
     errors.push('scheduledDate is required');
   } else if (!isValidDate(row.scheduledDate.trim())) {
-    errors.push(
-      `scheduledDate must be in YYYY-MM-DD format (got: ${row.scheduledDate})`
-    );
+    errors.push(`scheduledDate must be in YYYY-MM-DD format (got: ${row.scheduledDate})`);
   }
 
   // Validate optional fields
@@ -281,9 +287,7 @@ export function validateCSVRow(row: CSVBookingRow, rowNumber: number): Result<Cr
 
   if (row.recurrenceEndDate && row.recurrenceEndDate.trim() !== '') {
     if (!isValidDate(row.recurrenceEndDate.trim())) {
-      errors.push(
-        `recurrenceEndDate must be in YYYY-MM-DD format (got: ${row.recurrenceEndDate})`
-      );
+      errors.push(`recurrenceEndDate must be in YYYY-MM-DD format (got: ${row.recurrenceEndDate})`);
     }
   }
 
