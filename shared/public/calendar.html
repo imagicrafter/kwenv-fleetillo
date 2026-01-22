@@ -248,7 +248,7 @@
             color: var(--text-primary);
         }
 
-        .booking-client {
+        .booking-customer {
             color: var(--text-secondary);
             margin-left: 4px;
         }
@@ -500,50 +500,57 @@
             text-overflow: ellipsis;
         }
 
-        /* Status Colors - Enhanced for better visibility */
+        /* Status Colors - Enhanced for better visibility on dark theme */
         .status-confirmed {
-            background: rgba(63, 185, 80, 0.35);
+            background: rgba(63, 185, 80, 0.4);
             border-color: var(--accent-success);
-            color: #1a5928;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         .status-scheduled {
-            background: rgba(88, 166, 255, 0.35);
+            background: rgba(88, 166, 255, 0.4);
             border-color: var(--accent-primary);
-            color: #0d3a75;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         .status-in_progress {
-            background: rgba(163, 113, 247, 0.35);
+            background: rgba(163, 113, 247, 0.4);
             border-color: #a371f7;
-            color: #3d1d70;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         .status-completed {
-            background: rgba(63, 185, 80, 0.25);
+            background: rgba(63, 185, 80, 0.3);
             border-color: #3fb950;
-            color: #1a5928;
-            opacity: 0.8;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            opacity: 0.85;
         }
 
         .status-pending {
-            background: rgba(210, 153, 34, 0.35);
+            background: rgba(210, 153, 34, 0.4);
             border-color: var(--accent-warning);
-            color: #5c3d0a;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         .status-cancelled {
-            background: rgba(248, 81, 73, 0.35);
+            background: rgba(248, 81, 73, 0.4);
             border-color: var(--accent-danger);
-            color: #7a1f1a;
-            opacity: 0.6;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            opacity: 0.7;
         }
 
         .status-no_show {
-            background: rgba(248, 81, 73, 0.25);
+            background: rgba(248, 81, 73, 0.35);
             border-color: var(--accent-danger);
-            color: #7a1f1a;
-            opacity: 0.7;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+            opacity: 0.75;
         }
 
         /* Booking Detail Popup */
@@ -758,12 +765,12 @@
                 <img src="assets/images/fleetillo_logo.png" alt="Fleetillo" style="height: 60px;">
             </div>
 
-                        <nav class="nav-menu">
+            <nav class="nav-menu">
                 <!-- Dashboard -->
                 <a href="index.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
                         </svg>
                     </span>
@@ -772,40 +779,41 @@
 
                 <!-- PLANNING -->
                 <div class="menu-header">PLANNING</div>
-                
+
                 <a href="customers.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                         </svg>
                     </span>
                     Customers
                 </a>
-                
+
                 <a href="services.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                         </svg>
                     </span>
                     Services
                 </a>
-                
+
                 <a href="bookings.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                         </svg>
                     </span>
                     Bookings
                 </a>
-                
+
                 <a href="calendar.html" class="nav-item active">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                     </span>
@@ -815,9 +823,9 @@
                 <a href="locations.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                     </span>
@@ -826,17 +834,17 @@
 
                 <!-- FLEET -->
                 <div class="menu-header">FLEET</div>
-                
+
                 <a href="vehicles.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                         </svg>
                     </span>
                     Vehicles
                 </a>
-                
+
                 <a href="drivers.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -849,7 +857,7 @@
 
                 <!-- OPERATIONS -->
                 <div class="menu-header">OPERATIONS</div>
-                
+
                 <a href="routes.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -865,21 +873,21 @@
                 <a href="dispatch.html" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                         </svg>
                     </span>
                     Dispatch
                     <span class="badge new">New</span>
                 </a>
-                
+
                 <!-- SYSTEM -->
                 <div class="menu-header">SYSTEM</div>
-                
+
                 <a href="#" class="nav-item">
                     <span class="icon">
                         <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                         </svg>
                     </span>
@@ -960,8 +968,8 @@
                                 <option value="cancelled">Cancelled</option>
                                 <option value="no_show">No Show</option>
                             </select>
-                            <select class="filter-select" id="client-filter">
-                                <option value="">All Clients</option>
+                            <select class="filter-select" id="customer-filter">
+                                <option value="">All Customers</option>
                             </select>
                         </div>
                     </div>
@@ -1050,7 +1058,7 @@
         <div class="popup-detail">
             <span class="popup-detail-icon">👤</span>
             <span class="popup-detail-label">Customer:</span>
-            <span class="popup-detail-value" id="popup-client">-</span>
+            <span class="popup-detail-value" id="popup-customer">-</span>
         </div>
         <div class="popup-detail">
             <span class="popup-detail-icon">🔧</span>
@@ -1090,16 +1098,17 @@
                     <input type="hidden" id="booking-id">
 
                     <div class="form-group" style="position: relative;">
-                        <label>Client *</label>
-                        <input type="text" id="client-search" placeholder="Search client by name..." autocomplete="off">
-                        <input type="hidden" id="client-id">
-                        <div id="client-search-results"
+                        <label>Customer *</label>
+                        <input type="text" id="customer-search" placeholder="Search customer by name..."
+                            autocomplete="off">
+                        <input type="hidden" id="customer-id">
+                        <div id="customer-search-results"
                             style="display: none; position: absolute; width: 100%; top: 100%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; z-index: 10; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
                         </div>
-                        <div id="selected-client-display"
+                        <div id="selected-customer-display"
                             style="display: none; margin-top: 8px; padding: 8px; background: rgba(88, 166, 255, 0.1); border-radius: 4px; align-items: center; justify-content: space-between;">
-                            <span id="selected-client-name" style="font-weight: 500;"></span>
-                            <button type="button" id="clear-client-btn"
+                            <span id="selected-customer-name" style="font-weight: 500;"></span>
+                            <button type="button" id="clear-customer-btn"
                                 style="background: none; border: none; color: var(--text-secondary); cursor: pointer;">✕</button>
                         </div>
                     </div>
@@ -1324,7 +1333,7 @@
             let currentDate = new Date();
             let currentView = 'day';
             let bookings = [];
-            let allClients = [];
+            let allCustomers = [];
             let allVehicles = [];
             let selectedBookingId = null;
             let isEditing = false;
@@ -1340,7 +1349,7 @@
             const dayView = document.getElementById('day-view');
             const viewToggleBtns = document.querySelectorAll('.view-toggle-btn');
             const statusFilter = document.getElementById('status-filter');
-            const clientFilter = document.getElementById('client-filter');
+            const customerFilter = document.getElementById('customer-filter');
             const bookingPopup = document.getElementById('booking-popup');
             const searchInput = document.getElementById('search-input');
 
@@ -1486,7 +1495,7 @@
 
             // Filters
             statusFilter.addEventListener('change', () => loadBookings());
-            clientFilter.addEventListener('change', () => loadBookings());
+            customerFilter.addEventListener('change', () => loadBookings());
 
             // Search
             let searchTimeout;
@@ -1544,8 +1553,8 @@
                         filters.status = statusFilter.value;
                     }
 
-                    if (clientFilter.value) {
-                        filters.clientId = clientFilter.value;
+                    if (customerFilter.value) {
+                        filters.customerId = customerFilter.value;
                     }
 
                     if (searchTerm) {
@@ -1574,22 +1583,22 @@
             }
 
             // Load clients for filter dropdown
-            async function loadClients() {
+            async function loadCustomers() {
                 try {
-                    const response = await window.electronAPI.clients.getAll({ limit: 1000 });
-                    const clients = response.data || response || [];
-                    allClients = Array.isArray(clients) ? clients : [];
+                    const response = await window.electronAPI.customers.getAll({ limit: 1000 });
+                    const customers = response.data || response || [];
+                    allCustomers = Array.isArray(clients) ? clients : [];
 
-                    // Populate client filter
-                    clientFilter.innerHTML = '<option value="">All Clients</option>';
-                    allClients.forEach(client => {
+                    // Populate customer filter
+                    customerFilter.innerHTML = '<option value="">All Customers</option>';
+                    allCustomers.forEach(customer => {
                         const option = document.createElement('option');
-                        option.value = client.id;
-                        option.textContent = client.name;
-                        clientFilter.appendChild(option);
+                        option.value = customer.id;
+                        option.textContent = customer.name;
+                        customerFilter.appendChild(option);
                     });
                 } catch (error) {
-                    console.error('Error loading clients:', error);
+                    console.error('Error loading customers:', error);
                 }
             }
 
@@ -1935,7 +1944,7 @@
                 const vehicleDisplay = booking.vehicleName ? `<span class="booking-vehicle">[${booking.vehicleName}]</span>` : '';
                 event.innerHTML = `
                     <span class="booking-time">${formatTime(booking.scheduledStartTime)}</span>
-                    <span class="booking-client">${booking.customerName || booking.clientName || 'Unknown'}</span>
+                    <span class="booking-customer">${booking.customerName || booking.clientName || 'Unknown'}</span>
                     ${vehicleDisplay}
                 `;
                 event.addEventListener('click', (e) => {
@@ -1952,7 +1961,7 @@
                 document.getElementById('popup-title').textContent = booking.bookingNumber || 'Booking Details';
                 document.getElementById('popup-date').textContent = parseBookingDate(booking.scheduledDate)?.toLocaleDateString() || '-';
                 document.getElementById('popup-time').textContent = formatTime(booking.scheduledStartTime) || '-';
-                document.getElementById('popup-client').textContent = booking.customerName || booking.clientName || 'Unknown';
+                document.getElementById('popup-customer').textContent = booking.customerName || booking.clientName || 'Unknown';
                 document.getElementById('popup-service').textContent = booking.serviceName || 'Unknown';
                 document.getElementById('popup-status').textContent = booking.status || '-';
                 document.getElementById('popup-status').style.cssText = getStatusBadge(booking.status).style + 'padding: 2px 8px; border-radius: 10px;';
@@ -2028,7 +2037,7 @@
                 }
 
                 // Clear search fields
-                clearClientBtn.click();
+                clearCustomerBtn.click();
                 clearServiceBtn.click();
 
                 modal.style.display = 'block';
@@ -2059,11 +2068,11 @@
                     document.getElementById('estimated-duration').value = booking.estimatedDurationMinutes || '';
                     document.getElementById('special-instructions').value = booking.specialInstructions || '';
 
-                    // Set client
-                    if (booking.clientId) {
-                        selectClient({ id: booking.clientId, name: booking.clientName || 'Unknown Client' });
+                    // Set customer
+                    if (booking.customerId) {
+                        selectCustomer({ id: booking.customerId, name: booking.clientName || 'Unknown Customer' });
                     } else {
-                        clearClientBtn.click();
+                        clearCustomerBtn.click();
                     }
 
                     // Set service
@@ -2089,7 +2098,7 @@
                 modal.style.display = 'none';
                 if (!isEditing) {
                     form.reset();
-                    clearClientBtn.click();
+                    clearCustomerBtn.click();
                     clearServiceBtn.click();
                 }
                 isEditing = false;
@@ -2106,7 +2115,7 @@
                 e.preventDefault();
 
                 const bookingData = {
-                    clientId: document.getElementById('client-id').value,
+                    customerId: document.getElementById('customer-id').value,
                     serviceId: document.getElementById('service-id').value,
                     scheduledDate: document.getElementById('scheduled-date').value,
                     scheduledStartTime: document.getElementById('scheduled-start-time').value,
@@ -2132,66 +2141,66 @@
                 }
             });
 
-            // Client search
-            const clientSearchInput = document.getElementById('client-search');
-            const clientIdInput = document.getElementById('client-id');
-            const clientSearchResults = document.getElementById('client-search-results');
-            const selectedClientDisplay = document.getElementById('selected-client-display');
-            const selectedClientName = document.getElementById('selected-client-name');
-            const clearClientBtn = document.getElementById('clear-client-btn');
+            // Customer search
+            const customerSearchInput = document.getElementById('customer-search');
+            const customerIdInput = document.getElementById('customer-id');
+            const customerSearchResults = document.getElementById('customer-search-results');
+            const selectedCustomerDisplay = document.getElementById('selected-customer-display');
+            const selectedCustomerName = document.getElementById('selected-customer-name');
+            const clearCustomerBtn = document.getElementById('clear-customer-btn');
 
-            let clientSearchTimeout;
-            clientSearchInput.addEventListener('input', (e) => {
-                clearTimeout(clientSearchTimeout);
+            let customerSearchTimeout;
+            customerSearchInput.addEventListener('input', (e) => {
+                clearTimeout(customerSearchTimeout);
                 const term = e.target.value.trim();
 
                 if (term.length < 2) {
-                    clientSearchResults.style.display = 'none';
+                    customerSearchResults.style.display = 'none';
                     return;
                 }
 
-                clientSearchTimeout = setTimeout(async () => {
+                customerSearchTimeout = setTimeout(async () => {
                     try {
-                        const result = await window.electronAPI.clients.getAll({ searchTerm: term, limit: 5 });
-                        const clients = result.data?.data || result.data || result || [];
-                        renderClientResults(clients);
+                        const result = await window.electronAPI.customers.getAll({ searchTerm: term, limit: 5 });
+                        const customers = result.data?.data || result.data || result || [];
+                        renderCustomerResults(clients);
                     } catch (err) {
-                        console.error('Client search failed', err);
+                        console.error('Customer search failed', err);
                     }
                 }, 300);
             });
 
-            function renderClientResults(clients) {
-                clientSearchResults.innerHTML = '';
+            function renderCustomerResults(clients) {
+                customerSearchResults.innerHTML = '';
                 if (clients.length === 0) {
-                    clientSearchResults.innerHTML = '<div style="padding: 8px 12px; color: var(--text-secondary);">No clients found</div>';
+                    customerSearchResults.innerHTML = '<div style="padding: 8px 12px; color: var(--text-secondary);">No customers found</div>';
                 } else {
-                    clients.forEach(client => {
+                    customers.forEach(customer => {
                         const div = document.createElement('div');
                         div.style.cssText = 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--border-subtle);';
-                        div.innerHTML = `<div style="font-weight:500">${client.name}</div><div style="font-size:0.8rem; color:var(--text-secondary)">${client.email || 'No email'}</div>`;
+                        div.innerHTML = `<div style="font-weight:500">${customer.name}</div><div style="font-size:0.8rem; color:var(--text-secondary)">${customer.email || 'No email'}</div>`;
                         div.addEventListener('mouseover', () => div.style.backgroundColor = 'rgba(255,255,255,0.05)');
                         div.addEventListener('mouseout', () => div.style.backgroundColor = 'transparent');
-                        div.addEventListener('click', () => selectClient(client));
-                        clientSearchResults.appendChild(div);
+                        div.addEventListener('click', () => selectCustomer(customer));
+                        customerSearchResults.appendChild(div);
                     });
                 }
-                clientSearchResults.style.display = 'block';
+                customerSearchResults.style.display = 'block';
             }
 
-            function selectClient(client) {
-                clientIdInput.value = client.id;
-                selectedClientName.textContent = client.name;
-                clientSearchInput.style.display = 'none';
-                clientSearchResults.style.display = 'none';
-                selectedClientDisplay.style.display = 'flex';
+            function selectCustomer(customer) {
+                customerIdInput.value = customer.id;
+                selectedCustomerName.textContent = customer.name;
+                customerSearchInput.style.display = 'none';
+                customerSearchResults.style.display = 'none';
+                selectedCustomerDisplay.style.display = 'flex';
             }
 
-            clearClientBtn.addEventListener('click', () => {
-                clientIdInput.value = '';
-                selectedClientDisplay.style.display = 'none';
-                clientSearchInput.style.display = 'block';
-                clientSearchInput.value = '';
+            clearCustomerBtn.addEventListener('click', () => {
+                customerIdInput.value = '';
+                selectedCustomerDisplay.style.display = 'none';
+                customerSearchInput.style.display = 'block';
+                customerSearchInput.value = '';
             });
 
             // Service search
@@ -2272,8 +2281,8 @@
 
             // Close dropdowns on outside click
             document.addEventListener('click', (e) => {
-                if (!e.target.closest('#client-search-results') && e.target !== clientSearchInput) {
-                    clientSearchResults.style.display = 'none';
+                if (!e.target.closest('#customer-search-results') && e.target !== customerSearchInput) {
+                    customerSearchResults.style.display = 'none';
                 }
                 if (!e.target.closest('#service-search-results') && e.target !== serviceSearchInput) {
                     serviceSearchResults.style.display = 'none';
@@ -2281,7 +2290,7 @@
             });
 
             // Initialize
-            loadClients();
+            loadCustomers();
 
             // Initialize calendar: default to Day view showing next scheduled route date
             (async function initCalendar() {
