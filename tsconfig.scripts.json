@@ -12,6 +12,8 @@
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "scripts/reset-booking-vehicles.ts",
+    "scripts/verify_activity_logs.ts"
   ]
 }

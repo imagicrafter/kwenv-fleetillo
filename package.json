@@ -12,6 +12,7 @@
     "dev:lib": "node --loader ts-node/esm --watch src/index.ts",
     "build:scripts": "tsc -p tsconfig.scripts.json",
     "db:check": "npm run build:scripts && node dist/scripts/check-db-connection.js",
+    "seed:demo": "npm run build:scripts && node dist/src/scripts/seed-demo.js",
     "pretest": "npm run db:check",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -56,6 +57,7 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
+    "@faker-js/faker": "^10.2.0",
     "@supabase/supabase-js": "^2.39.0",
     "@types/multer": "^2.0.0",
     "cookie-parser": "^1.4.7",
