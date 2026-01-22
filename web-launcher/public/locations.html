@@ -240,6 +240,32 @@
         .action-btn:hover::after {
             opacity: 1;
         }
+
+        /* Tag Chip Styles */
+        .tag-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(64, 169, 255, 0.15);
+            border: 1px solid rgba(64, 169, 255, 0.3);
+            color: var(--accent-primary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .tag-chip .tag-remove {
+            cursor: pointer;
+            opacity: 0.7;
+            font-size: 1rem;
+            line-height: 1;
+            margin-left: 2px;
+        }
+
+        .tag-chip .tag-remove:hover {
+            opacity: 1;
+        }
     </style>
 </head>
 
@@ -451,6 +477,7 @@
                                 <th>Address</th>
                                 <th>Client (Optional)</th>
                                 <th>City/State</th>
+                                <th>Tags</th>
                                 <th>Status</th>
                                 <th>Actions</th>
                             </tr>
@@ -458,7 +485,7 @@
                         <tbody id="locations-table-body">
                             <!-- Dynamic Content -->
                             <tr>
-                                <td colspan="6" style="text-align: center; padding: 20px;">Loading locations...</td>
+                                <td colspan="7" style="text-align: center; padding: 20px;">Loading locations...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -628,6 +655,19 @@
                     <textarea id="notes" rows="2"></textarea>
                 </div>
 
+                <!-- Tags -->
+                <div class="form-group">
+                    <label for="location-tag-input">Tags</label>
+                    <div class="tag-input-container" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px; background-color: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-subtle); border-radius: 6px; min-height: 42px; align-items: center;">
+                        <div id="location-tag-chips" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+                        <input type="text" id="location-tag-input" placeholder="Add tag and press Enter"
+                            style="flex: 1; min-width: 120px; background: transparent; border: none; color: var(--text-primary); font-family: inherit; font-size: 0.95rem; outline: none; padding: 2px 0;">
+                    </div>
+                    <small style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 4px; display: block;">
+                        Press Enter or comma to add a tag
+                    </small>
+                </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn-text close-modal-btn">Cancel</button>
                     <button type="submit" class="btn-primary">Save Location</button>
@@ -695,6 +735,7 @@
             let currentPage = 1;
             let limit = 10;
             let totalItems = 0;
+            let currentLocationTags = [];
 
             const rowsSelect = document.getElementById('rows-select');
             const prevPageBtn = document.getElementById('prev-page-btn');
@@ -715,6 +756,54 @@
 
             const locationTypeSelect = document.getElementById('location-type');
             const clientAssociationSection = document.getElementById('client-association-section');
+
+            // ============ TAG MANAGEMENT ============
+
+            function renderLocationTagChips() {
+                const container = document.getElementById('location-tag-chips');
+                container.innerHTML = currentLocationTags.map((tag, i) =>
+                    `<span class="tag-chip">${tag}<span class="tag-remove" data-index="${i}">&times;</span></span>`
+                ).join('');
+
+                // Attach click handlers for remove buttons
+                container.querySelectorAll('.tag-remove').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const index = parseInt(e.target.dataset.index);
+                        currentLocationTags.splice(index, 1);
+                        renderLocationTagChips();
+                    });
+                });
+            }
+
+            function setupLocationTagInput() {
+                const tagInput = document.getElementById('location-tag-input');
+                if (!tagInput) return;
+
+                tagInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ',') {
+                        e.preventDefault();
+                        const tag = tagInput.value.trim().replace(/,/g, '');
+                        if (tag && !currentLocationTags.includes(tag)) {
+                            currentLocationTags.push(tag);
+                            renderLocationTagChips();
+                        }
+                        tagInput.value = '';
+                    }
+                });
+
+                // Also handle blur to add any pending tag
+                tagInput.addEventListener('blur', () => {
+                    const tag = tagInput.value.trim().replace(/,/g, '');
+                    if (tag && !currentLocationTags.includes(tag)) {
+                        currentLocationTags.push(tag);
+                        renderLocationTagChips();
+                    }
+                    tagInput.value = '';
+                });
+            }
+
+            // Initialize tag input
+            setupLocationTagInput();
 
             // ============ ADDRESS AUTOCOMPLETE ============
 
@@ -1101,7 +1190,7 @@
                     renderTable(locations);
                 } catch (error) {
                     console.error('Error loading locations:', error);
-                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--danger);">Error loading locations</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--danger);">Error loading locations</td></tr>';
                 }
             }
 
@@ -1122,7 +1211,7 @@
                 tableBody.innerHTML = '';
 
                 if (!locations || locations.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">No locations found</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-secondary);">No locations found</td></tr>';
                     return;
                 }
 
@@ -1141,6 +1230,10 @@
                         ? '<span style="color: #3fb950; font-size: 0.8rem;" title="Geocoded">📍</span>'
                         : '<span style="color: #d29922; font-size: 0.8rem;" title="No coordinates">⚠️</span>';
 
+                    // Format Tags
+                    const tags = loc.tags || [];
+                    const tagsHtml = tags.map(tag => `<span style="background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; margin-right: 4px;">${tag}</span>`).join('');
+
                     row.innerHTML = `
                         <td>
                             <div style="font-weight: 500;">${loc.name}</div>
@@ -1152,6 +1245,7 @@
                         </td>
                         <td>${loc.clientName ? `<div style="font-weight:500">${loc.clientName}</div>` : (loc.clientId ? `<span style="font-family: monospace; color: var(--text-secondary);">${loc.clientId.substr(0, 8)}...</span>` : '<span style="color: var(--text-secondary);">-</span>')}</td>
                         <td>${loc.city}, ${loc.state}</td>
+                        <td>${tagsHtml || '<span style="color: var(--text-muted);">-</span>'}</td>
                         <td>${loc.isPrimary ? '<span style="color: var(--success); font-size: 0.8rem;">★ Primary</span>' : '-'}</td>
                         <td>
                             <div style="display: flex; align-items: center;">
@@ -1257,6 +1351,10 @@
 
                     document.getElementById('is-primary').checked = data.isPrimary || false;
                     document.getElementById('notes').value = data.notes || '';
+
+                    // Load tags
+                    currentLocationTags = data.tags || [];
+                    renderLocationTagChips();
                 } else {
                     isEditing = false;
                     currentLocationId = null;
@@ -1270,6 +1368,10 @@
                     latitudeInput.value = '';
                     longitudeInput.value = '';
                     placeIdInput.value = '';
+
+                    // Reset tags
+                    currentLocationTags = [];
+                    renderLocationTagChips();
                 }
                 toggleClientSection();
             }
@@ -1376,7 +1478,8 @@
                     isPrimary: document.getElementById('is-primary').checked,
                     notes: document.getElementById('notes').value || null,
                     latitude: latitudeInput.value ? parseFloat(latitudeInput.value) : null,
-                    longitude: longitudeInput.value ? parseFloat(longitudeInput.value) : null
+                    longitude: longitudeInput.value ? parseFloat(longitudeInput.value) : null,
+                    tags: currentLocationTags
                 };
 
                 try {
