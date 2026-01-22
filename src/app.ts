@@ -73,10 +73,10 @@ export const createApp = (): Application => {
   app.use('/health', healthRoutes);
 
   // Static files serving
-  // In development, prioritize shared/public (source)
+  // In development, prioritize web-launcher/public (canonical frontend source)
   // In production, use dist/public (build artifact)
   if (process.env.NODE_ENV === 'development') {
-    app.use('/ui', express.static(path.join(process.cwd(), 'shared', 'public')));
+    app.use('/ui', express.static(path.join(process.cwd(), 'web-launcher', 'public')));
     app.use('/ui', express.static(path.join(process.cwd(), 'src', 'public')));
   } else {
     app.use('/ui', express.static(path.join(process.cwd(), 'dist', 'public')));

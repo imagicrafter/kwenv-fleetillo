@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc && mkdir -p dist/public && cp -R src/public/* dist/public/ 2>/dev/null || : && cp -R shared/public/* dist/public/",
+    "build": "tsc && mkdir -p dist/public && cp -R src/public/* dist/public/ 2>/dev/null || : && cp -R web-launcher/public/* dist/public/",
     "build:watch": "tsc --watch",
     "start": "node dist/server.js",
     "dev": "node --loader ts-node/esm --watch src/server.ts",

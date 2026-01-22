@@ -128,6 +128,21 @@ For each page: Replace script tag, find/replace electronAPI, test
 
 ---
 
+### Phase 4: Remove electron-launcher
+
+- [ ] 20. Remove electron-launcher directory
+  - [ ] 20.1 Delete `electron-launcher/` directory entirely
+  - [ ] 20.2 Remove `electron` from `package.json` devDependencies
+  - [ ] 20.3 Verify build still works: `npm run build`
+  - [ ] 20.4 Search for any remaining references: `grep -r "electron-launcher" .`
+
+- [ ] 21. Final Cleanup Verification
+  - [ ] Verify no Electron references remain in codebase
+  - [ ] Update any documentation referencing Electron
+  - [ ] Post completion comment to issue
+
+---
+
 ## Verification Plan
 
 ### Automated Tests
@@ -155,5 +170,7 @@ After migration, verify NO console errors containing:
 
 ## Notes
 - Keep `dispatch-client.js` unchanged (Decision from design review)
-- `/shared/public/` excluded from scope (tracked in #27)
+- `/shared/public/` has been removed in #27 - no longer relevant
 - Structure code for future bundling (tracked in #28)
+- electron-launcher is now defunct since shared/public was removed in #27
+

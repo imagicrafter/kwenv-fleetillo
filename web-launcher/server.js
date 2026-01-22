@@ -789,7 +789,7 @@ app.post('/api/rpc', async (req, res) => {
 
 // Serve index.html for root
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../shared/public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // =============================================================================
