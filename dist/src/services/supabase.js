@@ -16,12 +16,12 @@ exports.isSupabaseInitialized = isSupabaseInitialized;
 exports.resetSupabaseClient = resetSupabaseClient;
 exports.initializeAndVerifySupabase = initializeAndVerifySupabase;
 const supabase_js_1 = require("@supabase/supabase-js");
-const index_js_1 = require("../config/index.js");
-const logger_js_1 = require("../utils/logger.js");
+const index_1 = require("../config/index");
+const logger_1 = require("../utils/logger");
 /**
  * Logger instance for Supabase operations
  */
-const logger = (0, logger_js_1.createContextLogger)('SupabaseClient');
+const logger = (0, logger_1.createContextLogger)('SupabaseClient');
 /**
  * Supabase service error
  */
@@ -124,10 +124,10 @@ function initializeSupabase(optionsOverride) {
     try {
         logger.info('Initializing Supabase client...');
         const options = {
-            url: optionsOverride?.url ?? index_js_1.config.supabase.url,
-            anonKey: optionsOverride?.anonKey ?? index_js_1.config.supabase.anonKey,
-            serviceRoleKey: optionsOverride?.serviceRoleKey ?? index_js_1.config.supabase.serviceRoleKey,
-            schema: optionsOverride?.schema ?? index_js_1.config.supabase.schema,
+            url: optionsOverride?.url ?? index_1.config.supabase.url,
+            anonKey: optionsOverride?.anonKey ?? index_1.config.supabase.anonKey,
+            serviceRoleKey: optionsOverride?.serviceRoleKey ?? index_1.config.supabase.serviceRoleKey,
+            schema: optionsOverride?.schema ?? index_1.config.supabase.schema,
         };
         // Validate URL format
         try {

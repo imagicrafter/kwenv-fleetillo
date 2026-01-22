@@ -5,6 +5,19 @@
  * in the Fleetillo application.
  */
 import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
+/**
+ * Location metadata for site-specific requirements
+ */
+export interface LocationMetadata {
+    capacityGallons?: number;
+    trapCount?: number;
+    serviceFrequencyWeeks?: number;
+    hoseLengthReq?: string;
+    requiresTanker?: boolean;
+    preferredServiceTime?: string;
+    capacityNotes?: string;
+    [key: string]: unknown;
+}
 export interface Location {
     id: string;
     customerId?: string | null;
@@ -21,6 +34,8 @@ export interface Location {
     longitude?: number | null;
     isPrimary: boolean;
     notes?: string | null;
+    tags: string[];
+    metadata?: LocationMetadata;
     createdAt: string;
     updatedAt: string;
     deletedAt?: string | null;

@@ -451,7 +451,7 @@
                     <div class="filter-dropdown">
                         <select id="type-filter" class="filter-select">
                             <option value="">All Types</option>
-                            <option value="client">Client</option>
+                            <option value="client">Customer</option>
                             <option value="depot">Depot</option>
                             <option value="disposal">Disposal</option>
                             <option value="maintenance">Maintenance</option>
@@ -475,7 +475,7 @@
                             <tr>
                                 <th>Name/Type</th>
                                 <th>Address</th>
-                                <th>Client (Optional)</th>
+                                <th>Customer (Optional)</th>
                                 <th>City/State</th>
                                 <th>Tags</th>
                                 <th>Status</th>
@@ -536,7 +536,7 @@
                     <div class="form-group">
                         <label for="location-type">Type *</label>
                         <select id="location-type" required>
-                            <option value="client">Client</option>
+                            <option value="client">Customer</option>
                             <option value="depot">Depot</option>
                             <option value="disposal">Disposal</option>
                             <option value="maintenance">Maintenance</option>
@@ -549,21 +549,21 @@
                 <!-- Client Selection Section -->
                 <div class="form-group" id="client-association-section"
                     style="padding: 12px; border: 1px solid var(--border-subtle); border-radius: 8px; background: rgba(0,0,0,0.1);">
-                    <label style="margin-bottom: 8px;">Associated Client</label>
+                    <label style="margin-bottom: 8px;">Associated Customer</label>
                     <div style="display: flex; gap: 16px; margin-bottom: 12px;">
                         <label style="font-weight: normal; cursor: pointer;">
                             <input type="radio" name="client-mode" value="existing" checked id="mode-existing"> Existing
-                            Client
+                            Customer
                         </label>
                         <label style="font-weight: normal; cursor: pointer;">
-                            <input type="radio" name="client-mode" value="new" id="mode-new"> New Client
+                            <input type="radio" name="client-mode" value="new" id="mode-new"> New Customer
                         </label>
                     </div>
 
                     <!-- Existing Client Search -->
                     <div id="existing-client-section">
                         <div style="position: relative;">
-                            <input type="text" id="client-search" placeholder="Search client by name, email...">
+                            <input type="text" id="client-search" placeholder="Search customer by name, email...">
                             <input type="hidden" id="selected-client-id">
                             <div id="client-search-results"
                                 style="display: none; position: absolute; width: 100%; top: 100%; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 6px; z-index: 10; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
@@ -579,7 +579,8 @@
 
                     <!-- New Client Form -->
                     <div id="new-client-section" style="display: none;">
-                        <input type="text" id="new-client-name" placeholder="Client Name *" style="margin-bottom: 8px;">
+                        <input type="text" id="new-client-name" placeholder="Customer Name *"
+                            style="margin-bottom: 8px;">
                         <div class="form-grid" style="gap: 8px;">
                             <input type="email" id="new-client-email" placeholder="Email">
                             <input type="tel" id="new-client-phone" placeholder="Phone">
@@ -655,10 +656,15 @@
                     <textarea id="notes" rows="2"></textarea>
                 </div>
 
+                <!-- Custom Fields Container -->
+                <div id="custom-fields-container"
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;"></div>
+
                 <!-- Tags -->
                 <div class="form-group">
                     <label for="location-tag-input">Tags</label>
-                    <div class="tag-input-container" style="display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px; background-color: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-subtle); border-radius: 6px; min-height: 42px; align-items: center;">
+                    <div class="tag-input-container"
+                        style="display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px; background-color: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-subtle); border-radius: 6px; min-height: 42px; align-items: center;">
                         <div id="location-tag-chips" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
                         <input type="text" id="location-tag-input" placeholder="Add tag and press Enter"
                             style="flex: 1; min-width: 120px; background: transparent; border: none; color: var(--text-primary); font-family: inherit; font-size: 0.95rem; outline: none; padding: 2px 0;">
@@ -680,6 +686,102 @@
     <script src="preload.js"></script>
     <script src="confirmation-modal.js"></script>
     <script>
+        // Custom Fields Globals
+        let customFieldDefinitions = [];
+
+        async function loadCustomFieldDefinitions() {
+            try {
+                // Try to get directly first
+                const result = await window.electronAPI.settings.getSetting('locations.customFields');
+                if (result && result.success && Array.isArray(result.data)) {
+                    customFieldDefinitions = result.data;
+                } else {
+                    // Fallback: try getting all settings if getSetting isn't direct
+                    const all = await window.electronAPI.settings.getAll();
+                    const allData = (all && all.success) ? all.data : all;
+                    if (allData && Array.isArray(allData['locations.customFields'])) {
+                        customFieldDefinitions = allData['locations.customFields'];
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to load custom fields', err);
+            }
+        }
+
+        function renderCustomFieldInputs(existingMetadata = {}) {
+            const container = document.getElementById('custom-fields-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (!customFieldDefinitions || customFieldDefinitions.length === 0) return;
+
+            customFieldDefinitions.forEach(field => {
+                const fieldId = `custom-field-${field.key}`;
+                const value = existingMetadata ? existingMetadata[field.key] : (field.defaultValue || '');
+
+                const group = document.createElement('div');
+                group.className = 'form-group';
+
+                if (field.type === 'boolean') {
+                    const wrapper = document.createElement('label');
+                    wrapper.style.display = 'flex';
+                    wrapper.style.alignItems = 'center';
+                    wrapper.style.gap = '8px';
+                    wrapper.style.cursor = 'pointer';
+                    wrapper.style.height = '100%'; // align with other inputs
+                    wrapper.style.marginTop = '24px'; // align with labels
+
+                    const input = document.createElement('input');
+                    input.type = 'checkbox';
+                    input.id = fieldId;
+                    if (value === true || value === 'true') input.checked = true;
+                    input.dataset.customKey = field.key;
+                    input.dataset.customType = field.type;
+
+                    wrapper.appendChild(input);
+                    wrapper.appendChild(document.createTextNode(field.label + (field.required ? ' *' : '')));
+                    group.appendChild(wrapper);
+                } else {
+                    const label = document.createElement('label');
+                    label.htmlFor = fieldId;
+                    label.textContent = field.label + (field.required ? ' *' : '');
+                    group.appendChild(label);
+
+                    let input;
+                    if (field.type === 'select') {
+                        input = document.createElement('select');
+                        input.id = fieldId;
+                        input.innerHTML = '<option value="">Select...</option>';
+                        (field.options || []).forEach(opt => {
+                            const option = document.createElement('option');
+                            option.value = opt;
+                            option.textContent = opt;
+                            if (opt === value) option.selected = true;
+                            input.appendChild(option);
+                        });
+                    } else if (field.type === 'number') {
+                        input = document.createElement('input');
+                        input.type = 'number';
+                        input.id = fieldId;
+                        input.value = value !== undefined && value !== null ? value : '';
+                        if (field.suffix) input.placeholder = field.suffix;
+                    } else {
+                        input = document.createElement('input');
+                        input.type = 'text';
+                        input.id = fieldId;
+                        input.value = value || '';
+                    }
+
+                    if (field.required) input.required = true;
+                    input.dataset.customKey = field.key;
+                    input.dataset.customType = field.type;
+                    group.appendChild(input);
+                }
+
+                container.appendChild(group);
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             // Update date
             const dateElement = document.getElementById('current-date');
@@ -752,7 +854,9 @@
             }
 
             // Load initial data
-            loadLocations();
+            loadCustomFieldDefinitions().then(() => {
+                loadLocations();
+            });
 
             const locationTypeSelect = document.getElementById('location-type');
             const clientAssociationSection = document.getElementById('client-association-section');
@@ -1355,6 +1459,9 @@
                     // Load tags
                     currentLocationTags = data.tags || [];
                     renderLocationTagChips();
+
+                    // Custom Fields
+                    renderCustomFieldInputs(data.metadata || {});
                 } else {
                     isEditing = false;
                     currentLocationId = null;
@@ -1372,6 +1479,9 @@
                     // Reset tags
                     currentLocationTags = [];
                     renderLocationTagChips();
+
+                    // Custom Fields
+                    renderCustomFieldInputs({});
                 }
                 toggleClientSection();
             }
@@ -1481,6 +1591,22 @@
                     longitude: longitudeInput.value ? parseFloat(longitudeInput.value) : null,
                     tags: currentLocationTags
                 };
+
+                // Collect Custom Fields
+                const metadata = {};
+                customFieldDefinitions.forEach(field => {
+                    const el = document.getElementById(`custom-field-${field.key}`);
+                    if (el) {
+                        if (field.type === 'boolean') {
+                            metadata[field.key] = el.checked;
+                        } else if (field.type === 'number') {
+                            metadata[field.key] = el.value ? parseFloat(el.value) : null;
+                        } else {
+                            metadata[field.key] = el.value;
+                        }
+                    }
+                });
+                formData.metadata = metadata;
 
                 try {
                     let result;

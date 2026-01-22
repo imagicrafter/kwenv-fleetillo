@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicles - Fleetillo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .nav-group.expanded .nav-children {
+            display: flex;
+        }
+
+        /* Modal Styles matching bookings.html */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: var(--bg-card);
+            margin: 5% auto;
+            padding: 0;
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            width: 500px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .close-modal {
+            color: var(--text-secondary);
+            font-size: 28px;
+            font-weight: normal;
+            cursor: pointer;
+            line-height: 1;
+            background: none;
+            border: none;
+        }
+
+        .close-modal:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            background-color: rgba(64, 169, 255, 0.05);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 32px;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text-secondary);
+            color: var(--text-primary);
+        }
+
+        /* Layout Fixes for Main Page Scrolling */
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .app-container {
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .main-content {
+            flex: 1;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100%;
+            padding-bottom: 0 !important;
+        }
+
+        .data-table-container {
+            flex: 1;
+            overflow-y: auto;
+            min-height: 0;
+            border-bottom: none !important;
+        }
+
+        .data-table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: var(--bg-card);
+        }
+
+        .pagination-footer {
+            flex-shrink: 0;
+            background-color: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            z-index: 20;
+        }
+    </style>
+    <style>
+        /* Action Buttons & Tooltips */
+        .action-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin: 0 2px;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+
+        .action-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Tooltip */
+        .action-btn::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 4px 8px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            margin-bottom: 8px;
+            z-index: 100;
+            border: 1px solid var(--border-subtle);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            font-weight: 500;
+        }
+
+        .action-btn:hover::after {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <img src="assets/images/fleetillo_logo.png" alt="Fleetillo" style="height: 60px;">
+            </div>
+
+            <nav class="nav-menu">
+                <!-- Dashboard -->
+                <a href="index.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                        </svg>
+                    </span>
+                    Dashboard
+                </a>
+
+                <!-- PLANNING -->
+                <div class="menu-header">PLANNING</div>
+
+                <a href="customers.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg>
+                    </span>
+                    Customers
+                </a>
+
+                <a href="services.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                        </svg>
+                    </span>
+                    Services
+                </a>
+
+                <a href="bookings.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                    </span>
+                    Bookings
+                </a>
+
+                <a href="calendar.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </span>
+                    Calendar
+                </a>
+
+                <a href="locations.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </span>
+                    Locations
+                </a>
+
+                <!-- FLEET -->
+                <div class="menu-header">FLEET</div>
+
+                <a href="vehicles.html" class="nav-item active">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                        </svg>
+                    </span>
+                    Vehicles
+                </a>
+
+                <a href="drivers.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                    </span>
+                    Drivers
+                </a>
+
+                <!-- OPERATIONS -->
+                <div class="menu-header">OPERATIONS</div>
+
+                <a href="routes.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="6" cy="19" r="3" />
+                            <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
+                            <circle cx="18" cy="5" r="3" />
+                        </svg>
+                    </span>
+                    Routes
+                </a>
+
+                <a href="dispatch.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                    </span>
+                    Dispatch
+                    <span class="badge new">New</span>
+                </a>
+
+                <!-- SYSTEM -->
+                <div class="menu-header">SYSTEM</div>
+
+                <a href="#" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                    </span>
+                    Reports
+                </a>
+
+                <a href="settings.html" class="nav-item">
+                    <span class="icon">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </span>
+                    Settings
+                </a>
+            </nav>
+            <script>
+                // Auto-expand current group if any
+                document.addEventListener('DOMContentLoaded', () => {
+                    const activeLink = document.querySelector('.nav-item.active');
+                    if (activeLink) {
+                        // Ensure it's visible, though flatter structure makes this simpler
+                    }
+                });
+            </script>
+
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="avatar">JM</div>
+                    <div class="details">
+                        <span class="name">Admin User</span>
+                        <span class="role">Administrator</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-bar">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="search-input" placeholder="Search vehicles...">
+                </div>
+                <div class="actions">
+                    <button class="btn-primary" id="add-vehicle-btn">+ Add Vehicle</button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="page-header">
+                    <h2>Vehicles</h2>
+                    <span class="date">Manage your fleet vehicles</span>
+                </div>
+
+                <div class="data-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name/Details</th>
+                                <th>License/VIN</th>
+                                <th>Make/Model</th>
+                                <th>Services</th>
+                                <th>Fuel Info</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vehicles-table-body">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination Footer -->
+                <div class="pagination-footer"
+                    style="padding: 16px 20px; border-top: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between;">
+                    <div class="rows-per-page">
+                        <label for="rows-select" style="margin-right: 8px; color: var(--text-secondary);">Rows per
+                            page:</label>
+                        <select id="rows-select"
+                            style="background: rgba(0,0,0,0.2); border: 1px solid var(--border-subtle); color: var(--text-primary); border-radius: 4px; padding: 4px 8px;">
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                    <div class="pagination-controls" style="display: flex; align-items: center; gap: 16px;">
+                        <span id="pagination-info" style="color: var(--text-secondary); font-size: 0.9rem;">0-0 of
+                            0</span>
+                        <div class="page-nav">
+                            <button id="prev-page-btn" class="action-btn" style="padding: 4px 8px;"
+                                disabled>Previous</button>
+                            <button id="next-page-btn" class="action-btn" style="padding: 4px 8px;"
+                                disabled>Next</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Vehicle Modal -->
+    <div id="vehicle-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">Add New Vehicle</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="vehicle-form">
+                    <input type="hidden" id="vehicle-id">
+
+                    <div class="form-group">
+                        <label for="vehicle-name">Vehicle Name *</label>
+                        <input type="text" id="vehicle-name" required placeholder="e.g. Van 101">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="vehicle-make">Make</label>
+                            <input type="text" id="vehicle-make" placeholder="Ford">
+                        </div>
+                        <div class="form-group">
+                            <label for="vehicle-model">Model</label>
+                            <input type="text" id="vehicle-model" placeholder="Transit">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="vehicle-year">Year</label>
+                            <input type="number" id="vehicle-year" placeholder="2023" min="1950">
+                        </div>
+                        <div class="form-group">
+                            <label for="vehicle-type">Fuel Type *</label>
+                            <select id="vehicle-type">
+                                <option value="gasoline">Gasoline</option>
+                                <option value="diesel">Diesel</option>
+                                <option value="electric">Electric</option>
+                                <option value="hybrid">Hybrid</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="vehicle-fuel-efficiency">Fuel Efficiency (MPG)</label>
+                        <input type="number" id="vehicle-fuel-efficiency" placeholder="e.g. 15" min="0" step="0.1">
+                        <small style="color: var(--text-secondary); font-size: 0.75rem;">Used for route cost
+                            calculations</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Service Capabilities</label>
+                        <div id="service-types-container" style="
+                            max-height: 150px; 
+                            overflow-y: auto; 
+                            background: rgba(0,0,0,0.2); 
+                            border: 1px solid var(--border-subtle); 
+                            border-radius: 6px; 
+                            padding: 12px;
+                            display: grid;
+                            grid-template-columns: 1fr 1fr;
+                            gap: 8px;
+                        ">
+                            <!-- Checkboxes will be populated by JS -->
+                            <div style="color: var(--text-secondary); font-size: 0.9em;">Loading services...</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="vehicle-plate">License Plate</label>
+                            <input type="text" id="vehicle-plate" placeholder="ABC-1234">
+                        </div>
+                        <div class="form-group">
+                            <label for="vehicle-vin">VIN</label>
+                            <input type="text" id="vehicle-vin" placeholder="17 chars">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="vehicle-fuel-level">Current Fuel/Charge (%)</label>
+                            <input type="number" id="vehicle-fuel-level" placeholder="100" min="0" max="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="vehicle-status">Status</label>
+                            <select id="vehicle-status">
+                                <option value="available">Available</option>
+                                <option value="in_use">In Use</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="out_of_service">Out of Service</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Associated Locations (for route start/end)</label>
+                        <!-- Selected locations displayed as tags -->
+                        <div id="selected-locations-container" style="
+                            min-height: 70px;
+                            max-height: 85px; 
+                            overflow-y: auto; 
+                            background: rgba(0,0,0,0.2); 
+                            border: 1px solid var(--border-subtle); 
+                            border-radius: 6px; 
+                            padding: 8px;
+                            display: flex;
+                            flex-wrap: wrap;
+                            gap: 6px;
+                            align-content: flex-start;
+                        ">
+                            <div class="location-placeholder"
+                                style="color: var(--text-secondary); font-size: 0.9em; padding: 4px;">No locations
+                                assigned</div>
+                        </div>
+
+                        <!-- Search input -->
+                        <div style="position: relative; margin-top: 8px;">
+                            <input type="text" id="location-search-input" placeholder="🔍 Search and add locations..."
+                                autocomplete="off"
+                                style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-subtle); border-radius: 6px; background: var(--bg-primary); color: var(--text-primary);"
+                                onfocus="showLocationDropdown()" oninput="filterLocationDropdown(this.value)">
+
+                            <!-- Dropdown results -->
+                            <div id="location-dropdown" style="
+                                display: none;
+                                position: absolute;
+                                top: 100%;
+                                left: 0;
+                                right: 0;
+                                background: var(--bg-secondary);
+                                border: 1px solid var(--border-subtle);
+                                border-radius: 6px;
+                                max-height: 150px;
+                                overflow-y: auto;
+                                z-index: 1000;
+                                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                            ">
+                            </div>
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">
+                            Click a location to add. Click ⭐ on a tag to set as primary.
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary close-modal-btn">Cancel</button>
+                        <button type="submit" class="btn-primary">Save Vehicle</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="preload.js"></script>
+    <script src="confirmation-modal.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const tableBody = document.getElementById('vehicles-table-body');
+            const searchInput = document.getElementById('search-input');
+            const addBtn = document.getElementById('add-vehicle-btn');
+            const modal = document.getElementById('vehicle-modal');
+            const form = document.getElementById('vehicle-form');
+            const modalTitle = document.getElementById('modal-title');
+            const closeButtons = document.querySelectorAll('.close-modal, .close-modal-btn');
+            const serviceContainer = document.getElementById('service-types-container');
+
+            let isEditing = false;
+            let currentVehicles = [];
+            let currentServices = [];
+            let currentLocations = []; // For location checkboxes
+            let serviceMap = new Map(); // ID -> Name
+            let currentPage = 1;
+            let limit = 10;
+            let totalItems = 0;
+
+            const rowsSelect = document.getElementById('rows-select');
+            const prevPageBtn = document.getElementById('prev-page-btn');
+            const nextPageBtn = document.getElementById('next-page-btn');
+            const paginationInfo = document.getElementById('pagination-info');
+
+            // Load on startup
+            initialize();
+
+            async function initialize() {
+                try {
+                    await Promise.all([loadServices(), loadLocations(), loadVehicles()]);
+                } catch (error) {
+                    console.error('Initialization failed', error);
+                }
+            }
+
+            // Load non-client locations for the location picker
+            async function loadLocations() {
+                try {
+                    // Get all locations, filter to exclude client-type locations
+                    const result = await window.electronAPI.locations.getAll({}, { page: 1, limit: 200 });
+                    const allLocations = result.data || [];
+                    // Filter to exclude client locations (keep depot, home, disposal, other, etc.)
+                    currentLocations = allLocations.filter(loc =>
+                        loc.locationType !== 'client'
+                    );
+                } catch (error) {
+                    console.error('Failed to load locations:', error);
+                }
+            }
+
+            // Track current vehicle's associated locations (from junction table)
+            let currentVehicleLocations = []; // Array of { locationId, isPrimary }
+            let primaryLocationId = null;
+
+            // Render selected locations as tags
+            function renderSelectedLocations() {
+                const container = document.getElementById('selected-locations-container');
+                if (!container) return;
+
+                if (currentVehicleLocations.length === 0) {
+                    container.innerHTML = '<div class="location-placeholder" style="color: var(--text-secondary); font-size: 0.9em; padding: 4px;">No locations assigned</div>';
+                    return;
+                }
+
+                container.innerHTML = currentVehicleLocations.map(vl => {
+                    const loc = currentLocations.find(l => l.id === vl.locationId);
+                    if (!loc) return '';
+
+                    const isPrimary = vl.isPrimary;
+                    return `
+                        <div class="location-tag" 
+                             data-location-id="${loc.id}"
+                             style="
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 6px;
+                                padding: 6px 10px;
+                                background: ${isPrimary ? 'rgba(255, 193, 7, 0.2)' : 'rgba(64, 169, 255, 0.15)'};
+                                border: 1px solid ${isPrimary ? 'rgba(255, 193, 7, 0.4)' : 'rgba(64, 169, 255, 0.3)'};
+                                border-radius: 20px;
+                                font-size: 0.85rem;
+                                color: var(--text-primary);
+                             ">
+                            <button type="button" 
+                                    onclick="togglePrimary('${loc.id}')"
+                                    style="background: none; border: none; cursor: pointer; font-size: 0.9rem; padding: 0; line-height: 1;"
+                                    title="${isPrimary ? 'Primary location' : 'Set as primary'}">
+                                ${isPrimary ? '⭐' : '☆'}
+                            </button>
+                            <span>${loc.name}</span>
+                            <button type="button" 
+                                    onclick="removeLocation('${loc.id}')"
+                                    style="background: none; border: none; cursor: pointer; font-size: 1rem; padding: 0; line-height: 1; color: var(--text-secondary);"
+                                    title="Remove">×</button>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            // Show location dropdown
+            function showLocationDropdown() {
+                const dropdown = document.getElementById('location-dropdown');
+                filterLocationDropdown('');
+                dropdown.style.display = 'block';
+            }
+
+            // Hide dropdown (called on blur with delay)
+            function hideLocationDropdown() {
+                setTimeout(() => {
+                    const dropdown = document.getElementById('location-dropdown');
+                    dropdown.style.display = 'none';
+                }, 200);
+            }
+
+            // Filter dropdown based on search input
+            function filterLocationDropdown(query) {
+                const dropdown = document.getElementById('location-dropdown');
+                const lowerQuery = query.toLowerCase().trim();
+
+                // Filter locations not already selected
+                const selectedIds = new Set(currentVehicleLocations.map(l => l.locationId));
+                const availableLocations = currentLocations.filter(loc => {
+                    if (selectedIds.has(loc.id)) return false;
+
+                    // If no query, show all available
+                    if (lowerQuery === '') return true;
+
+                    // Search by name, address, city, state, or location type
+                    const searchFields = [
+                        loc.name || '',
+                        loc.addressLine1 || '',
+                        loc.city || '',
+                        loc.state || '',
+                        loc.locationType || ''
+                    ].join(' ').toLowerCase();
+
+                    return searchFields.includes(lowerQuery);
+                });
+
+                if (availableLocations.length === 0) {
+                    dropdown.innerHTML = '<div style="padding: 10px; color: var(--text-secondary); font-size: 0.9rem;">No matching locations</div>';
+                    return;
+                }
+
+                dropdown.innerHTML = availableLocations.slice(0, 20).map(loc => `
+                    <div class="location-option" 
+                         onclick="addLocation('${loc.id}')"
+                         style="
+                            padding: 10px 12px;
+                            cursor: pointer;
+                            border-bottom: 1px solid var(--border-subtle);
+                         "
+                         onmouseover="this.style.background='rgba(64, 169, 255, 0.1)'"
+                         onmouseout="this.style.background='transparent'">
+                        <div style="font-weight: 500;">${loc.name}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary);">${loc.addressLine1 || ''} ${loc.city}, ${loc.state} • ${loc.locationType || 'unknown'}</div>
+                    </div>
+                `).join('');
+            }
+
+            // Add a location
+            function addLocation(locationId) {
+                // If first location, make it primary
+                const isPrimary = currentVehicleLocations.length === 0;
+                currentVehicleLocations.push({ locationId, isPrimary });
+                if (isPrimary) primaryLocationId = locationId;
+
+                renderSelectedLocations();
+                document.getElementById('location-search-input').value = '';
+                document.getElementById('location-dropdown').style.display = 'none';
+            }
+
+            // Remove a location
+            function removeLocation(locationId) {
+                currentVehicleLocations = currentVehicleLocations.filter(l => l.locationId !== locationId);
+
+                // If removed was primary, make first one primary
+                if (primaryLocationId === locationId && currentVehicleLocations.length > 0) {
+                    currentVehicleLocations[0].isPrimary = true;
+                    primaryLocationId = currentVehicleLocations[0].locationId;
+                } else if (currentVehicleLocations.length === 0) {
+                    primaryLocationId = null;
+                }
+
+                renderSelectedLocations();
+            }
+
+            // Toggle primary status
+            function togglePrimary(locationId) {
+                currentVehicleLocations.forEach(l => {
+                    l.isPrimary = (l.locationId === locationId);
+                });
+                primaryLocationId = locationId;
+                renderSelectedLocations();
+            }
+
+            // Get selected locations for saving
+            function getSelectedLocations() {
+                return currentVehicleLocations.map(l => ({
+                    locationId: l.locationId,
+                    isPrimary: l.isPrimary
+                }));
+            }
+
+            // Initialize location picker with existing associations
+            function initLocationPicker(associatedLocations = []) {
+                currentVehicleLocations = associatedLocations.map(l => ({
+                    locationId: l.locationId,
+                    isPrimary: l.isPrimary
+                }));
+                const primary = currentVehicleLocations.find(l => l.isPrimary);
+                primaryLocationId = primary ? primary.locationId : null;
+                renderSelectedLocations();
+            }
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                const searchInput = document.getElementById('location-search-input');
+                const dropdown = document.getElementById('location-dropdown');
+                if (searchInput && dropdown && !searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                }
+            });
+
+            // Expose functions globally for inline event handlers
+            window.showLocationDropdown = showLocationDropdown;
+            window.filterLocationDropdown = filterLocationDropdown;
+            window.addLocation = addLocation;
+            window.removeLocation = removeLocation;
+            window.togglePrimary = togglePrimary;
+
+            async function loadServices() {
+                try {
+                    const result = await window.electronAPI.services.getAll();
+                    currentServices = result.data || result || [];
+                    serviceMap.clear();
+                    currentServices.forEach(s => serviceMap.set(s.id, s.name));
+                    // Checkboxes will be rendered when modal opens
+                } catch (error) {
+                    console.error('Failed to load services:', error);
+                    if (serviceContainer) {
+                        serviceContainer.innerHTML = '<div style="color: #ff6b6b; grid-column: span 2;">Failed to load services</div>';
+                    }
+                }
+            }
+
+            function populateServiceCheckboxes(selectedIds = []) {
+                if (!serviceContainer) return;
+
+                if (currentServices.length === 0) {
+                    serviceContainer.innerHTML = '<div style="color: var(--text-secondary); font-size: 0.9em; grid-column: span 2;">No services defined. Add services first.</div>';
+                    return;
+                }
+
+                serviceContainer.innerHTML = currentServices.map(service => `
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.9rem; margin: 0; padding: 4px; border-radius: 4px;">
+                        <input type="checkbox" name="service_types" value="${service.id}" 
+                            ${selectedIds.includes(service.id) ? 'checked' : ''}
+                            style="width: auto; margin: 0;">
+                        ${service.name}
+                    </label>
+                `).join('');
+            }
+
+            // Event Listeners
+            addBtn.addEventListener('click', () => openModal(false));
+
+            closeButtons.forEach(btn => {
+                btn.addEventListener('click', closeModal);
+            });
+
+            form.addEventListener('submit', handleFormSubmit);
+
+            // Search functionality
+            let searchTimeout;
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    currentPage = 1;
+                    loadVehicles(e.target.value);
+                }, 300);
+            });
+
+            // Pagination Event Listeners
+            if (rowsSelect) {
+                rowsSelect.addEventListener('change', (e) => {
+                    limit = parseInt(e.target.value);
+                    currentPage = 1;
+                    loadVehicles(searchInput ? searchInput.value : '');
+                });
+            }
+
+            if (prevPageBtn) {
+                prevPageBtn.addEventListener('click', () => {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        loadVehicles(searchInput ? searchInput.value : '');
+                    }
+                });
+            }
+
+            if (nextPageBtn) {
+                nextPageBtn.addEventListener('click', () => {
+                    const totalPages = Math.ceil(totalItems / limit);
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        loadVehicles(searchInput ? searchInput.value : '');
+                    }
+                });
+            }
+
+            // Functions
+            // Functions
+            async function loadVehicles(searchTerm = '') {
+                try {
+                    const filters = searchTerm ? { searchTerm } : {};
+                    const pagination = { page: currentPage, limit };
+
+                    const response = await window.electronAPI.vehicles.getAll(filters, pagination);
+
+                    let vehicles = [];
+                    if (response.pagination) {
+                        vehicles = response.data;
+                        const meta = response.pagination;
+                        totalItems = meta.total;
+                        updatePaginationControls(meta);
+                    } else {
+                        // Fallback
+                        vehicles = response.data || response || [];
+                        totalItems = vehicles.length;
+                        updatePaginationControls({ page: 1, limit: totalItems, total: totalItems, totalPages: 1 });
+                    }
+
+                    currentVehicles = vehicles;
+                    renderTable(vehicles);
+                } catch (error) {
+                    console.error('Failed to load vehicles:', error);
+                    tableBody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: #ff6b6b;">Error loading vehicles: ${error.message}</td></tr>`;
+                }
+            }
+
+            function updatePaginationControls(meta) {
+                if (!paginationInfo) return;
+
+                const { page, limit, total, totalPages } = meta;
+                const start = total === 0 ? 0 : (page - 1) * limit + 1;
+                const end = Math.min(page * limit, total);
+
+                paginationInfo.textContent = `${start}-${end} of ${total}`;
+
+                if (prevPageBtn) prevPageBtn.disabled = page <= 1;
+                if (nextPageBtn) nextPageBtn.disabled = page >= totalPages;
+            }
+
+            function renderTable(vehicles) {
+                tableBody.innerHTML = '';
+
+                if (vehicles.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 20px; color: var(--text-secondary);">No vehicles found</td></tr>';
+                    return;
+                }
+
+                vehicles.forEach(vehicle => {
+                    const row = document.createElement('tr');
+
+                    // Badge logic
+                    let badgeClass = 'inactive';
+                    if (vehicle.status === 'available') badgeClass = 'active';
+                    if (vehicle.status === 'in_use') {
+                        badgeClass = 'active'; // Or specific style for in-use
+                    }
+                    if (vehicle.status === 'out_of_service' || vehicle.status === 'retired') badgeClass = 'suspended';
+                    if (vehicle.status === 'maintenance') badgeClass = 'inactive';
+
+                    let statusStyle = '';
+                    if (vehicle.status === 'in_use') statusStyle = 'color: #58a6ff; border-color: rgba(88,166,255,0.2); background-color: rgba(88,166,255,0.15);';
+
+                    // Parse service types and map to names
+                    let serviceNames = '-';
+                    if (vehicle.serviceTypes && Array.isArray(vehicle.serviceTypes) && vehicle.serviceTypes.length > 0) {
+                        serviceNames = vehicle.serviceTypes
+                            .map(id => serviceMap.get(id) || '')
+                            .filter(name => name !== '') // clean up unknown IDs
+                            .join(', ');
+                        if (!serviceNames) serviceNames = '-';
+                    }
+
+                    row.innerHTML = `
+                        <td>
+                            <div style="font-weight: 500;">${vehicle.name}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">${vehicle.year || ''}</div>
+                        </td>
+                        <td>
+                            <div>${vehicle.licensePlate || '-'}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); font-family: monospace;">${vehicle.vin || ''}</div>
+                        </td>
+                         <td>
+                            <div>${vehicle.make || '-'}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">${vehicle.model || ''}</div>
+                        </td>
+                         <td>
+                            <div style="font-size: 0.85rem; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${serviceNames}">
+                                ${serviceNames}
+                            </div>
+                        </td>
+                        <td>
+                            <div style="text-transform: capitalize;">${vehicle.fuelType}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">${vehicle.fuelEfficiencyMpg ? vehicle.fuelEfficiencyMpg + ' MPG' : (vehicle.currentFuelLevel !== undefined ? vehicle.currentFuelLevel + '%' : '-')}</div>
+                        </td>
+                        <td><span class="status-badge ${badgeClass}" style="${statusStyle}">${vehicle.status.replace(/_/g, ' ')}</span></td>
+                        <td>
+                            <div style="display: flex; align-items: center;">
+                                <button class="action-btn edit-btn" data-id="${vehicle.id}" data-tooltip="Edit Vehicle">
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                    </svg>
+                                </button>
+                                <button class="action-btn delete-btn" data-id="${vehicle.id}" data-tooltip="Delete Vehicle">
+                                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="3 6 5 6 21 6"></polyline>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // Attach listeners
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = e.currentTarget.dataset.id;
+                        const vehicle = currentVehicles.find(v => v.id === id);
+                        if (vehicle) openModal(true, vehicle);
+                    });
+                });
+
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const id = e.currentTarget.dataset.id;
+                        if (await showConfirm('Are you sure you want to delete this vehicle?', 'Delete Vehicle', 'Delete', 'Cancel')) {
+                            try {
+                                await window.electronAPI.vehicles.delete(id);
+                                loadVehicles();
+                            } catch (err) {
+                                console.error('Delete failed', err);
+                                alert('Failed to delete vehicle: ' + err.message);
+                            }
+                        }
+                    });
+                });
+            }
+
+            async function openModal(editMode, vehicle = null) {
+                isEditing = editMode;
+                modalTitle.textContent = editMode ? 'Edit Vehicle' : 'Add New Vehicle';
+
+                // Populate service checkboxes
+                const existingServices = (vehicle && vehicle.serviceTypes) ? vehicle.serviceTypes : [];
+                populateServiceCheckboxes(existingServices);
+
+                // Initialize location checkboxes
+                let vehicleLocations = [];
+
+                if (editMode && vehicle) {
+                    document.getElementById('vehicle-id').value = vehicle.id;
+                    document.getElementById('vehicle-name').value = vehicle.name;
+                    document.getElementById('vehicle-make').value = vehicle.make || '';
+                    document.getElementById('vehicle-model').value = vehicle.model || '';
+                    document.getElementById('vehicle-year').value = vehicle.year || '';
+                    document.getElementById('vehicle-type').value = vehicle.fuelType || 'gasoline';
+                    document.getElementById('vehicle-fuel-efficiency').value = vehicle.fuelEfficiencyMpg || '';
+                    document.getElementById('vehicle-plate').value = vehicle.licensePlate || '';
+                    document.getElementById('vehicle-vin').value = vehicle.vin || '';
+                    document.getElementById('vehicle-fuel-level').value = vehicle.currentFuelLevel !== undefined ? vehicle.currentFuelLevel : '';
+                    document.getElementById('vehicle-status').value = vehicle.status || 'available';
+
+                    // Load vehicle's associated locations from junction table
+                    try {
+                        const locs = await window.electronAPI.vehicleLocations.getByVehicle(vehicle.id);
+                        vehicleLocations = locs.map(l => ({ locationId: l.locationId, isPrimary: l.isPrimary }));
+                    } catch (err) {
+                        console.error('Failed to load vehicle locations:', err);
+                    }
+                } else {
+                    if (!isEditing) {
+                        form.reset();
+                        populateServiceCheckboxes([]);
+                    }
+                }
+
+                // Populate location checkboxes with current associations
+                initLocationPicker(vehicleLocations);
+
+                if (modal) modal.style.display = 'block';
+            }
+
+            function closeModal() {
+                if (modal) modal.style.display = 'none';
+                form.reset();
+                document.getElementById('vehicle-id').value = '';
+                populateServiceCheckboxes([]);
+                initLocationPicker([]);
+                isEditing = false;
+            }
+
+            async function handleFormSubmit(e) {
+                e.preventDefault();
+
+                const id = document.getElementById('vehicle-id').value;
+
+                // Collect checked services
+                const checkedServices = Array.from(document.querySelectorAll('input[name="service_types"]:checked'))
+                    .map(cb => cb.value);
+
+                // Collect selected locations
+                const selectedLocations = getSelectedLocations();
+
+                const data = {
+                    name: document.getElementById('vehicle-name').value,
+                    make: document.getElementById('vehicle-make').value || undefined,
+                    model: document.getElementById('vehicle-model').value || undefined,
+                    year: document.getElementById('vehicle-year').value ? parseInt(document.getElementById('vehicle-year').value) : undefined,
+                    fuelType: document.getElementById('vehicle-type').value,
+                    fuelEfficiencyMpg: document.getElementById('vehicle-fuel-efficiency').value ? parseFloat(document.getElementById('vehicle-fuel-efficiency').value) : undefined,
+                    licensePlate: document.getElementById('vehicle-plate').value || undefined,
+                    vin: document.getElementById('vehicle-vin').value || undefined,
+                    currentFuelLevel: document.getElementById('vehicle-fuel-level').value ? parseInt(document.getElementById('vehicle-fuel-level').value) : undefined,
+                    status: document.getElementById('vehicle-status').value,
+                    serviceTypes: checkedServices
+                };
+
+                try {
+                    let vehicleId = id;
+                    if (isEditing && id) {
+                        data.id = id;
+                        await window.electronAPI.vehicles.update(data);
+                    } else {
+                        const newVehicle = await window.electronAPI.vehicles.create(data);
+                        vehicleId = newVehicle.id;
+                    }
+
+                    // Save vehicle locations to junction table
+                    if (vehicleId && selectedLocations.length > 0) {
+                        await window.electronAPI.vehicleLocations.set(vehicleId, selectedLocations);
+                    } else if (vehicleId) {
+                        // Clear all locations if none selected
+                        await window.electronAPI.vehicleLocations.set(vehicleId, []);
+                    }
+
+                    closeModal();
+                    loadVehicles();
+                } catch (error) {
+                    console.error('Save failed', error);
+                    alert('Failed to save vehicle: ' + error.message);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

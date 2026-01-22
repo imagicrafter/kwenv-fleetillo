@@ -29,6 +29,41 @@ function getConnection() {
     return (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
 }
 /**
+ * Converts DB row metadata (snake_case) to LocationMetadata (camelCase)
+ */
+function rowMetadataToMetadata(row) {
+    if (!row)
+        return {};
+    return {
+        capacityGallons: row.capacity_gallons,
+        trapCount: row.trap_count,
+        serviceFrequencyWeeks: row.service_frequency_weeks,
+        hoseLengthReq: row.hose_length_req,
+        requiresTanker: row.requires_tanker,
+        preferredServiceTime: row.preferred_service_time,
+        capacityNotes: row.capacity_notes,
+        ...row, // Include any additional fields
+    };
+}
+/**
+ * Converts LocationMetadata (camelCase) to DB format (snake_case)
+ */
+function metadataToRow(metadata) {
+    if (!metadata)
+        return {};
+    const { capacityGallons, trapCount, serviceFrequencyWeeks, hoseLengthReq, requiresTanker, preferredServiceTime, capacityNotes, ...rest } = metadata;
+    return {
+        capacity_gallons: capacityGallons,
+        trap_count: trapCount,
+        service_frequency_weeks: serviceFrequencyWeeks,
+        hose_length_req: hoseLengthReq,
+        requires_tanker: requiresTanker,
+        preferred_service_time: preferredServiceTime,
+        capacity_notes: capacityNotes,
+        ...rest,
+    };
+}
+/**
  * Converts DB row to Location object
  */
 function rowToLocation(row) {
@@ -48,9 +83,11 @@ function rowToLocation(row) {
         longitude: row.longitude,
         isPrimary: row.is_primary,
         notes: row.notes,
+        tags: row.tags ?? [],
+        metadata: row.metadata ? rowMetadataToMetadata(row.metadata) : undefined,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
-        deletedAt: row.deleted_at
+        deletedAt: row.deleted_at,
     };
 }
 /**
@@ -84,6 +121,10 @@ function inputToRow(input) {
         row.is_primary = input.isPrimary;
     if ('notes' in input)
         row.notes = input.notes;
+    if ('tags' in input)
+        row.tags = input.tags;
+    if ('metadata' in input)
+        row.metadata = metadataToRow(input.metadata);
     return row;
 }
 /**
@@ -134,9 +175,7 @@ async function getLocationById(id) {
 async function getAllLocations(filters, pagination) {
     try {
         const supabase = getConnection();
-        let query = supabase
-            .from(LOCATIONS_TABLE)
-            .select('*, customers(name)', { count: 'exact' });
+        let query = supabase.from(LOCATIONS_TABLE).select('*, customers(name)', { count: 'exact' });
         query = query.is('deleted_at', null);
         if (filters?.type) {
             query = query.eq('location_type', filters.type);
@@ -169,9 +208,9 @@ async function getAllLocations(filters, pagination) {
                     page,
                     limit,
                     total,
-                    totalPages: Math.ceil(total / limit)
-                }
-            }
+                    totalPages: Math.ceil(total / limit),
+                },
+            },
         };
     }
     catch (error) {
@@ -197,7 +236,10 @@ async function getCustomerLocations(customerId) {
     }
     catch (error) {
         logger.error('Failed to get customer locations', error);
-        return { success: false, error: new Error(`Failed to get customer locations: ${error.message}`) };
+        return {
+            success: false,
+            error: new Error(`Failed to get customer locations: ${error.message}`),
+        };
     }
 }
 /**

@@ -1,6 +1,6 @@
 "use strict";
 /**
- * Booking-related type definitions for RouteIQ application
+ * Booking-related type definitions for Fleetillo application
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.rowToBooking = rowToBooking;
@@ -15,18 +15,22 @@ function rowToBooking(row) {
     return {
         id: row.id,
         // Foreign key references
-        clientId: row.client_id,
+        customerId: row.customer_id,
         serviceId: row.service_id ?? undefined, // DEPRECATED
         serviceIds: row.service_ids ?? (row.service_id ? [row.service_id] : []),
-        serviceItems: row.service_items ?? (row.service_id && serviceName ? [{
-                serviceId: row.service_id,
-                name: serviceName,
-                quantity: 1,
-                unitPrice: row.quoted_price ?? 0,
-                total: row.quoted_price ?? 0,
-                duration: row.estimated_duration_minutes ?? 0
-            }] : []),
-        vehicleId: row.vehicle_id ?? undefined, // DEPRECATED
+        serviceItems: row.service_items ??
+            (row.service_id && serviceName
+                ? [
+                    {
+                        serviceId: row.service_id,
+                        name: serviceName,
+                        quantity: 1,
+                        unitPrice: row.quoted_price ?? 0,
+                        total: row.quoted_price ?? 0,
+                        duration: row.estimated_duration_minutes ?? 0,
+                    },
+                ]
+                : []),
         routeId: row.route_id ?? undefined,
         locationId: row.location_id ?? undefined,
         // Route assignment
@@ -65,19 +69,22 @@ function rowToBooking(row) {
         specialInstructions: row.special_instructions ?? undefined,
         internalNotes: row.internal_notes ?? undefined,
         cancellationReason: row.cancellation_reason ?? undefined,
-        // Client communication
-        clientNotified: row.client_notified,
+        // Customer communication
+        customerNotified: row.customer_notified,
         reminderSent: row.reminder_sent,
         confirmationSent: row.confirmation_sent,
         // Metadata
         tags: row.tags ?? undefined,
+        // CRM tracking
+        crmStatus: row.crm_status ?? undefined,
+        crmId: row.crm_id ?? undefined,
         // Audit timestamps
         createdAt: new Date(row.created_at),
         updatedAt: new Date(row.updated_at),
         deletedAt: row.deleted_at ? new Date(row.deleted_at) : undefined,
         // Joined fields for UI
-        clientName: row.clients?.name,
-        clientEmail: row.clients?.email,
+        customerName: row.customers?.name,
+        customerEmail: row.customers?.email,
         serviceName: row.services?.name, // DEPRECATED
         serviceCode: row.services?.code, // DEPRECATED
         serviceAverageDurationMinutes: row.services?.average_duration_minutes, // DEPRECATED
@@ -85,6 +92,9 @@ function rowToBooking(row) {
         locationLatitude: row.locations?.latitude ?? undefined,
         locationLongitude: row.locations?.longitude ?? undefined,
         routeCode: row.routes?.route_code ?? undefined,
+        vehicleId: row.routes?.vehicle_id ?? undefined,
+        // vehicleName is populated by the service layer after fetching vehicle data
+        vehicleName: undefined,
     };
 }
 /**
@@ -100,11 +110,10 @@ function bookingInputToRow(input) {
             : input.recurrenceEndDate.toISOString().split('T')[0]
         : null;
     return {
-        client_id: input.clientId,
+        customer_id: input.customerId,
         service_id: input.serviceId ?? null, // DEPRECATED: Make nullable
         service_items: input.serviceItems ?? null,
         service_ids: input.serviceIds ?? null,
-        vehicle_id: input.vehicleId ?? null,
         location_id: input.locationId ?? null,
         booking_number: input.bookingNumber ?? null,
         booking_type: input.bookingType,
@@ -128,10 +137,13 @@ function bookingInputToRow(input) {
         priority: input.priority ?? 'normal',
         special_instructions: input.specialInstructions ?? null,
         internal_notes: input.internalNotes ?? null,
-        client_notified: input.clientNotified ?? false,
+        customer_notified: input.customerNotified ?? false,
         reminder_sent: input.reminderSent ?? false,
         confirmation_sent: input.confirmationSent ?? false,
         tags: input.tags ?? null,
+        // CRM tracking
+        crm_status: input.crmStatus ?? null,
+        crm_id: input.crmId ?? null,
     };
 }
 /**
@@ -141,16 +153,14 @@ function bookingInputToRow(input) {
 function updateBookingInputToRow(input) {
     const row = {};
     // Only add fields that are explicitly provided
-    if (input.clientId !== undefined)
-        row.client_id = input.clientId;
+    if (input.customerId !== undefined)
+        row.customer_id = input.customerId;
     if (input.serviceId !== undefined)
         row.service_id = input.serviceId; // DEPRECATED
     if (input.serviceItems !== undefined)
         row.service_items = input.serviceItems ?? null;
     if (input.serviceIds !== undefined)
         row.service_ids = input.serviceIds ?? null;
-    if (input.vehicleId !== undefined)
-        row.vehicle_id = input.vehicleId ?? null; // DEPRECATED
     if (input.routeId !== undefined)
         row.route_id = input.routeId ?? null;
     if (input.stopOrder !== undefined)
@@ -166,9 +176,10 @@ function updateBookingInputToRow(input) {
     if (input.parentBookingId !== undefined)
         row.parent_booking_id = input.parentBookingId ?? null;
     if (input.scheduledDate !== undefined) {
-        row.scheduled_date = typeof input.scheduledDate === 'string'
-            ? input.scheduledDate
-            : input.scheduledDate.toISOString().split('T')[0];
+        row.scheduled_date =
+            typeof input.scheduledDate === 'string'
+                ? input.scheduledDate
+                : input.scheduledDate.toISOString().split('T')[0];
     }
     if (input.recurrenceEndDate !== undefined) {
         row.recurrence_end_date = input.recurrenceEndDate
@@ -213,8 +224,8 @@ function updateBookingInputToRow(input) {
     if (input.internalNotes !== undefined)
         row.internal_notes = input.internalNotes ?? null;
     // Communication fields
-    if (input.clientNotified !== undefined)
-        row.client_notified = input.clientNotified;
+    if (input.customerNotified !== undefined)
+        row.customer_notified = input.customerNotified;
     if (input.reminderSent !== undefined)
         row.reminder_sent = input.reminderSent;
     if (input.confirmationSent !== undefined)
@@ -222,16 +233,23 @@ function updateBookingInputToRow(input) {
     // Metadata
     if (input.tags !== undefined)
         row.tags = input.tags ?? null;
+    // CRM tracking
+    if (input.crmStatus !== undefined)
+        row.crm_status = input.crmStatus ?? null;
+    if (input.crmId !== undefined)
+        row.crm_id = input.crmId ?? null;
     // Update-specific fields
     if (input.actualStartTime !== undefined) {
-        row.actual_start_time = typeof input.actualStartTime === 'string'
-            ? input.actualStartTime
-            : input.actualStartTime.toISOString();
+        row.actual_start_time =
+            typeof input.actualStartTime === 'string'
+                ? input.actualStartTime
+                : input.actualStartTime.toISOString();
     }
     if (input.actualEndTime !== undefined) {
-        row.actual_end_time = typeof input.actualEndTime === 'string'
-            ? input.actualEndTime
-            : input.actualEndTime.toISOString();
+        row.actual_end_time =
+            typeof input.actualEndTime === 'string'
+                ? input.actualEndTime
+                : input.actualEndTime.toISOString();
     }
     if (input.actualDurationMinutes !== undefined) {
         row.actual_duration_minutes = input.actualDurationMinutes;

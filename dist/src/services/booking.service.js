@@ -3,7 +3,7 @@
  * Booking Service
  *
  * Provides CRUD operations and business logic for managing bookings
- * in the RouteIQ application.
+ * in the Fleetillo application.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BookingErrorCodes = exports.BookingServiceError = void 0;
@@ -26,7 +26,7 @@ const booking_js_1 = require("../types/booking.js");
  */
 const logger = (0, logger_js_1.createContextLogger)('BookingService');
 /**
- * Table name for bookings in the routeiq schema
+ * Table name for bookings in the fleetillo schema
  */
 const BOOKINGS_TABLE = 'bookings';
 /**
@@ -58,13 +58,14 @@ exports.BookingErrorCodes = {
  * Validates booking input data
  */
 function validateBookingInput(input) {
-    if (!input.clientId || input.clientId.trim().length === 0) {
+    if (!input.customerId || input.customerId.trim().length === 0) {
         return {
             success: false,
-            error: new BookingServiceError('Client ID is required', exports.BookingErrorCodes.VALIDATION_FAILED, { field: 'clientId' }),
+            error: new BookingServiceError('Customer ID is required', exports.BookingErrorCodes.VALIDATION_FAILED, { field: 'customerId' }),
         };
     }
-    if ((!input.serviceId || input.serviceId.trim().length === 0) && (!input.serviceItems || input.serviceItems.length === 0)) {
+    if ((!input.serviceId || input.serviceId.trim().length === 0) &&
+        (!input.serviceItems || input.serviceItems.length === 0)) {
         return {
             success: false,
             error: new BookingServiceError('At least one service is required', exports.BookingErrorCodes.VALIDATION_FAILED, { field: 'serviceItems' }),
@@ -118,13 +119,15 @@ function validateBookingInput(input) {
         };
     }
     // Validate location coordinates if provided
-    if (input.serviceLatitude !== undefined && (input.serviceLatitude < -90 || input.serviceLatitude > 90)) {
+    if (input.serviceLatitude !== undefined &&
+        (input.serviceLatitude < -90 || input.serviceLatitude > 90)) {
         return {
             success: false,
             error: new BookingServiceError('Service latitude must be between -90 and 90', exports.BookingErrorCodes.VALIDATION_FAILED, { field: 'serviceLatitude', value: input.serviceLatitude }),
         };
     }
-    if (input.serviceLongitude !== undefined && (input.serviceLongitude < -180 || input.serviceLongitude > 180)) {
+    if (input.serviceLongitude !== undefined &&
+        (input.serviceLongitude < -180 || input.serviceLongitude > 180)) {
         return {
             success: false,
             error: new BookingServiceError('Service longitude must be between -180 and 180', exports.BookingErrorCodes.VALIDATION_FAILED, { field: 'serviceLongitude', value: input.serviceLongitude }),
@@ -136,7 +139,10 @@ function validateBookingInput(input) {
  * Creates a new booking
  */
 async function createBooking(input) {
-    logger.debug('Creating booking', { clientId: input.clientId, serviceItemsCount: input.serviceItems?.length });
+    logger.debug('Creating booking', {
+        customerId: input.customerId,
+        serviceItemsCount: input.serviceItems?.length,
+    });
     // Validate input
     const validationResult = validateBookingInput(input);
     if (!validationResult.success) {
@@ -171,7 +177,7 @@ async function createBooking(input) {
         const { data, error } = await supabase
             .from(BOOKINGS_TABLE)
             .insert(rowData)
-            .select('*, clients(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)')
+            .select('*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code, vehicle_id)')
             .single();
         if (error) {
             logger.error('Failed to create booking', error);
@@ -202,7 +208,7 @@ async function getBookingById(id) {
         const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(BOOKINGS_TABLE)
-            .select('*, clients(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)')
+            .select('*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code, vehicle_id)')
             .eq('id', id)
             .is('deleted_at', null)
             .single();
@@ -210,7 +216,9 @@ async function getBookingById(id) {
             if (error.code === 'PGRST116') {
                 return {
                     success: false,
-                    error: new BookingServiceError(`Booking not found: ${id}`, exports.BookingErrorCodes.NOT_FOUND, { id }),
+                    error: new BookingServiceError(`Booking not found: ${id}`, exports.BookingErrorCodes.NOT_FOUND, {
+                        id,
+                    }),
                 };
             }
             logger.error('Failed to get booking', error);
@@ -238,22 +246,21 @@ async function getBookings(filters, pagination) {
     try {
         // Use admin client if available to bypass RLS policies
         const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
-        let query = supabase.from(BOOKINGS_TABLE).select('*, clients(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code)', { count: 'exact' });
+        let query = supabase
+            .from(BOOKINGS_TABLE)
+            .select('*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code, vehicle_id)', { count: 'exact' });
         // Apply filters
         if (!filters?.includeDeleted) {
             query = query.is('deleted_at', null);
         }
-        if (filters?.clientId) {
-            query = query.eq('client_id', filters.clientId);
+        if (filters?.customerId) {
+            query = query.eq('customer_id', filters.customerId);
         }
         if (filters?.serviceId) {
             // Filter by checking if service_ids array contains the ID
             query = query.contains('service_ids', [filters.serviceId]);
         }
-        if (filters?.vehicleId) {
-            query = query.eq('vehicle_id', filters.vehicleId);
-        }
-        // Route-based filters (new approach)
+        // Route-based filters
         if (filters?.routeId) {
             query = query.eq('route_id', filters.routeId);
         }
@@ -317,16 +324,31 @@ async function getBookings(filters, pagination) {
             };
         }
         let bookings = data.map(booking_js_1.rowToBooking);
-        // Client-side filtering for related table fields (client name, service name, location name)
+        // Enrich bookings with vehicle names
+        const vehicleIds = [...new Set(bookings.map(b => b.vehicleId).filter(Boolean))];
+        if (vehicleIds.length > 0) {
+            const { data: vehicles } = await supabase
+                .from('vehicles')
+                .select('id, unit_number')
+                .in('id', vehicleIds);
+            if (vehicles) {
+                const vehicleMap = new Map(vehicles.map(v => [v.id, v.unit_number]));
+                bookings = bookings.map(b => ({
+                    ...b,
+                    vehicleName: b.vehicleId ? vehicleMap.get(b.vehicleId) : undefined,
+                }));
+            }
+        }
+        // Client-side filtering for related table fields (customer name, service name, location name)
         // since Supabase .or() doesn't support related table columns
         if (searchTerm) {
             bookings = bookings.filter(b => {
                 const directMatch = b.bookingNumber?.toLowerCase().includes(searchTerm) ||
                     b.specialInstructions?.toLowerCase().includes(searchTerm);
-                const clientMatch = b.clientName?.toLowerCase().includes(searchTerm);
+                const customerMatch = b.customerName?.toLowerCase().includes(searchTerm);
                 const serviceMatch = b.serviceName?.toLowerCase().includes(searchTerm);
                 const locationMatch = b.locationName?.toLowerCase().includes(searchTerm);
-                return directMatch || clientMatch || serviceMatch || locationMatch;
+                return directMatch || customerMatch || serviceMatch || locationMatch;
             });
         }
         const total = count ?? 0;
@@ -368,7 +390,7 @@ async function updateBooking(input) {
     }
     const existing = existingResult.data;
     const validationInput = {
-        clientId: input.clientId ?? existing.clientId,
+        customerId: input.customerId ?? existing.customerId,
         serviceId: input.serviceId, // Deprecated, but keep if provided
         serviceItems: input.serviceItems ?? existing.serviceItems,
         bookingType: input.bookingType ?? existing.bookingType,
@@ -419,13 +441,15 @@ async function updateBooking(input) {
             .update(rowData)
             .eq('id', id)
             .is('deleted_at', null)
-            .select('*, clients(name, email), services(name, code), locations(name, latitude, longitude)')
+            .select('*, customers(name, email), services(name, code), locations(name, latitude, longitude), routes(route_code, vehicle_id)')
             .single();
         if (error) {
             if (error.code === 'PGRST116') {
                 return {
                     success: false,
-                    error: new BookingServiceError(`Booking not found: ${id}`, exports.BookingErrorCodes.NOT_FOUND, { id }),
+                    error: new BookingServiceError(`Booking not found: ${id}`, exports.BookingErrorCodes.NOT_FOUND, {
+                        id,
+                    }),
                 };
             }
             logger.error('Failed to update booking', error);
@@ -445,7 +469,10 @@ async function updateBooking(input) {
                 .eq('id', invalidatedRouteId)
                 .is('deleted_at', null);
             if (routeFlagError) {
-                logger.error('Failed to flag route for recalculation', { routeId: invalidatedRouteId, error: routeFlagError });
+                logger.error('Failed to flag route for recalculation', {
+                    routeId: invalidatedRouteId,
+                    error: routeFlagError,
+                });
                 // Don't fail the booking update, but log the issue
             }
             else {
@@ -488,33 +515,54 @@ function detectRouteAffectingChanges(existing, input) {
         const existingDate = normalizeDate(existing.scheduledDate);
         const newDate = normalizeDate(input.scheduledDate);
         if (existingDate !== newDate) {
-            logger.debug('Route-affecting change: scheduledDate', { existing: existingDate, new: newDate });
+            logger.debug('Route-affecting change: scheduledDate', {
+                existing: existingDate,
+                new: newDate,
+            });
             return true;
         }
     }
     // Check locationId change
     if (input.locationId !== undefined && input.locationId !== existing.locationId) {
-        logger.debug('Route-affecting change: locationId', { existing: existing.locationId, new: input.locationId });
+        logger.debug('Route-affecting change: locationId', {
+            existing: existing.locationId,
+            new: input.locationId,
+        });
         return true;
     }
     // Check service latitude/longitude change
     if (input.serviceLatitude !== undefined && input.serviceLatitude !== existing.serviceLatitude) {
-        logger.debug('Route-affecting change: serviceLatitude', { existing: existing.serviceLatitude, new: input.serviceLatitude });
+        logger.debug('Route-affecting change: serviceLatitude', {
+            existing: existing.serviceLatitude,
+            new: input.serviceLatitude,
+        });
         return true;
     }
-    if (input.serviceLongitude !== undefined && input.serviceLongitude !== existing.serviceLongitude) {
-        logger.debug('Route-affecting change: serviceLongitude', { existing: existing.serviceLongitude, new: input.serviceLongitude });
+    if (input.serviceLongitude !== undefined &&
+        input.serviceLongitude !== existing.serviceLongitude) {
+        logger.debug('Route-affecting change: serviceLongitude', {
+            existing: existing.serviceLongitude,
+            new: input.serviceLongitude,
+        });
         return true;
     }
     // Check estimatedDurationMinutes change
-    if (input.estimatedDurationMinutes !== undefined && input.estimatedDurationMinutes !== existing.estimatedDurationMinutes) {
-        logger.debug('Route-affecting change: estimatedDurationMinutes', { existing: existing.estimatedDurationMinutes, new: input.estimatedDurationMinutes });
+    if (input.estimatedDurationMinutes !== undefined &&
+        input.estimatedDurationMinutes !== existing.estimatedDurationMinutes) {
+        logger.debug('Route-affecting change: estimatedDurationMinutes', {
+            existing: existing.estimatedDurationMinutes,
+            new: input.estimatedDurationMinutes,
+        });
         return true;
     }
     // Check status change to cancelled or completed (booking effectively removed from route)
-    if (input.status !== undefined && (input.status === 'cancelled' || input.status === 'completed')) {
+    if (input.status !== undefined &&
+        (input.status === 'cancelled' || input.status === 'completed')) {
         if (existing.status !== input.status) {
-            logger.debug('Route-affecting change: status to cancelled/completed', { existing: existing.status, new: input.status });
+            logger.debug('Route-affecting change: status to cancelled/completed', {
+                existing: existing.status,
+                new: input.status,
+            });
             return true;
         }
     }
@@ -565,10 +613,7 @@ async function hardDeleteBooking(id) {
                 error: new BookingServiceError('Admin client not available for hard delete operation', exports.BookingErrorCodes.DELETE_FAILED),
             };
         }
-        const { error } = await adminClient
-            .from(BOOKINGS_TABLE)
-            .delete()
-            .eq('id', id);
+        const { error } = await adminClient.from(BOOKINGS_TABLE).delete().eq('id', id);
         if (error) {
             logger.error('Failed to hard delete booking', error);
             return {
@@ -600,7 +645,7 @@ async function restoreBooking(id) {
             .update({ deleted_at: null })
             .eq('id', id)
             .not('deleted_at', 'is', null)
-            .select('*, clients(name, email), services(name, code), locations(name, latitude, longitude)')
+            .select('*, customers(name, email), services(name, code), locations(name, latitude, longitude), routes(route_code, vehicle_id)')
             .single();
         if (error) {
             if (error.code === 'PGRST116') {
@@ -673,7 +718,7 @@ async function getBookingByNumber(bookingNumber) {
         const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
         const { data, error } = await supabase
             .from(BOOKINGS_TABLE)
-            .select('*, clients(name, email), services(name, code), locations(name, latitude, longitude)')
+            .select('*, customers(name, email), services(name, code), locations(name, latitude, longitude), routes(route_code, vehicle_id)')
             .eq('booking_number', bookingNumber)
             .is('deleted_at', null)
             .single();
@@ -880,17 +925,17 @@ async function bulkCreateBookings(inputs) {
         const { data, error } = await supabase
             .from(BOOKINGS_TABLE)
             .insert(rowsData)
-            .select('*, clients(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude)');
+            .select('*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code, vehicle_id)');
         if (error) {
             logger.error('Failed to bulk create bookings', error);
             // Try to extract row-specific error information if available
             const errorDetails = [];
             // Check if it's a foreign key violation
             if (error.code === '23503') {
-                // Foreign key violation - likely a clientId or serviceId doesn't exist
+                // Foreign key violation - likely a customerId or serviceId doesn't exist
                 errorDetails.push({
                     rowNumber: 1, // Can't determine specific row from batch insert
-                    message: `Foreign key violation: ${error.message}. Check that all clientId and serviceId values exist.`,
+                    message: `Foreign key violation: ${error.message}. Check that all customerId and serviceId values exist.`,
                 });
             }
             else {

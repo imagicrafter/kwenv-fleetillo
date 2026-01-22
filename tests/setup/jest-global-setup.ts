@@ -5,8 +5,8 @@
  * Validates database connectivity before any tests execute.
  */
 
-import { config } from '../../src/config/index.js';
-import { initializeAndVerifySupabase } from '../../src/services/supabase.js';
+import { config } from '../../src/config/index';
+import { initializeAndVerifySupabase } from '../../src/services/supabase';
 
 export default async function globalSetup(): Promise<void> {
   console.log('\n' + '='.repeat(60));

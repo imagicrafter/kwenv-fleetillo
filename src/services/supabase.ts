@@ -6,9 +6,9 @@
  */
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { config } from '../config/index.js';
-import { createContextLogger } from '../utils/logger.js';
-import type { Result } from '../types/index.js';
+import { config } from '../config/index';
+import { createContextLogger } from '../utils/logger';
+import type { Result } from '../types/index';
 
 /**
  * Generic Supabase client type that accepts any schema

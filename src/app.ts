@@ -72,9 +72,15 @@ export const createApp = (): Application => {
   // Health check route (no prefix)
   app.use('/health', healthRoutes);
 
-  // Static files serving - serves from dist/public when built, or src/public in dev
-  const publicPath = path.join(process.cwd(), 'dist', 'public');
-  app.use('/ui', express.static(publicPath));
+  // Static files serving
+  // In development, prioritize shared/public (source)
+  // In production, use dist/public (build artifact)
+  if (process.env.NODE_ENV === 'development') {
+    app.use('/ui', express.static(path.join(process.cwd(), 'shared', 'public')));
+    app.use('/ui', express.static(path.join(process.cwd(), 'src', 'public')));
+  } else {
+    app.use('/ui', express.static(path.join(process.cwd(), 'dist', 'public')));
+  }
 
   // API routes with prefix
   app.use(`${config.api.prefix}/${config.api.version}`, routes);
