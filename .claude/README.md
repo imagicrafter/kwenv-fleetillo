@@ -715,4 +715,4 @@ Examples: `issue/5-dispatch-job`, `issue/42-geofencing`
 ## Related
 
 - `.agent/` - Symlinks for other AI tools (Gemini, Cursor, etc.)
-- `docs/yokeflow/` - Project architecture
+- `docs/` - Project documentation
