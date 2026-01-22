@@ -83,8 +83,19 @@ Create these labels in GitHub:
 .claude/
 ├── README.md                    # This file
 ├── settings.local.json          # Local settings and permissions
+├── agents/                      # Specialized AI agents
+│   ├── planner.md               # Implementation planning with risk assessment
+│   ├── architect.md             # System design decisions
+│   ├── code-reviewer.md         # Code quality review
+│   └── security-reviewer.md     # Security analysis (OWASP Top 10)
+├── rules/                       # Always-follow guidelines
+│   ├── agents.md                # When to delegate to sub-agents
+│   ├── coding-style.md          # Immutability, file organization
+│   ├── security.md              # No hardcoded secrets
+│   └── testing.md               # 80% coverage, TDD workflow
 ├── skills/                      # Agent Skills (autonomous + manual invocation)
 │   ├── analyze-issue/           # Read-only issue analysis
+│   ├── continuous-learning/     # Auto-extract patterns from sessions
 │   ├── detect-project/          # Detect test/build/lint commands
 │   ├── execution-state/         # Context continuity for sub-agents
 │   ├── generate-plan/           # Create planning documents
@@ -95,13 +106,26 @@ Create these labels in GitHub:
 │   ├── start-issue/             # Set up for implementation
 │   ├── task-state/              # Manage task status in tasks.md
 │   ├── triage-issue/            # Score and label single issue
-│   └── validate-plan/           # Check plan quality
+│   ├── validate-plan/           # Check plan quality
+│   └── verification-loop/       # Comprehensive quality verification
 ├── commands/                    # Slash commands (user-invoked only)
 │   ├── execute.md               # /execute - Implement planned issues
+│   ├── learn.md                 # /learn - Extract patterns from session
 │   ├── prioritize.md            # /prioritize - Recommend next issue
 │   ├── plan-cleanup.md          # /plan-cleanup - Archive closed plans
 │   ├── prime.md                 # /prime - Load project context
+│   ├── verify.md                # /verify - Run verification checks
 │   └── ...                      # Other workflow commands
+├── hooks/                       # Hook scripts
+│   ├── memory-persistence/      # Session context persistence
+│   │   ├── session-start.sh     # Load previous session context
+│   │   ├── session-end.sh       # Save session state
+│   │   └── pre-compact.sh       # Preserve state before compaction
+│   └── quality-feedback/        # Development feedback hooks
+│       ├── auto-format.sh       # Run Prettier after edits
+│       ├── type-check.sh        # Run tsc after TS edits
+│       ├── console-log-warning.sh # Warn about console.log
+│       └── pr-created-logger.sh # Log PR URL after creation
 └── plans/                       # Implementation plans
     ├── archive/                 # Archived plans (gitignored)
     │   ├── completed/           # Plans for closed issues
@@ -441,6 +465,8 @@ Commands are user-invoked actions (slash commands).
 | Command | Purpose | Invocation |
 |---------|---------|------------|
 | **execute** | Implement a planned GitHub issue | `/execute 42` |
+| **verify** | Run comprehensive quality verification | `/verify [mode]` |
+| **learn** | Extract reusable patterns from session | `/learn` |
 | **prioritize** | Recommend next issue to work on | `/prioritize` |
 | **plan-cleanup** | Archive plans for closed issues | `/plan-cleanup` |
 | **prime** | Load project context into conversation | `/prime` |
@@ -505,6 +531,44 @@ Loads project context and structure into the conversation.
 ```bash
 /prime
 ```
+
+### /verify
+
+Runs comprehensive quality verification on the codebase.
+
+```bash
+/verify              # Full verification (default)
+/verify quick        # Only build + types
+/verify pre-commit   # Checks relevant for commits
+/verify pre-pr       # Full checks plus security scan
+```
+
+**Checks performed:**
+- Build verification
+- Type checking (TypeScript)
+- Linting (ESLint)
+- Format checking (Prettier)
+- Test suite with coverage
+- Console.log audit
+- Security scan (pre-pr mode)
+
+**Output:** Formatted verification report saved to plan folder.
+
+### /learn
+
+Extracts reusable patterns from the current session.
+
+```bash
+/learn
+```
+
+**What to extract:**
+- Error resolution patterns
+- Debugging techniques
+- Library workarounds
+- Project-specific conventions
+
+**Output:** Creates skill file in `~/.claude/skills/learned/[pattern-name].md`
 
 ---
 
@@ -648,7 +712,26 @@ Each sub-agent in complex tier:
 
 ## Hooks
 
-PostToolUse hooks trigger when plans are written:
+### Session Lifecycle Hooks
+
+| Hook | Script | Purpose |
+|------|--------|---------|
+| **SessionStart** | `memory-persistence/session-start.sh` | Notify of recent sessions |
+| **Stop** | `memory-persistence/session-end.sh` | Save session context |
+| **Stop** | `continuous-learning/evaluate-session.sh` | Extract learned patterns |
+| **PreCompact** | `memory-persistence/pre-compact.sh` | Preserve state before compaction |
+
+### PostToolUse Hooks
+
+| Matcher | Script | Purpose |
+|---------|--------|---------|
+| **Write** | `archive-plan.sh` | Archive plans to dated folder |
+| **Write** | `review-plan.sh` | Send to external reviewers |
+| **Write** | `open-plan-preview.sh` | Open in VS Code preview |
+| **Edit** | `quality-feedback/auto-format.sh` | Run Prettier on JS/TS files |
+| **Edit** | `quality-feedback/type-check.sh` | Run tsc on TS files |
+| **Edit** | `quality-feedback/console-log-warning.sh` | Warn about console.log |
+| **Bash** | `quality-feedback/pr-created-logger.sh` | Log PR URL after creation |
 
 ### archive-plan.sh
 - Copies plans to `.claude/plans/archive/YYYY-MM-DD/`
@@ -709,6 +792,185 @@ issue/[NUMBER]-[description]
 ```
 
 Examples: `issue/5-dispatch-job`, `issue/42-geofencing`
+
+---
+
+## Agents
+
+Specialized agents in `.claude/agents/` provide focused expertise for specific tasks.
+
+| Agent | Purpose | When Used |
+|-------|---------|-----------|
+| **planner** | Implementation planning with risk assessment | Plan generation (medium/complex tiers) |
+| **architect** | System design and scalability decisions | Complex architectural changes |
+| **code-reviewer** | Code quality and security review | Pre-PR review (medium/complex tiers) |
+| **security-reviewer** | OWASP Top 10 vulnerability detection | Security-sensitive changes |
+
+### planner
+
+Produces comprehensive plans including:
+- Risk assessment (technical debt, complexity, dependencies)
+- Phased implementation approach
+- Clear success criteria
+- Affected component estimation
+
+Used by `/plan-check` for medium tier issues.
+
+### code-reviewer
+
+Reviews changes for:
+- Code quality and readability
+- Potential bugs or edge cases
+- Security concerns
+- Performance implications
+- Test coverage adequacy
+
+Returns structured review with APPROVE / REQUEST_CHANGES / COMMENT verdict.
+
+Used by `/execute` Step 8.7 for medium/complex tiers.
+
+---
+
+## Rules
+
+Always-follow guidelines in `.claude/rules/` ensure consistency across all sessions.
+
+| Rule | Key Requirements |
+|------|------------------|
+| **agents.md** | Use planner for complex features, code-reviewer after writing code |
+| **coding-style.md** | Always immutable, many small files over few large files |
+| **security.md** | No hardcoded secrets, validate all inputs, parameterized queries |
+| **testing.md** | 80% coverage minimum, TDD workflow mandatory |
+
+Rules are automatically loaded and apply to all agent sessions.
+
+---
+
+## Memory Persistence
+
+Session context is preserved across sessions using hooks in `.claude/hooks/memory-persistence/`.
+
+### How It Works
+
+| Hook | Trigger | Action |
+|------|---------|--------|
+| **SessionStart** | New session starts | Notifies of recent sessions and learned skills |
+| **Stop** | Session ends | Creates/updates session file with context template |
+| **PreCompact** | Before compaction | Logs compaction event, preserves critical state |
+
+### Session Files
+
+Stored in `~/.claude/sessions/`:
+
+```markdown
+# Session: 2026-01-22
+**Started:** 12:00
+**Last Updated:** 12:45
+
+## Current State
+### Completed
+- [x] Task 1
+### In Progress
+- [ ] Task 2
+### Notes for Next Session
+- Key decision made about X
+```
+
+---
+
+## Continuous Learning
+
+The continuous-learning skill automatically extracts reusable patterns from sessions.
+
+### Automatic Extraction (Stop Hook)
+
+When a session ends with 10+ messages, the system evaluates for extractable patterns:
+- Error resolution patterns
+- Debugging techniques
+- Workarounds for library quirks
+- Project-specific conventions
+
+### Manual Extraction (/learn)
+
+Run `/learn` at any point to extract patterns mid-session:
+
+```bash
+/learn
+```
+
+### Learned Skills
+
+Patterns are saved to `~/.claude/skills/learned/`:
+
+```markdown
+# [Pattern Name]
+
+**Extracted:** 2026-01-22
+**Context:** When handling Supabase real-time subscriptions
+
+## Problem
+[What problem this solves]
+
+## Solution
+[The pattern/technique/workaround]
+
+## When to Use
+[Trigger conditions]
+```
+
+---
+
+## Quality Feedback Hooks
+
+PostToolUse hooks in `.claude/hooks/quality-feedback/` provide immediate feedback during development.
+
+| Hook | Trigger | Action |
+|------|---------|--------|
+| **auto-format.sh** | Edit on .ts/.tsx/.js/.jsx | Runs Prettier to format file |
+| **type-check.sh** | Edit on .ts/.tsx | Runs `tsc --noEmit` and reports errors |
+| **console-log-warning.sh** | Edit on .ts/.tsx/.js/.jsx | Warns if console.log statements found |
+| **pr-created-logger.sh** | Bash with `gh pr create` | Logs PR URL and review command |
+
+### Example Output
+
+```
+[Hook] WARNING: console.log found in src/services/route.ts
+  42: console.log('debug:', data);
+[Hook] Remove console.log before committing
+```
+
+---
+
+## Verification
+
+The `/verify` command runs comprehensive quality checks.
+
+### Usage
+
+```bash
+/verify              # Full verification (default)
+/verify quick        # Only build + types
+/verify pre-commit   # Checks for commits
+/verify pre-pr       # Full + security scan
+```
+
+### Verification Report
+
+```
+═══════════════════════════════════════════════════════════════
+                    VERIFICATION REPORT
+═══════════════════════════════════════════════════════════════
+Status:     ✅ PASS
+Build:      ✅ OK
+Types:      ✅ OK
+Lint:       ✅ OK
+Tests:      ✅ 45/45 passed (87% coverage)
+Console:    ✅ Clean
+Ready for PR: YES
+═══════════════════════════════════════════════════════════════
+```
+
+Reports are saved to plan folders and included in PR bodies.
 
 ---
 
