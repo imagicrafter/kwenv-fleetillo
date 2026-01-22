@@ -428,7 +428,8 @@ export function rowToBooking(row: BookingRow): Booking {
     locationLongitude: row.locations?.longitude ?? undefined,
     routeCode: (row as any).routes?.route_code ?? undefined,
     vehicleId: (row as any).routes?.vehicle_id ?? undefined,
-    vehicleName: (row as any).routes?.vehicles?.unit_number ?? undefined,
+    // vehicleName is populated by the service layer after fetching vehicle data
+    vehicleName: undefined,
   };
 }
 

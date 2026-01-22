@@ -249,7 +249,7 @@ export async function createBooking(input: CreateBookingInput): Promise<Result<B
       .from(BOOKINGS_TABLE)
       .insert(rowData)
       .select(
-        '*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code, vehicle_id, vehicles(unit_number))'
+        '*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code, vehicle_id)'
       )
       .single();
 
@@ -295,7 +295,7 @@ export async function getBookingById(id: string): Promise<Result<Booking>> {
     const { data, error } = await supabase
       .from(BOOKINGS_TABLE)
       .select(
-        '*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code, vehicle_id, vehicles(unit_number))'
+        '*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code, vehicle_id)'
       )
       .eq('id', id)
       .is('deleted_at', null)
@@ -352,7 +352,7 @@ export async function getBookings(
     let query = supabase
       .from(BOOKINGS_TABLE)
       .select(
-        '*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code, vehicle_id, vehicles(unit_number))',
+        '*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code, vehicle_id)',
         { count: 'exact' }
       );
 
@@ -455,6 +455,23 @@ export async function getBookings(
     }
 
     let bookings = (data as BookingRow[]).map(convertRowToBooking);
+
+    // Enrich bookings with vehicle names
+    const vehicleIds = [...new Set(bookings.map(b => b.vehicleId).filter(Boolean))] as string[];
+    if (vehicleIds.length > 0) {
+      const { data: vehicles } = await supabase
+        .from('vehicles')
+        .select('id, unit_number')
+        .in('id', vehicleIds);
+
+      if (vehicles) {
+        const vehicleMap = new Map(vehicles.map(v => [v.id, v.unit_number]));
+        bookings = bookings.map(b => ({
+          ...b,
+          vehicleName: b.vehicleId ? vehicleMap.get(b.vehicleId) : undefined,
+        }));
+      }
+    }
 
     // Client-side filtering for related table fields (customer name, service name, location name)
     // since Supabase .or() doesn't support related table columns
@@ -582,7 +599,7 @@ export async function updateBooking(
       .eq('id', id)
       .is('deleted_at', null)
       .select(
-        '*, customers(name, email), services(name, code), locations(name, latitude, longitude), routes(route_code, vehicle_id, vehicles(unit_number))'
+        '*, customers(name, email), services(name, code), locations(name, latitude, longitude), routes(route_code, vehicle_id)'
       )
       .single();
 
@@ -841,7 +858,7 @@ export async function restoreBooking(id: string): Promise<Result<Booking>> {
       .eq('id', id)
       .not('deleted_at', 'is', null)
       .select(
-        '*, customers(name, email), services(name, code), locations(name, latitude, longitude), routes(route_code, vehicle_id, vehicles(unit_number))'
+        '*, customers(name, email), services(name, code), locations(name, latitude, longitude), routes(route_code, vehicle_id)'
       )
       .single();
 
@@ -949,7 +966,7 @@ export async function getBookingByNumber(bookingNumber: string): Promise<Result<
     const { data, error } = await supabase
       .from(BOOKINGS_TABLE)
       .select(
-        '*, customers(name, email), services(name, code), locations(name, latitude, longitude), routes(route_code, vehicle_id, vehicles(unit_number))'
+        '*, customers(name, email), services(name, code), locations(name, latitude, longitude), routes(route_code, vehicle_id)'
       )
       .eq('booking_number', bookingNumber)
       .is('deleted_at', null)
@@ -1225,7 +1242,7 @@ export async function bulkCreateBookings(
       .from(BOOKINGS_TABLE)
       .insert(rowsData)
       .select(
-        '*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code, vehicle_id, vehicles(unit_number))'
+        '*, customers(name, email), services(name, code, average_duration_minutes), locations(name, latitude, longitude), routes(route_code, vehicle_id)'
       );
 
     if (error) {
