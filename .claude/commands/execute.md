@@ -1436,6 +1436,83 @@ git push -u origin "$BRANCH_NAME"
 echo "✅ Pushed branch: $BRANCH_NAME"
 ```
 
+### 8.7 Optional: Automated Code Review (Medium/Complex Tiers Only)
+
+**Skip for simple tier issues to reduce latency.**
+
+For medium and complex tier issues, spawn the code-reviewer agent to analyze changes before PR creation:
+
+```bash
+# Only run code review for medium/complex tiers
+if [ "$TIER" != "simple" ]; then
+  echo "🔍 Running automated code review..."
+
+  # Get list of changed files
+  CHANGED_FILES=$(git diff origin/main --name-only | grep -E '\.(ts|tsx|js|jsx)$' | head -20)
+
+  if [ -n "$CHANGED_FILES" ]; then
+    # Code review will be performed by spawning code-reviewer agent
+    CODE_REVIEW_NEEDED=true
+  else
+    CODE_REVIEW_NEEDED=false
+    echo "⏭️ No TypeScript/JavaScript files changed, skipping code review"
+  fi
+else
+  CODE_REVIEW_NEEDED=false
+  echo "⏭️ Skipping code review for simple tier"
+fi
+```
+
+**If CODE_REVIEW_NEEDED is true**, spawn the code-reviewer agent:
+
+```
+You are the code-reviewer agent. Review the changes for this PR.
+
+## Agent Reference
+Read and follow the code-reviewer agent instructions at: .claude/agents/code-reviewer.md
+
+## Context
+- Issue: #[ISSUE_NUMBER] - [ISSUE_TITLE]
+- Branch: [BRANCH_NAME]
+- Tier: [TIER]
+
+## Changed Files
+[LIST OF CHANGED_FILES]
+
+## Tasks
+1. Review each changed file for:
+   - Code quality and readability
+   - Potential bugs or edge cases
+   - Security concerns (reference .claude/agents/security-reviewer.md if needed)
+   - Performance implications
+   - Test coverage adequacy
+
+2. Generate a brief review summary (3-5 bullet points)
+
+3. Flag any blocking issues that should be addressed before merge
+
+Return a structured review:
+- SUMMARY: [2-3 sentence overview]
+- ISSUES: [list of concerns, or "None"]
+- SUGGESTIONS: [optional improvements]
+- VERDICT: [APPROVE / REQUEST_CHANGES / COMMENT]
+```
+
+**Store the review result:**
+
+```bash
+CODE_REVIEW_SUMMARY="[Agent's summary response]"
+CODE_REVIEW_VERDICT="[APPROVE/REQUEST_CHANGES/COMMENT]"
+
+# If blocking issues found, report but continue (don't block PR creation)
+if [ "$CODE_REVIEW_VERDICT" = "REQUEST_CHANGES" ]; then
+  echo "⚠️ Code review found issues to address:"
+  echo "$CODE_REVIEW_SUMMARY"
+  echo ""
+  echo "Continuing with PR creation - issues will be noted in PR body."
+fi
+```
+
 ---
 
 ## Step 9: Create Pull Request (FINAL DELIVERABLE)
@@ -1491,6 +1568,15 @@ $(if [ -n "$FILES_DELETED" ]; then echo "$FILES_DELETED" | sed 's/^/- \`/' | sed
 
 **Verification**: $VERIFICATION_STATUS
 **Report**: \`$PLAN_FOLDER/verification-report.txt\`
+
+$(if [ "$CODE_REVIEW_NEEDED" = true ]; then
+echo "## Automated Code Review
+
+**Verdict**: $CODE_REVIEW_VERDICT
+
+$CODE_REVIEW_SUMMARY
+"
+fi)
 
 ---
 
