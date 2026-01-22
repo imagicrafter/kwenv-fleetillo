@@ -27,6 +27,7 @@ function rowToDriver(row) {
         emergencyContactPhone: row.emergency_contact_phone ?? undefined,
         notes: row.notes ?? undefined,
         profileImageUrl: row.profile_image_url ?? undefined,
+        tags: row.tags ?? [],
         createdAt: new Date(row.created_at),
         updatedAt: new Date(row.updated_at),
         deletedAt: row.deleted_at ? new Date(row.deleted_at) : undefined,
@@ -71,6 +72,7 @@ function driverInputToRow(input) {
         emergency_contact_phone: input.emergencyContactPhone ?? null,
         notes: input.notes ?? null,
         profile_image_url: input.profileImageUrl ?? null,
+        tags: input.tags ?? [],
     };
 }
 //# sourceMappingURL=driver.js.map

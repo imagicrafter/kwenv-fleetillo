@@ -25,8 +25,11 @@ gh pr list --state merged --limit 10 --json number,title,mergedAt
 # Recent commits
 git log main --oneline -15
 
-# Planned issues
+# Planned issues (medium/complex with planning docs)
 gh issue list --label "plan ready" --json number,title,labels,body
+
+# Simple issues (bugs/quick fixes - no planning docs needed)
+gh issue list --label "plan: simple" --json number,title,labels,body
 
 # Plan folders
 ls -1 .claude/plans/ | grep "^issue-"
@@ -62,10 +65,11 @@ git branch -r | grep -i "issue/"
 ## Step 4: Prioritize
 
 **Priority order:**
-1. **Unblocked** - All dependencies resolved (or none)
-2. **Contextual** - Related to recent PR work
-3. **Foundational** - Unlocks other blocked issues
-4. **Quick wins** - Simple tier before complex
+1. **Bugs first** - Bug fixes before enhancements
+2. **Unblocked** - All dependencies resolved (or none)
+3. **Contextual** - Related to recent PR work
+4. **Foundational** - Unlocks other blocked issues
+5. **Quick wins** - Simple tier before complex
 
 **Deprioritize:**
 - Issues with open dependencies
@@ -80,12 +84,13 @@ git branch -r | grep -i "issue/"
 ### Recent Context
 [1-2 sentences on recent work]
 
-### Planned Issues
+### Issues
 
-| Issue | Tier | Dependencies | Status |
-|-------|------|--------------|--------|
-| #N - Title | medium | None | Ready |
-| #N - Title | complex | #X | Blocked |
+| Issue | Type | Tier | Dependencies | Status |
+|-------|------|------|--------------|--------|
+| #N - Title | bug | simple | None | Ready |
+| #N - Title | enhancement | medium | None | Ready |
+| #N - Title | enhancement | complex | #X | Blocked |
 
 ### Recommendation
 

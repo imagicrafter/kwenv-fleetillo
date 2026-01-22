@@ -351,6 +351,7 @@ const rpcMap = {
         getByEntity: activityService.getActivitiesByEntity
     },
     settings: {
+        getSetting: settingsService.getSetting,
         getAll: settingsService.getAllSettings,
         getRouteSettings: settingsService.getRouteSettings,
         update: settingsService.updateSetting,

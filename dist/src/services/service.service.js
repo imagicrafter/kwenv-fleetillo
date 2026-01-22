@@ -424,6 +424,10 @@ async function getServices(filters, pagination) {
         // Use admin client if available to bypass RLS permissions
         const supabase = (0, supabase_js_1.getAdminSupabaseClient)() || (0, supabase_js_1.getSupabaseClient)();
         let query = supabase.from(SERVICES_TABLE).select('*', { count: 'exact' });
+        // Filter out soft-deleted records by default
+        if (!filters?.includeDeleted) {
+            query = query.is('deleted_at', null);
+        }
         if (filters?.searchTerm) {
             query = query.or(`name.ilike.%${filters.searchTerm}%,code.ilike.%${filters.searchTerm}%`);
         }

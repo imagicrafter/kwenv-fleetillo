@@ -18,9 +18,21 @@ export const SettingKeys = {
     COSTS_INCLUDE_TRAFFIC_BUFFER: 'costs.includeTrafficBuffer',
     // Dashboard settings
     DASHBOARD_SHOW_CHATBOT: 'dashboard.showChatbot',
+    // Location settings
+    LOCATIONS_CUSTOM_FIELDS: 'locations.customFields',
 } as const;
 
 export type SettingKey = (typeof SettingKeys)[keyof typeof SettingKeys];
+
+export interface CustomFieldDefinition {
+    key: string;
+    label: string;
+    type: 'text' | 'number' | 'boolean' | 'select';
+    required: boolean;
+    options?: string[]; // For 'select' type
+    defaultValue?: unknown;
+    suffix?: string; // e.g. "gallons"
+}
 
 // Unit system type
 export type UnitSystem = 'imperial' | 'metric';

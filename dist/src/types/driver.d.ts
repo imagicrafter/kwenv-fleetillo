@@ -28,6 +28,7 @@ export interface Driver extends Timestamps {
     emergencyContactPhone?: string;
     notes?: string;
     profileImageUrl?: string;
+    tags: string[];
     assignedVehicleId?: ID;
     deletedAt?: Date;
 }
@@ -53,6 +54,7 @@ export interface DriverRow {
     emergency_contact_phone: string | null;
     notes: string | null;
     profile_image_url: string | null;
+    tags: string[] | null;
     created_at: string;
     updated_at: string;
     deleted_at: string | null;
@@ -79,6 +81,7 @@ export interface CreateDriverInput {
     emergencyContactPhone?: string;
     notes?: string;
     profileImageUrl?: string;
+    tags?: string[];
 }
 /**
  * Input for updating an existing driver

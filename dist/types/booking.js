@@ -18,14 +18,19 @@ function rowToBooking(row) {
         customerId: row.customer_id,
         serviceId: row.service_id ?? undefined, // DEPRECATED
         serviceIds: row.service_ids ?? (row.service_id ? [row.service_id] : []),
-        serviceItems: row.service_items ?? (row.service_id && serviceName ? [{
-                serviceId: row.service_id,
-                name: serviceName,
-                quantity: 1,
-                unitPrice: row.quoted_price ?? 0,
-                total: row.quoted_price ?? 0,
-                duration: row.estimated_duration_minutes ?? 0
-            }] : []),
+        serviceItems: row.service_items ??
+            (row.service_id && serviceName
+                ? [
+                    {
+                        serviceId: row.service_id,
+                        name: serviceName,
+                        quantity: 1,
+                        unitPrice: row.quoted_price ?? 0,
+                        total: row.quoted_price ?? 0,
+                        duration: row.estimated_duration_minutes ?? 0,
+                    },
+                ]
+                : []),
         routeId: row.route_id ?? undefined,
         locationId: row.location_id ?? undefined,
         // Route assignment
@@ -70,6 +75,9 @@ function rowToBooking(row) {
         confirmationSent: row.confirmation_sent,
         // Metadata
         tags: row.tags ?? undefined,
+        // CRM tracking
+        crmStatus: row.crm_status ?? undefined,
+        crmId: row.crm_id ?? undefined,
         // Audit timestamps
         createdAt: new Date(row.created_at),
         updatedAt: new Date(row.updated_at),
@@ -84,6 +92,9 @@ function rowToBooking(row) {
         locationLatitude: row.locations?.latitude ?? undefined,
         locationLongitude: row.locations?.longitude ?? undefined,
         routeCode: row.routes?.route_code ?? undefined,
+        vehicleId: row.routes?.vehicle_id ?? undefined,
+        // vehicleName is populated by the service layer after fetching vehicle data
+        vehicleName: undefined,
     };
 }
 /**
@@ -130,6 +141,9 @@ function bookingInputToRow(input) {
         reminder_sent: input.reminderSent ?? false,
         confirmation_sent: input.confirmationSent ?? false,
         tags: input.tags ?? null,
+        // CRM tracking
+        crm_status: input.crmStatus ?? null,
+        crm_id: input.crmId ?? null,
     };
 }
 /**
@@ -162,9 +176,10 @@ function updateBookingInputToRow(input) {
     if (input.parentBookingId !== undefined)
         row.parent_booking_id = input.parentBookingId ?? null;
     if (input.scheduledDate !== undefined) {
-        row.scheduled_date = typeof input.scheduledDate === 'string'
-            ? input.scheduledDate
-            : input.scheduledDate.toISOString().split('T')[0];
+        row.scheduled_date =
+            typeof input.scheduledDate === 'string'
+                ? input.scheduledDate
+                : input.scheduledDate.toISOString().split('T')[0];
     }
     if (input.recurrenceEndDate !== undefined) {
         row.recurrence_end_date = input.recurrenceEndDate
@@ -218,16 +233,23 @@ function updateBookingInputToRow(input) {
     // Metadata
     if (input.tags !== undefined)
         row.tags = input.tags ?? null;
+    // CRM tracking
+    if (input.crmStatus !== undefined)
+        row.crm_status = input.crmStatus ?? null;
+    if (input.crmId !== undefined)
+        row.crm_id = input.crmId ?? null;
     // Update-specific fields
     if (input.actualStartTime !== undefined) {
-        row.actual_start_time = typeof input.actualStartTime === 'string'
-            ? input.actualStartTime
-            : input.actualStartTime.toISOString();
+        row.actual_start_time =
+            typeof input.actualStartTime === 'string'
+                ? input.actualStartTime
+                : input.actualStartTime.toISOString();
     }
     if (input.actualEndTime !== undefined) {
-        row.actual_end_time = typeof input.actualEndTime === 'string'
-            ? input.actualEndTime
-            : input.actualEndTime.toISOString();
+        row.actual_end_time =
+            typeof input.actualEndTime === 'string'
+                ? input.actualEndTime
+                : input.actualEndTime.toISOString();
     }
     if (input.actualDurationMinutes !== undefined) {
         row.actual_duration_minutes = input.actualDurationMinutes;

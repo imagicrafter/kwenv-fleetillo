@@ -48,7 +48,8 @@
       "WebFetch(domain:developers.googleblog.com)",
       "WebFetch(domain:docs.anthropic.com)",
       "WebFetch(domain:github.com)",
-      "Skill(execute)"
+      "Skill(execute)",
+      "Skill(spawn-cmd)"
     ]
   },
   "hooks": {

@@ -454,39 +454,15 @@
                 <div class="settings-container">
                     <!-- Tab Navigation -->
                     <div class="tabs">
-                        <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
-                        <button class="tab-btn" onclick="switchTab('planning')">Planning</button>
+                        <button class="tab-btn active" onclick="switchTab('planning')">Planning</button>
                         <button class="tab-btn" onclick="switchTab('fleet')">Fleet</button>
                         <button class="tab-btn" onclick="switchTab('routes')">Routes</button>
                         <button class="tab-btn" onclick="switchTab('data')">Data</button>
-                    </div>
-
-                    <!-- Dashboard Tab (Content) -->
-                    <div id="tab-dashboard" class="tab-content active">
-                        <div class="settings-section">
-                            <h3>
-                                <span class="icon">📊</span>
-                                Dashboard Display
-                            </h3>
-                            <div class="setting-row">
-                                <div class="setting-info">
-                                    <div class="setting-label">Show Chatbot Agent</div>
-                                    <div class="setting-description">Enable the AI assistant on the dashboard. When
-                                        disabled, an application overview will be shown instead.</div>
-                                </div>
-                                <div class="setting-control">
-                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                        <input type="checkbox" id="dashboard-show-chatbot" checked
-                                            style="width: 18px; height: 18px;">
-                                        <span style="color: var(--text-secondary);">Enabled</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
+                        <button class="tab-btn" onclick="switchTab('custom-fields')">Custom Fields</button>
                     </div>
 
                     <!-- Planning Tab (Content) -->
-                    <div id="tab-planning" class="tab-content">
+                    <div id="tab-planning" class="tab-content active">
                         <!-- Work Schedule Section -->
                         <div class="settings-section">
                             <h3>
@@ -774,6 +750,29 @@
                         </div>
                     </div>
 
+                    <!-- Custom Fields Tab (Content) -->
+                    <div id="tab-custom-fields" class="tab-content">
+                        <div class="settings-section">
+                            <h3>
+                                <span class="icon">📝</span>
+                                Location Custom Fields
+                            </h3>
+                            <div class="setting-description" style="margin-bottom: 24px;">
+                                Define custom fields to collect specific data for locations. These fields will
+                                automatically appear on the Location form.
+                            </div>
+
+                            <div id="custom-fields-list">
+                                <!-- Fields will be rendered here -->
+                            </div>
+
+                            <button class="btn-secondary" onclick="addCustomField()"
+                                style="margin-top: 16px; width: 100%;">
+                                + Add Custom Field
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Save Button -->
                     <button class="btn-primary save-btn" onclick="saveSettings()">
                         💾 Save Settings
@@ -791,6 +790,7 @@
         // State
         let currentUnitSystem = 'imperial';
         let originalSettings = {};
+        let customFields = [];
 
         // Initialize
         document.addEventListener('DOMContentLoaded', loadSettings);
@@ -798,6 +798,7 @@
         // Load settings from server
         async function loadSettings() {
             try {
+                // Load Route Settings
                 const settings = await window.electronAPI.settings.getRouteSettings();
                 if (settings) {
                     originalSettings = settings;
@@ -823,15 +824,13 @@
 
                         document.getElementById('traffic-buffer').value = settings.routing.trafficBufferPercent || 20;
                         document.getElementById('default-service-duration').value = settings.routing.defaultServiceDurationMinutes || 30;
-
-                        // Dashboard
-                        if (settings.dashboard) {
-                            document.getElementById('dashboard-show-chatbot').checked = settings.dashboard.showChatbot !== false;
-                        }
                     }
 
                     // Cost Settings (load from allSettings if available)
-                    const allSettings = await window.electronAPI.settings.getAll();
+                    const allSettingsResult = await window.electronAPI.settings.getAll();
+                    // Handling Result wrapper if present, otherwise assuming direct data
+                    const allSettings = (allSettingsResult && allSettingsResult.success) ? allSettingsResult.data : allSettingsResult;
+
                     if (allSettings) {
                         document.getElementById('labor-rate').value = allSettings['costs.laborRatePerHour'] || 50;
                         document.getElementById('gasoline-price').value = allSettings['costs.gasolinePricePerGallon'] || 3.50;
@@ -842,6 +841,14 @@
                         // Data Settings
                         const enableImport = allSettings['data.enableImportBookings'];
                         document.getElementById('enable-import-bookings').checked = enableImport !== false; // Default true
+
+                        // Custom Fields
+                        const savedCustomFields = allSettings['locations.customFields'];
+                        if (savedCustomFields && Array.isArray(savedCustomFields)) {
+                            renderCustomFields(savedCustomFields);
+                        } else {
+                            renderCustomFields([]);
+                        }
                     }
 
                     updateComputedValues();
@@ -850,6 +857,96 @@
                 console.error('Failed to load settings:', error);
                 showToast('Failed to load settings', true);
             }
+        }
+
+        // Custom Fields Logic
+        function renderCustomFields(fields) {
+            customFields = fields || [];
+            const container = document.getElementById('custom-fields-list');
+            container.innerHTML = '';
+
+            if (customFields.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">No custom fields defined. Click "Add Custom Field" to create one.</div>';
+                return;
+            }
+
+            customFields.forEach((field, index) => {
+                const row = document.createElement('div');
+                row.className = 'setting-row';
+                row.style.alignItems = 'flex-start';
+                row.innerHTML = `
+                    <div style="flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: start;">
+                        <div>
+                            <div class="setting-label" style="font-size: 0.8rem;">Label</div>
+                            <input type="text" value="${field.label}" onchange="updateCustomField(${index}, 'label', this.value)" placeholder="e.g. Trap Count" style="width: 100%;">
+                        </div>
+                        <div>
+                            <div class="setting-label" style="font-size: 0.8rem;">Type</div>
+                            <select onchange="updateCustomField(${index}, 'type', this.value)" style="width: 100%;">
+                                <option value="text" ${field.type === 'text' ? 'selected' : ''}>Text</option>
+                                <option value="number" ${field.type === 'number' ? 'selected' : ''}>Number</option>
+                                <option value="boolean" ${field.type === 'boolean' ? 'selected' : ''}>Checkbox (Yes/No)</option>
+                                <option value="select" ${field.type === 'select' ? 'selected' : ''}>Dropdown</option>
+                            </select>
+                        </div>
+                        <div>
+                            <div class="setting-label" style="font-size: 0.8rem;">Key (Auto-generated)</div>
+                            <input type="text" value="${field.key}" readonly style="width: 100%; background: var(--surface-bg); color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 4px; padding: 10px;">
+                        </div>
+                        <div style="padding-top: 24px;">
+                            <button class="btn-icon" onclick="removeCustomField(${index})" style="color: var(--error-color); background: none; border: none; cursor: pointer;" title="Remove Field">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                        </div>
+                        <div style="grid-column: span 4; display: flex; gap: 16px; align-items: center;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" ${field.required ? 'checked' : ''} onchange="updateCustomField(${index}, 'required', this.checked)">
+                                <span style="font-size: 0.9rem;">Required</span>
+                            </label>
+                            ${field.type === 'number' ? `
+                                <input type="text" value="${field.suffix || ''}" onchange="updateCustomField(${index}, 'suffix', this.value)" placeholder="Suffix (e.g. gallons)" style="width: 150px;">
+                            ` : ''}
+                             ${field.type === 'select' ? `
+                                <input type="text" value="${(field.options || []).join(', ')}" onchange="updateCustomField(${index}, 'options', this.value)" placeholder="Options (comma separated)" style="width: 100%;">
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function addCustomField() {
+            customFields.push({
+                key: 'field_' + Date.now(),
+                label: '',
+                type: 'text',
+                required: false
+            });
+            renderCustomFields(customFields);
+        }
+
+        function removeCustomField(index) {
+            if (confirm('Are you sure you want to remove this field? Existing data will be preserved in the database but hidden from the form.')) {
+                customFields.splice(index, 1);
+                renderCustomFields(customFields);
+            }
+        }
+
+        function updateCustomField(index, prop, value) {
+            if (prop === 'options') {
+                // Split comma-separated string into array
+                value = value.split(',').map(s => s.trim()).filter(s => s);
+            }
+
+            customFields[index][prop] = value;
+
+            if (prop === 'label') {
+                // Auto-generate key from label
+                const newKey = value.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                if (newKey) customFields[index].key = newKey;
+            }
+            renderCustomFields(customFields);
         }
 
         // Update computed values
@@ -944,9 +1041,6 @@
             try {
                 // Collect values
                 const settingsToUpdate = {
-                    // Dashboard
-                    'dashboard.showChatbot': document.getElementById('dashboard-show-chatbot').checked,
-
                     // Schedule
                     'schedule.dayStartTime': document.getElementById('day-start-time').value,
                     'schedule.dayEndTime': document.getElementById('day-end-time').value,
@@ -965,7 +1059,10 @@
                     'costs.includeTrafficBuffer': document.getElementById('include-traffic-buffer').checked,
 
                     // Data
-                    'data.enableImportBookings': document.getElementById('enable-import-bookings').checked
+                    'data.enableImportBookings': document.getElementById('enable-import-bookings').checked,
+
+                    // Custom Fields
+                    'locations.customFields': customFields
                 };
 
                 // Add to original to preserve other fields if needed, but updateMultiple upserts

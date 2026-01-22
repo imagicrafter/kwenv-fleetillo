@@ -5,7 +5,7 @@
  * Cleans up database connections and resources.
  */
 
-import { resetSupabaseClient } from '../../src/services/supabase.js';
+import { resetSupabaseClient } from '../../src/services/supabase';
 
 export default async function globalTeardown(): Promise<void> {
   console.log('\n' + '='.repeat(60));

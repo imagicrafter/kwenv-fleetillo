@@ -248,7 +248,7 @@
             color: var(--text-primary);
         }
 
-        .booking-client {
+        .booking-customer {
             color: var(--text-secondary);
             margin-left: 4px;
         }
@@ -500,37 +500,50 @@
             text-overflow: ellipsis;
         }
 
-        /* Status Colors */
+        /* Status Colors - Enhanced for better visibility */
         .status-confirmed {
-            background: rgba(63, 185, 80, 0.2);
+            background: rgba(63, 185, 80, 0.35);
             border-color: var(--accent-success);
+            color: #1a5928;
         }
 
         .status-scheduled {
-            background: rgba(88, 166, 255, 0.2);
+            background: rgba(88, 166, 255, 0.35);
             border-color: var(--accent-primary);
+            color: #0d3a75;
         }
 
         .status-in_progress {
-            background: rgba(163, 113, 247, 0.2);
+            background: rgba(163, 113, 247, 0.35);
             border-color: #a371f7;
+            color: #3d1d70;
         }
 
         .status-completed {
-            background: rgba(63, 185, 80, 0.15);
+            background: rgba(63, 185, 80, 0.25);
             border-color: #3fb950;
+            color: #1a5928;
             opacity: 0.8;
         }
 
         .status-pending {
-            background: rgba(210, 153, 34, 0.2);
+            background: rgba(210, 153, 34, 0.35);
             border-color: var(--accent-warning);
+            color: #5c3d0a;
         }
 
         .status-cancelled {
-            background: rgba(248, 81, 73, 0.2);
+            background: rgba(248, 81, 73, 0.35);
             border-color: var(--accent-danger);
+            color: #7a1f1a;
             opacity: 0.6;
+        }
+
+        .status-no_show {
+            background: rgba(248, 81, 73, 0.25);
+            border-color: var(--accent-danger);
+            color: #7a1f1a;
+            opacity: 0.7;
         }
 
         /* Booking Detail Popup */
@@ -665,32 +678,37 @@
 
         .legend-color.pending {
             border-color: var(--accent-warning);
-            background: rgba(210, 153, 34, 0.15);
+            background: rgba(210, 153, 34, 0.35);
         }
 
         .legend-color.confirmed {
             border-color: var(--accent-success);
-            background: rgba(63, 185, 80, 0.15);
+            background: rgba(63, 185, 80, 0.35);
         }
 
         .legend-color.scheduled {
             border-color: var(--accent-primary);
-            background: rgba(88, 166, 255, 0.15);
+            background: rgba(88, 166, 255, 0.35);
         }
 
         .legend-color.in_progress {
             border-color: #a371f7;
-            background: rgba(163, 113, 247, 0.15);
+            background: rgba(163, 113, 247, 0.35);
         }
 
         .legend-color.completed {
             border-color: #3fb950;
-            background: rgba(63, 185, 80, 0.1);
+            background: rgba(63, 185, 80, 0.25);
         }
 
         .legend-color.cancelled {
             border-color: var(--accent-danger);
-            background: rgba(248, 81, 73, 0.15);
+            background: rgba(248, 81, 73, 0.35);
+        }
+
+        .legend-color.no_show {
+            border-color: var(--accent-danger);
+            background: rgba(248, 81, 73, 0.25);
         }
 
         /* Loading state */
@@ -942,8 +960,8 @@
                                 <option value="cancelled">Cancelled</option>
                                 <option value="no_show">No Show</option>
                             </select>
-                            <select class="filter-select" id="client-filter">
-                                <option value="">All Clients</option>
+                            <select class="filter-select" id="customer-filter">
+                                <option value="">All Customers</option>
                             </select>
                         </div>
                     </div>
@@ -1003,6 +1021,10 @@
                             <div class="legend-color cancelled"></div>
                             <span>Cancelled</span>
                         </div>
+                        <div class="legend-item">
+                            <div class="legend-color no_show"></div>
+                            <span>No Show</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1027,8 +1049,8 @@
         </div>
         <div class="popup-detail">
             <span class="popup-detail-icon">👤</span>
-            <span class="popup-detail-label">Client:</span>
-            <span class="popup-detail-value" id="popup-client">-</span>
+            <span class="popup-detail-label">Customer:</span>
+            <span class="popup-detail-value" id="popup-customer">-</span>
         </div>
         <div class="popup-detail">
             <span class="popup-detail-icon">🔧</span>
@@ -1302,7 +1324,7 @@
             let currentDate = new Date();
             let currentView = 'day';
             let bookings = [];
-            let allClients = [];
+            let allCustomers = [];
             let allVehicles = [];
             let selectedBookingId = null;
             let isEditing = false;
@@ -1318,7 +1340,7 @@
             const dayView = document.getElementById('day-view');
             const viewToggleBtns = document.querySelectorAll('.view-toggle-btn');
             const statusFilter = document.getElementById('status-filter');
-            const clientFilter = document.getElementById('client-filter');
+            const customerFilter = document.getElementById('customer-filter');
             const bookingPopup = document.getElementById('booking-popup');
             const searchInput = document.getElementById('search-input');
 
@@ -1464,7 +1486,7 @@
 
             // Filters
             statusFilter.addEventListener('change', () => loadBookings());
-            clientFilter.addEventListener('change', () => loadBookings());
+            customerFilter.addEventListener('change', () => loadBookings());
 
             // Search
             let searchTimeout;
@@ -1522,8 +1544,8 @@
                         filters.status = statusFilter.value;
                     }
 
-                    if (clientFilter.value) {
-                        filters.clientId = clientFilter.value;
+                    if (customerFilter.value) {
+                        filters.customerId = customerFilter.value;
                     }
 
                     if (searchTerm) {
@@ -1552,22 +1574,22 @@
             }
 
             // Load clients for filter dropdown
-            async function loadClients() {
+            async function loadCustomers() {
                 try {
-                    const response = await window.electronAPI.clients.getAll({ limit: 1000 });
-                    const clients = response.data || response || [];
-                    allClients = Array.isArray(clients) ? clients : [];
+                    const response = await window.electronAPI.customers.getAll({ limit: 1000 });
+                    const customers = response.data || response || [];
+                    allCustomers = Array.isArray(clients) ? clients : [];
 
                     // Populate client filter
-                    clientFilter.innerHTML = '<option value="">All Clients</option>';
-                    allClients.forEach(client => {
+                    customerFilter.innerHTML = '<option value="">All Customers</option>';
+                    allCustomers.forEach(client => {
                         const option = document.createElement('option');
                         option.value = client.id;
                         option.textContent = client.name;
-                        clientFilter.appendChild(option);
+                        customerFilter.appendChild(option);
                     });
                 } catch (error) {
-                    console.error('Error loading clients:', error);
+                    console.error('Error loading customers:', error);
                 }
             }
 
@@ -1867,9 +1889,7 @@
                             bDiv.style.top = `${topOffset + 2}px`;
 
                             bDiv.innerHTML = `
-                                <div class="title">${booking.clientName || 'Client'}</div>
-                                <div class="subtitle">${booking.serviceName || 'Service'}</div>
-                                <div class="subtitle">${formatTime(booking.scheduledStartTime)} - ${formatTime(booking.scheduledEndTime || '??')}</div>
+                                <div class="title">${booking.customerName || booking.clientName || 'Unknown Customer'}</div>
                             `;
 
                             bDiv.addEventListener('click', (e) => {
@@ -1915,7 +1935,7 @@
                 const vehicleDisplay = booking.vehicleName ? `<span class="booking-vehicle">[${booking.vehicleName}]</span>` : '';
                 event.innerHTML = `
                     <span class="booking-time">${formatTime(booking.scheduledStartTime)}</span>
-                    <span class="booking-client">${booking.customerName || booking.clientName || 'Unknown'}</span>
+                    <span class="booking-customer">${booking.customerName || booking.clientName || 'Unknown'}</span>
                     ${vehicleDisplay}
                 `;
                 event.addEventListener('click', (e) => {
@@ -1932,7 +1952,7 @@
                 document.getElementById('popup-title').textContent = booking.bookingNumber || 'Booking Details';
                 document.getElementById('popup-date').textContent = parseBookingDate(booking.scheduledDate)?.toLocaleDateString() || '-';
                 document.getElementById('popup-time').textContent = formatTime(booking.scheduledStartTime) || '-';
-                document.getElementById('popup-client').textContent = booking.customerName || booking.clientName || 'Unknown';
+                document.getElementById('popup-customer').textContent = booking.customerName || booking.clientName || 'Unknown';
                 document.getElementById('popup-service').textContent = booking.serviceName || 'Unknown';
                 document.getElementById('popup-status').textContent = booking.status || '-';
                 document.getElementById('popup-status').style.cssText = getStatusBadge(booking.status).style + 'padding: 2px 8px; border-radius: 10px;';
@@ -2040,8 +2060,8 @@
                     document.getElementById('special-instructions').value = booking.specialInstructions || '';
 
                     // Set client
-                    if (booking.clientId) {
-                        selectClient({ id: booking.clientId, name: booking.clientName || 'Unknown Client' });
+                    if (booking.customerId) {
+                        selectClient({ id: booking.customerId, name: booking.clientName || 'Unknown Client' });
                     } else {
                         clearClientBtn.click();
                     }
@@ -2086,7 +2106,7 @@
                 e.preventDefault();
 
                 const bookingData = {
-                    clientId: document.getElementById('client-id').value,
+                    customerId: document.getElementById('client-id').value,
                     serviceId: document.getElementById('service-id').value,
                     scheduledDate: document.getElementById('scheduled-date').value,
                     scheduledStartTime: document.getElementById('scheduled-start-time').value,
@@ -2114,7 +2134,7 @@
 
             // Client search
             const clientSearchInput = document.getElementById('client-search');
-            const clientIdInput = document.getElementById('client-id');
+            const customerIdInput = document.getElementById('client-id');
             const clientSearchResults = document.getElementById('client-search-results');
             const selectedClientDisplay = document.getElementById('selected-client-display');
             const selectedClientName = document.getElementById('selected-client-name');
@@ -2132,8 +2152,8 @@
 
                 clientSearchTimeout = setTimeout(async () => {
                     try {
-                        const result = await window.electronAPI.clients.getAll({ searchTerm: term, limit: 5 });
-                        const clients = result.data?.data || result.data || result || [];
+                        const result = await window.electronAPI.customers.getAll({ searchTerm: term, limit: 5 });
+                        const customers = result.data?.data || result.data || result || [];
                         renderClientResults(clients);
                     } catch (err) {
                         console.error('Client search failed', err);
@@ -2160,7 +2180,7 @@
             }
 
             function selectClient(client) {
-                clientIdInput.value = client.id;
+                customerIdInput.value = client.id;
                 selectedClientName.textContent = client.name;
                 clientSearchInput.style.display = 'none';
                 clientSearchResults.style.display = 'none';
@@ -2168,7 +2188,7 @@
             }
 
             clearClientBtn.addEventListener('click', () => {
-                clientIdInput.value = '';
+                customerIdInput.value = '';
                 selectedClientDisplay.style.display = 'none';
                 clientSearchInput.style.display = 'block';
                 clientSearchInput.value = '';
@@ -2261,7 +2281,7 @@
             });
 
             // Initialize
-            loadClients();
+            loadCustomers();
 
             // Initialize calendar: default to Day view showing next scheduled route date
             (async function initCalendar() {

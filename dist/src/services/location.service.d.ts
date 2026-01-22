@@ -2,13 +2,26 @@
  * Location Service
  *
  * Provides CRUD operations and business logic for managing locations
- * in the RouteIQ application.
+ * in the Fleetillo application.
  */
 import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
+/**
+ * Location metadata for site-specific requirements
+ */
+export interface LocationMetadata {
+    capacityGallons?: number;
+    trapCount?: number;
+    serviceFrequencyWeeks?: number;
+    hoseLengthReq?: string;
+    requiresTanker?: boolean;
+    preferredServiceTime?: string;
+    capacityNotes?: string;
+    [key: string]: unknown;
+}
 export interface Location {
     id: string;
-    clientId?: string | null;
-    clientName?: string;
+    customerId?: string | null;
+    customerName?: string;
     name: string;
     locationType: 'client' | 'depot' | 'disposal' | 'maintenance' | 'home' | 'other';
     addressLine1: string;
@@ -21,6 +34,8 @@ export interface Location {
     longitude?: number | null;
     isPrimary: boolean;
     notes?: string | null;
+    tags: string[];
+    metadata?: LocationMetadata;
     createdAt: string;
     updatedAt: string;
     deletedAt?: string | null;
@@ -42,13 +57,13 @@ export declare function getLocationById(id: string): Promise<Result<Location>>;
  */
 export declare function getAllLocations(filters?: {
     type?: string;
-    clientId?: string;
+    customerId?: string;
     searchTerm?: string;
 }, pagination?: PaginationParams): Promise<Result<PaginatedResponse<Location>>>;
 /**
- * Gets all locations for a client
+ * Gets all locations for a customer
  */
-export declare function getClientLocations(clientId: string): Promise<Result<Location[]>>;
+export declare function getCustomerLocations(customerId: string): Promise<Result<Location[]>>;
 /**
  * Updates a location
  */

@@ -5,7 +5,7 @@
  * connection verification, and error handling for the RouteIQ application.
  */
 import { type SupabaseClient } from '@supabase/supabase-js';
-import type { Result } from '../types/index.js';
+import type { Result } from '../types/index';
 /**
  * Generic Supabase client type that accepts any schema
  */

@@ -86,6 +86,8 @@ export interface Booking extends Timestamps {
     reminderSent: boolean;
     confirmationSent: boolean;
     tags?: string[];
+    crmStatus?: string;
+    crmId?: string;
     deletedAt?: Date;
     customerName?: string;
     customerEmail?: string;
@@ -96,6 +98,8 @@ export interface Booking extends Timestamps {
     locationLatitude?: number;
     locationLongitude?: number;
     routeCode?: string;
+    vehicleId?: ID;
+    vehicleName?: string;
 }
 /**
  * Database row representation (snake_case as stored in Supabase)
@@ -139,6 +143,8 @@ export interface BookingRow {
     reminder_sent: boolean;
     confirmation_sent: boolean;
     tags: string[] | null;
+    crm_status: string | null;
+    crm_id: string | null;
     created_at: string;
     updated_at: string;
     deleted_at: string | null;
@@ -196,6 +202,8 @@ export interface CreateBookingInput {
     reminderSent?: boolean;
     confirmationSent?: boolean;
     tags?: string[];
+    crmStatus?: string;
+    crmId?: string;
 }
 /**
  * Input for updating an existing booking

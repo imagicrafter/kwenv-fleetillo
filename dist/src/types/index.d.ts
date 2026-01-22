@@ -3,7 +3,7 @@
  */
 export * from './logger.js';
 export * from './errors.js';
-export * from './client.js';
+export * from './customer.js';
 export * from './service.js';
 export * from './vehicle.js';
 export * from './driver.js';

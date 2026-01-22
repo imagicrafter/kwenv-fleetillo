@@ -69,9 +69,16 @@ const createApp = () => {
     });
     // Health check route (no prefix)
     app.use('/health', health_routes_js_1.default);
-    // Static files serving - serves from dist/public when built, or src/public in dev
-    const publicPath = path_1.default.join(process.cwd(), 'dist', 'public');
-    app.use('/ui', express_1.default.static(publicPath));
+    // Static files serving
+    // In development, prioritize shared/public (source)
+    // In production, use dist/public (build artifact)
+    if (process.env.NODE_ENV === 'development') {
+        app.use('/ui', express_1.default.static(path_1.default.join(process.cwd(), 'shared', 'public')));
+        app.use('/ui', express_1.default.static(path_1.default.join(process.cwd(), 'src', 'public')));
+    }
+    else {
+        app.use('/ui', express_1.default.static(path_1.default.join(process.cwd(), 'dist', 'public')));
+    }
     // API routes with prefix
     app.use(`${index_js_1.config.api.prefix}/${index_js_1.config.api.version}`, index_js_2.default);
     // 404 handler
