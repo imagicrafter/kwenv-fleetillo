@@ -1090,16 +1090,16 @@
                     <input type="hidden" id="booking-id">
 
                     <div class="form-group" style="position: relative;">
-                        <label>Client *</label>
-                        <input type="text" id="client-search" placeholder="Search client by name..." autocomplete="off">
-                        <input type="hidden" id="client-id">
-                        <div id="client-search-results"
+                        <label>Customer *</label>
+                        <input type="text" id="customer-search" placeholder="Search customer by name..." autocomplete="off">
+                        <input type="hidden" id="customer-id">
+                        <div id="customer-search-results"
                             style="display: none; position: absolute; width: 100%; top: 100%; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 6px; z-index: 10; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
                         </div>
-                        <div id="selected-client-display"
+                        <div id="selected-customer-display"
                             style="display: none; margin-top: 8px; padding: 8px; background: rgba(88, 166, 255, 0.1); border-radius: 4px; align-items: center; justify-content: space-between;">
-                            <span id="selected-client-name" style="font-weight: 500;"></span>
-                            <button type="button" id="clear-client-btn"
+                            <span id="selected-customer-name" style="font-weight: 500;"></span>
+                            <button type="button" id="clear-customer-btn"
                                 style="background: none; border: none; color: var(--text-secondary); cursor: pointer;">✕</button>
                         </div>
                     </div>
@@ -1580,12 +1580,12 @@
                     const customers = response.data || response || [];
                     allCustomers = Array.isArray(clients) ? clients : [];
 
-                    // Populate client filter
+                    // Populate customer filter
                     customerFilter.innerHTML = '<option value="">All Customers</option>';
-                    allCustomers.forEach(client => {
+                    allCustomers.forEach(customer => {
                         const option = document.createElement('option');
-                        option.value = client.id;
-                        option.textContent = client.name;
+                        option.value = customer.id;
+                        option.textContent = customer.name;
                         customerFilter.appendChild(option);
                     });
                 } catch (error) {
@@ -2028,7 +2028,7 @@
                 }
 
                 // Clear search fields
-                clearClientBtn.click();
+                clearCustomerBtn.click();
                 clearServiceBtn.click();
 
                 modal.style.display = 'block';
@@ -2059,11 +2059,11 @@
                     document.getElementById('estimated-duration').value = booking.estimatedDurationMinutes || '';
                     document.getElementById('special-instructions').value = booking.specialInstructions || '';
 
-                    // Set client
+                    // Set customer
                     if (booking.customerId) {
-                        selectClient({ id: booking.customerId, name: booking.clientName || 'Unknown Client' });
+                        selectCustomer({ id: booking.customerId, name: booking.clientName || 'Unknown Customer' });
                     } else {
-                        clearClientBtn.click();
+                        clearCustomerBtn.click();
                     }
 
                     // Set service
@@ -2089,7 +2089,7 @@
                 modal.style.display = 'none';
                 if (!isEditing) {
                     form.reset();
-                    clearClientBtn.click();
+                    clearCustomerBtn.click();
                     clearServiceBtn.click();
                 }
                 isEditing = false;
@@ -2106,7 +2106,7 @@
                 e.preventDefault();
 
                 const bookingData = {
-                    customerId: document.getElementById('client-id').value,
+                    customerId: document.getElementById('customer-id').value,
                     serviceId: document.getElementById('service-id').value,
                     scheduledDate: document.getElementById('scheduled-date').value,
                     scheduledStartTime: document.getElementById('scheduled-start-time').value,
@@ -2132,66 +2132,66 @@
                 }
             });
 
-            // Client search
-            const clientSearchInput = document.getElementById('client-search');
-            const customerIdInput = document.getElementById('client-id');
-            const clientSearchResults = document.getElementById('client-search-results');
-            const selectedClientDisplay = document.getElementById('selected-client-display');
-            const selectedClientName = document.getElementById('selected-client-name');
-            const clearClientBtn = document.getElementById('clear-client-btn');
+            // Customer search
+            const customerSearchInput = document.getElementById('customer-search');
+            const customerIdInput = document.getElementById('customer-id');
+            const customerSearchResults = document.getElementById('customer-search-results');
+            const selectedCustomerDisplay = document.getElementById('selected-customer-display');
+            const selectedCustomerName = document.getElementById('selected-customer-name');
+            const clearCustomerBtn = document.getElementById('clear-customer-btn');
 
-            let clientSearchTimeout;
-            clientSearchInput.addEventListener('input', (e) => {
-                clearTimeout(clientSearchTimeout);
+            let customerSearchTimeout;
+            customerSearchInput.addEventListener('input', (e) => {
+                clearTimeout(customerSearchTimeout);
                 const term = e.target.value.trim();
 
                 if (term.length < 2) {
-                    clientSearchResults.style.display = 'none';
+                    customerSearchResults.style.display = 'none';
                     return;
                 }
 
-                clientSearchTimeout = setTimeout(async () => {
+                customerSearchTimeout = setTimeout(async () => {
                     try {
                         const result = await window.electronAPI.customers.getAll({ searchTerm: term, limit: 5 });
                         const customers = result.data?.data || result.data || result || [];
-                        renderClientResults(clients);
+                        renderCustomerResults(clients);
                     } catch (err) {
-                        console.error('Client search failed', err);
+                        console.error('Customer search failed', err);
                     }
                 }, 300);
             });
 
-            function renderClientResults(clients) {
-                clientSearchResults.innerHTML = '';
+            function renderCustomerResults(clients) {
+                customerSearchResults.innerHTML = '';
                 if (clients.length === 0) {
-                    clientSearchResults.innerHTML = '<div style="padding: 8px 12px; color: var(--text-secondary);">No clients found</div>';
+                    customerSearchResults.innerHTML = '<div style="padding: 8px 12px; color: var(--text-secondary);">No customers found</div>';
                 } else {
-                    clients.forEach(client => {
+                    customers.forEach(customer => {
                         const div = document.createElement('div');
                         div.style.cssText = 'padding: 8px 12px; cursor: pointer; border-bottom: 1px solid var(--border-subtle);';
-                        div.innerHTML = `<div style="font-weight:500">${client.name}</div><div style="font-size:0.8rem; color:var(--text-secondary)">${client.email || 'No email'}</div>`;
+                        div.innerHTML = `<div style="font-weight:500">${customer.name}</div><div style="font-size:0.8rem; color:var(--text-secondary)">${customer.email || 'No email'}</div>`;
                         div.addEventListener('mouseover', () => div.style.backgroundColor = 'rgba(255,255,255,0.05)');
                         div.addEventListener('mouseout', () => div.style.backgroundColor = 'transparent');
-                        div.addEventListener('click', () => selectClient(client));
-                        clientSearchResults.appendChild(div);
+                        div.addEventListener('click', () => selectCustomer(customer));
+                        customerSearchResults.appendChild(div);
                     });
                 }
-                clientSearchResults.style.display = 'block';
+                customerSearchResults.style.display = 'block';
             }
 
-            function selectClient(client) {
-                customerIdInput.value = client.id;
-                selectedClientName.textContent = client.name;
-                clientSearchInput.style.display = 'none';
-                clientSearchResults.style.display = 'none';
-                selectedClientDisplay.style.display = 'flex';
+            function selectCustomer(customer) {
+                customerIdInput.value = customer.id;
+                selectedCustomerName.textContent = customer.name;
+                customerSearchInput.style.display = 'none';
+                customerSearchResults.style.display = 'none';
+                selectedCustomerDisplay.style.display = 'flex';
             }
 
-            clearClientBtn.addEventListener('click', () => {
+            clearCustomerBtn.addEventListener('click', () => {
                 customerIdInput.value = '';
-                selectedClientDisplay.style.display = 'none';
-                clientSearchInput.style.display = 'block';
-                clientSearchInput.value = '';
+                selectedCustomerDisplay.style.display = 'none';
+                customerSearchInput.style.display = 'block';
+                customerSearchInput.value = '';
             });
 
             // Service search
@@ -2272,8 +2272,8 @@
 
             // Close dropdowns on outside click
             document.addEventListener('click', (e) => {
-                if (!e.target.closest('#client-search-results') && e.target !== clientSearchInput) {
-                    clientSearchResults.style.display = 'none';
+                if (!e.target.closest('#customer-search-results') && e.target !== customerSearchInput) {
+                    customerSearchResults.style.display = 'none';
                 }
                 if (!e.target.closest('#service-search-results') && e.target !== serviceSearchInput) {
                     serviceSearchResults.style.display = 'none';
