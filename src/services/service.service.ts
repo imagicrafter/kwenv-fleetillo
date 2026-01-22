@@ -600,6 +600,11 @@ export async function getServices(
 
     let query = supabase.from(SERVICES_TABLE).select('*', { count: 'exact' });
 
+    // Filter out soft-deleted records by default
+    if (!filters?.includeDeleted) {
+      query = query.is('deleted_at', null);
+    }
+
     if (filters?.searchTerm) {
       query = query.or(`name.ilike.%${filters.searchTerm}%,code.ilike.%${filters.searchTerm}%`);
     }
