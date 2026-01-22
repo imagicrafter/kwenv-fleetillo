@@ -12,20 +12,26 @@ export type BookingType = 'one_time' | 'recurring';
 /**
  * Recurrence pattern options for recurring bookings
  */
-export type RecurrencePattern = 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'yearly';
+export type RecurrencePattern =
+  | 'daily'
+  | 'weekly'
+  | 'biweekly'
+  | 'monthly'
+  | 'quarterly'
+  | 'yearly';
 
 /**
  * Booking status options
  */
 export type BookingStatus =
-  | 'pending'       // Initial state
-  | 'confirmed'     // Booking confirmed
-  | 'scheduled'     // Scheduled on a route
-  | 'in_progress'   // Service currently being performed
-  | 'completed'     // Service completed
-  | 'cancelled'     // Booking cancelled
-  | 'no_show'       // Customer didn't show up
-  | 'rescheduled';  // Booking was rescheduled
+  | 'pending' // Initial state
+  | 'confirmed' // Booking confirmed
+  | 'scheduled' // Scheduled on a route
+  | 'in_progress' // Service currently being performed
+  | 'completed' // Service completed
+  | 'cancelled' // Booking cancelled
+  | 'no_show' // Customer didn't show up
+  | 'rescheduled'; // Booking was rescheduled
 
 /**
  * Priority levels for bookings
@@ -128,6 +134,10 @@ export interface Booking extends Timestamps {
   // Metadata
   tags?: string[];
 
+  // CRM tracking for data import
+  crmStatus?: string;
+  crmId?: string;
+
   // Soft delete
   deletedAt?: Date;
 
@@ -211,6 +221,10 @@ export interface BookingRow {
   // Metadata
   tags: string[] | null;
 
+  // CRM tracking for data import
+  crm_status: string | null;
+  crm_id: string | null;
+
   // Audit timestamps
   created_at: string;
   updated_at: string;
@@ -285,6 +299,10 @@ export interface CreateBookingInput {
 
   // Metadata
   tags?: string[];
+
+  // CRM tracking for data import
+  crmStatus?: string;
+  crmId?: string;
 }
 
 /**
@@ -333,14 +351,20 @@ export function rowToBooking(row: BookingRow): Booking {
     customerId: row.customer_id,
     serviceId: row.service_id ?? undefined, // DEPRECATED
     serviceIds: row.service_ids ?? (row.service_id ? [row.service_id] : []),
-    serviceItems: row.service_items ?? (row.service_id && serviceName ? [{
-      serviceId: row.service_id,
-      name: serviceName,
-      quantity: 1,
-      unitPrice: row.quoted_price ?? 0,
-      total: row.quoted_price ?? 0,
-      duration: row.estimated_duration_minutes ?? 0
-    }] : []),
+    serviceItems:
+      row.service_items ??
+      (row.service_id && serviceName
+        ? [
+            {
+              serviceId: row.service_id,
+              name: serviceName,
+              quantity: 1,
+              unitPrice: row.quoted_price ?? 0,
+              total: row.quoted_price ?? 0,
+              duration: row.estimated_duration_minutes ?? 0,
+            },
+          ]
+        : []),
 
     routeId: row.route_id ?? undefined,
     locationId: row.location_id ?? undefined,
@@ -398,6 +422,10 @@ export function rowToBooking(row: BookingRow): Booking {
     // Metadata
     tags: row.tags ?? undefined,
 
+    // CRM tracking
+    crmStatus: row.crm_status ?? undefined,
+    crmId: row.crm_id ?? undefined,
+
     // Audit timestamps
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
@@ -420,9 +448,10 @@ export function rowToBooking(row: BookingRow): Booking {
  * Converts a CreateBookingInput to a database row format
  */
 export function bookingInputToRow(input: CreateBookingInput): Partial<BookingRow> {
-  const scheduledDate = typeof input.scheduledDate === 'string'
-    ? input.scheduledDate
-    : input.scheduledDate.toISOString().split('T')[0];
+  const scheduledDate =
+    typeof input.scheduledDate === 'string'
+      ? input.scheduledDate
+      : input.scheduledDate.toISOString().split('T')[0];
 
   const recurrenceEndDate = input.recurrenceEndDate
     ? typeof input.recurrenceEndDate === 'string'
@@ -472,6 +501,10 @@ export function bookingInputToRow(input: CreateBookingInput): Partial<BookingRow
     confirmation_sent: input.confirmationSent ?? false,
 
     tags: input.tags ?? null,
+
+    // CRM tracking
+    crm_status: input.crmStatus ?? null,
+    crm_id: input.crmId ?? null,
   };
 }
 
@@ -493,13 +526,15 @@ export function updateBookingInputToRow(input: UpdateBookingInput): Partial<Book
   if (input.locationId !== undefined) row.location_id = input.locationId ?? null;
   if (input.bookingNumber !== undefined) row.booking_number = input.bookingNumber ?? null;
   if (input.bookingType !== undefined) row.booking_type = input.bookingType;
-  if (input.recurrencePattern !== undefined) row.recurrence_pattern = input.recurrencePattern ?? null;
+  if (input.recurrencePattern !== undefined)
+    row.recurrence_pattern = input.recurrencePattern ?? null;
   if (input.parentBookingId !== undefined) row.parent_booking_id = input.parentBookingId ?? null;
 
   if (input.scheduledDate !== undefined) {
-    row.scheduled_date = typeof input.scheduledDate === 'string'
-      ? input.scheduledDate
-      : input.scheduledDate.toISOString().split('T')[0];
+    row.scheduled_date =
+      typeof input.scheduledDate === 'string'
+        ? input.scheduledDate
+        : input.scheduledDate.toISOString().split('T')[0];
   }
 
   if (input.recurrenceEndDate !== undefined) {
@@ -510,17 +545,22 @@ export function updateBookingInputToRow(input: UpdateBookingInput): Partial<Book
       : null;
   }
 
-  if (input.scheduledStartTime !== undefined) row.scheduled_start_time = input.scheduledStartTime || null;
+  if (input.scheduledStartTime !== undefined)
+    row.scheduled_start_time = input.scheduledStartTime || null;
   if (input.scheduledEndTime !== undefined) row.scheduled_end_time = input.scheduledEndTime ?? null;
-  if (input.estimatedDurationMinutes !== undefined) row.estimated_duration_minutes = input.estimatedDurationMinutes ?? null;
+  if (input.estimatedDurationMinutes !== undefined)
+    row.estimated_duration_minutes = input.estimatedDurationMinutes ?? null;
   if (input.status !== undefined) row.status = input.status;
 
   // Service location fields
-  if (input.serviceAddressLine1 !== undefined) row.service_address_line1 = input.serviceAddressLine1 ?? null;
-  if (input.serviceAddressLine2 !== undefined) row.service_address_line2 = input.serviceAddressLine2 ?? null;
+  if (input.serviceAddressLine1 !== undefined)
+    row.service_address_line1 = input.serviceAddressLine1 ?? null;
+  if (input.serviceAddressLine2 !== undefined)
+    row.service_address_line2 = input.serviceAddressLine2 ?? null;
   if (input.serviceCity !== undefined) row.service_city = input.serviceCity ?? null;
   if (input.serviceState !== undefined) row.service_state = input.serviceState ?? null;
-  if (input.servicePostalCode !== undefined) row.service_postal_code = input.servicePostalCode ?? null;
+  if (input.servicePostalCode !== undefined)
+    row.service_postal_code = input.servicePostalCode ?? null;
   if (input.serviceCountry !== undefined) row.service_country = input.serviceCountry ?? null;
 
   // Pricing fields
@@ -530,7 +570,8 @@ export function updateBookingInputToRow(input: UpdateBookingInput): Partial<Book
 
   // Additional fields
   if (input.priority !== undefined) row.priority = input.priority;
-  if (input.specialInstructions !== undefined) row.special_instructions = input.specialInstructions ?? null;
+  if (input.specialInstructions !== undefined)
+    row.special_instructions = input.specialInstructions ?? null;
   if (input.internalNotes !== undefined) row.internal_notes = input.internalNotes ?? null;
 
   // Communication fields
@@ -541,17 +582,23 @@ export function updateBookingInputToRow(input: UpdateBookingInput): Partial<Book
   // Metadata
   if (input.tags !== undefined) row.tags = input.tags ?? null;
 
+  // CRM tracking
+  if (input.crmStatus !== undefined) row.crm_status = input.crmStatus ?? null;
+  if (input.crmId !== undefined) row.crm_id = input.crmId ?? null;
+
   // Update-specific fields
   if (input.actualStartTime !== undefined) {
-    row.actual_start_time = typeof input.actualStartTime === 'string'
-      ? input.actualStartTime
-      : input.actualStartTime.toISOString();
+    row.actual_start_time =
+      typeof input.actualStartTime === 'string'
+        ? input.actualStartTime
+        : input.actualStartTime.toISOString();
   }
 
   if (input.actualEndTime !== undefined) {
-    row.actual_end_time = typeof input.actualEndTime === 'string'
-      ? input.actualEndTime
-      : input.actualEndTime.toISOString();
+    row.actual_end_time =
+      typeof input.actualEndTime === 'string'
+        ? input.actualEndTime
+        : input.actualEndTime.toISOString();
   }
 
   if (input.actualDurationMinutes !== undefined) {
@@ -564,4 +611,3 @@ export function updateBookingInputToRow(input: UpdateBookingInput): Partial<Book
 
   return row;
 }
-
