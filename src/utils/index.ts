@@ -3,7 +3,7 @@
  */
 
 // Re-export logger utilities
-export * from './logger.js';
+export * from './logger';
 
 /**
  * Sleep utility for async operations

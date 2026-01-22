@@ -2,10 +2,10 @@
  * End-of-Day Service
  * Handles automatic completion of dispatched routes at end of business day
  */
-import { getSupabaseClient, getAdminSupabaseClient } from './supabase.js';
-import { createContextLogger } from '../utils/logger.js';
-import type { Result } from '../types/index.js';
-import { getAllSettings } from './settings.service.js';
+import { getSupabaseClient, getAdminSupabaseClient } from './supabase';
+import { createContextLogger } from '../utils/logger';
+import type { Result } from '../types/index';
+import { getAllSettings } from './settings.service';
 
 const logger = createContextLogger('EndOfDayService');
 

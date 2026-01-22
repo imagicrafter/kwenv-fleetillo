@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import * as driverController from '../controllers/driver.controller.js';
-import { validateIdParam, validateRequired } from '../middleware/validation.js';
+import * as driverController from '../controllers/driver.controller';
+import { validateIdParam, validateRequired } from '../middleware/validation';
 
 const router = Router();
 

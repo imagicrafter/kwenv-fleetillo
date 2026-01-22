@@ -5,8 +5,8 @@
  */
 
 import { FullConfig } from '@playwright/test';
-import { teardownDatabase } from './database.js';
-import { createContextLogger } from '../../src/utils/logger.js';
+import { teardownDatabase } from './database';
+import { createContextLogger } from '../../src/utils/logger';
 
 const logger = createContextLogger('PlaywrightGlobalTeardown');
 

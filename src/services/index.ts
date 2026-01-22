@@ -17,7 +17,7 @@ export {
   SupabaseErrorCodes,
   type ConnectionStatus,
   type SupabaseClient,
-} from './supabase.js';
+} from './supabase';
 
 // API client service (database operations wrapper)
 export {
@@ -32,7 +32,7 @@ export {
   type FilterCondition,
   type QueryFilter,
   type QueryMetrics,
-} from './api-client.js';
+} from './api-client';
 
 // Customer service
 export {
@@ -46,7 +46,7 @@ export {
   countCustomers,
   CustomerServiceError,
   CustomerErrorCodes,
-} from './customer.service.js';
+} from './customer.service';
 
 // Service service (for service types/offerings)
 export {
@@ -62,7 +62,7 @@ export {
   countServices,
   ServiceServiceError,
   ServiceErrorCodes,
-} from './service.service.js';
+} from './service.service';
 
 // Vehicle service
 export {
@@ -79,7 +79,7 @@ export {
   countVehicles,
   VehicleServiceError,
   VehicleErrorCodes,
-} from './vehicle.service.js';
+} from './vehicle.service';
 
 // Driver service
 export {
@@ -95,7 +95,7 @@ export {
   getDriverVehicles,
   DriverServiceError,
   DriverErrorCodes,
-} from './driver.service.js';
+} from './driver.service';
 
 // Booking service
 export {
@@ -110,7 +110,7 @@ export {
   countBookings,
   BookingServiceError,
   BookingErrorCodes,
-} from './booking.service.js';
+} from './booking.service';
 
 // Google Maps service
 export {
@@ -124,7 +124,7 @@ export {
   getCoordinatesFromAddress,
   GoogleMapsServiceError,
   GoogleMapsErrorCodes,
-} from './googlemaps.service.js';
+} from './googlemaps.service';
 
 // Address Validation service
 export {
@@ -136,7 +136,7 @@ export {
   getValidatedCoordinates,
   AddressValidationServiceError,
   AddressValidationErrorCodes,
-} from './address-validation.service.js';
+} from './address-validation.service';
 
 // Route Generation service
 export {
@@ -147,4 +147,4 @@ export {
   type GenerateOptimizedRoutesResponse,
   type BookingBatch,
   type OptimizedRouteBatch,
-} from './route-generation.service.js';
+} from './route-generation.service';

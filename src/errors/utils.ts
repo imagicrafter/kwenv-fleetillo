@@ -3,8 +3,8 @@
  * Provides error handling helpers, type guards, and async error boundaries
  */
 
-import { AppError, InternalError } from './AppError.js';
-import { ErrorCodes, type ErrorCodeDefinition, isRetryableError } from './codes.js';
+import { AppError, InternalError } from './AppError';
+import { ErrorCodes, type ErrorCodeDefinition, isRetryableError } from './codes';
 import {
   ErrorCategory,
   ErrorSeverity,
@@ -12,7 +12,7 @@ import {
   type ErrorResponse,
   type SerializedError,
   type Result,
-} from '../types/index.js';
+} from '../types/index';
 
 /**
  * Type guard to check if a value is an AppError

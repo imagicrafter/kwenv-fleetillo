@@ -8,7 +8,7 @@
  * - Test data factories generating valid data
  */
 
-import { test, expect, TestDataFactory } from '../fixtures/api-fixtures.js';
+import { test, expect, TestDataFactory } from '../fixtures/api-fixtures';
 import {
   assertValidUUID,
   assertValidISODate,
@@ -16,7 +16,7 @@ import {
   generateTestId,
   generateTestEmail,
   generateTestPhone,
-} from '../helpers/test-utils.js';
+} from '../helpers/test-utils';
 
 test.describe('Playwright Framework Verification', () => {
   test('should have API client fixture available', async ({ apiClient }) => {

@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import * as dispatchJobController from '../controllers/dispatch-job.controller.js';
-import { validateIdParam, validateRequired } from '../middleware/validation.js';
+import * as dispatchJobController from '../controllers/dispatch-job.controller';
+import { validateIdParam, validateRequired } from '../middleware/validation';
 
 const router = Router();
 

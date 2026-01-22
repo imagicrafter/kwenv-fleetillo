@@ -2,7 +2,7 @@
  * Driver-related type definitions for Fleetillo application
  */
 
-import type { ID, Timestamps } from './index.js';
+import type { ID, Timestamps } from './index';
 
 /**
  * Driver status options

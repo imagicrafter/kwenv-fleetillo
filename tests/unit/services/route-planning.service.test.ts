@@ -38,13 +38,13 @@ import {
     PlanRoutesInput,
     RoutePlanningServiceError,
     RoutePlanningErrorCodes,
-} from '../../../src/services/route-planning.service.js';
-import { getBookings, updateBooking } from '../../../src/services/booking.service.js';
-import { getVehiclesByServiceType } from '../../../src/services/vehicle.service.js';
-import { createRoute } from '../../../src/services/route.service.js';
-import { computeRoutes } from '../../../src/services/google-routes.service.js';
-import type { Booking } from '../../../src/types/booking.js';
-import type { Vehicle } from '../../../src/types/vehicle.js';
+} from '../../../src/services/route-planning.service';
+import { getBookings, updateBooking } from '../../../src/services/booking.service';
+import { getVehiclesByServiceType } from '../../../src/services/vehicle.service';
+import { createRoute } from '../../../src/services/route.service';
+import { computeRoutes } from '../../../src/services/google-routes.service';
+import type { Booking } from '../../../src/types/booking';
+import type { Vehicle } from '../../../src/types/vehicle';
 
 // Cast mocks for easier use
 const mockGetBookings = getBookings as Mock<typeof getBookings>;

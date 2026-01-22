@@ -4,11 +4,11 @@
  */
 
 import 'dotenv/config';
-import { createBooking } from '../services/booking.service.js';
-import { getCustomers } from '../services/customer.service.js';
-import { getServices } from '../services/service.service.js';
-import { getAllLocations } from '../services/location.service.js';
-import { initializeSupabase } from '../services/supabase.js';
+import { createBooking } from '../services/booking.service';
+import { getCustomers } from '../services/customer.service';
+import { getServices } from '../services/service.service';
+import { getAllLocations } from '../services/location.service';
+import { initializeSupabase } from '../services/supabase';
 
 // Initialize Supabase with environment variables
 initializeSupabase({

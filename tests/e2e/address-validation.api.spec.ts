@@ -7,14 +7,14 @@ import {
   isAddressValid,
   getValidatedCoordinates,
   AddressValidationServiceError,
-} from '../../src/services/address-validation.service.js';
+} from '../../src/services/address-validation.service';
 import type {
   AddressInput,
   AddressValidationResponse,
   BatchValidationRequest,
   AddressValidationStatus,
   AddressConfidenceLevel,
-} from '../../src/types/address-validation.js';
+} from '../../src/types/address-validation';
 
 /**
  * Comprehensive Playwright tests for address validation integration

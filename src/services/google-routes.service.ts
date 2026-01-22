@@ -5,9 +5,9 @@
  * Includes proper error handling, retry logic, and batching capabilities for efficient processing.
  */
 
-import { config } from '../config/index.js';
-import { createContextLogger } from '../utils/logger.js';
-import type { Result } from '../types/index.js';
+import { config } from '../config/index';
+import { createContextLogger } from '../utils/logger';
+import type { Result } from '../types/index';
 import type {
   ComputeRoutesInput,
   ComputeRoutesResponse,
@@ -17,8 +17,8 @@ import type {
   BatchComputeRoutesResult,
   Route,
   Waypoint,
-} from '../types/google-routes.js';
-import { ErrorCodes } from '../errors/codes.js';
+} from '../types/google-routes';
+import { ErrorCodes } from '../errors/codes';
 
 /**
  * Logger instance for Google Routes service operations

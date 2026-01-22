@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import morgan from 'morgan';
-import { logger } from '../utils/logger.js';
+import { logger } from '../utils/logger';
 
 /**
  * Custom morgan token to log request body (for development)

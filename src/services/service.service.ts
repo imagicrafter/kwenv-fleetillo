@@ -5,10 +5,10 @@
  * in the RouteIQ application.
  */
 
-import { getSupabaseClient, getAdminSupabaseClient } from './supabase.js';
-import { createContextLogger } from '../utils/logger.js';
-import type { Service, ServiceFilters, CreateServiceInput, UpdateServiceInput, ServiceRow, Result, PaginationParams, PaginatedResponse } from '../types/index.js';
-import { rowToService as convertRowToService, serviceInputToRow as convertInputToRow } from '../types/service.js';
+import { getSupabaseClient, getAdminSupabaseClient } from './supabase';
+import { createContextLogger } from '../utils/logger';
+import type { Service, ServiceFilters, CreateServiceInput, UpdateServiceInput, ServiceRow, Result, PaginationParams, PaginatedResponse } from '../types/index';
+import { rowToService as convertRowToService, serviceInputToRow as convertInputToRow } from '../types/service';
 
 /**
  * Logger instance for service operations

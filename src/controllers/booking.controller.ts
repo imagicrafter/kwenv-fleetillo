@@ -9,10 +9,10 @@ import {
   countBookings,
   getBookingByNumber,
   bulkCreateBookings,
-} from '../services/booking.service.js';
-import { parseAndValidateCSV } from '../services/csv.service.js';
-import type { CreateBookingInput, UpdateBookingInput, BookingFilters } from '../types/booking.js';
-import type { PaginationParams } from '../types/index.js';
+} from '../services/booking.service';
+import { parseAndValidateCSV } from '../services/csv.service';
+import type { CreateBookingInput, UpdateBookingInput, BookingFilters } from '../types/booking';
+import type { PaginationParams } from '../types/index';
 
 /**
  * Booking Controller

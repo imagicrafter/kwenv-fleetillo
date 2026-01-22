@@ -10,13 +10,13 @@
  * This is an example test to showcase the framework capabilities.
  */
 
-import { test, expect, TestDataFactory } from '../fixtures/api-fixtures.js';
+import { test, expect, TestDataFactory } from '../fixtures/api-fixtures';
 import {
   assertValidUUID,
   assertValidISODate,
   assertObjectSchema,
   generateTestId,
-} from '../helpers/test-utils.js';
+} from '../helpers/test-utils';
 
 test.describe('Example API Tests', () => {
   test('should demonstrate basic API client usage', async ({ apiClient }) => {

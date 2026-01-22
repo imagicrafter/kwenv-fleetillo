@@ -1,4 +1,4 @@
-import { getAdminSupabaseClient, getSupabaseClient, initializeSupabase } from '../services/supabase.js';
+import { getAdminSupabaseClient, getSupabaseClient, initializeSupabase } from '../services/supabase';
 import { exit } from 'process';
 
 async function seedLegacyBooking() {

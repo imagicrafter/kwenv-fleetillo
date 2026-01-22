@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import * as bookingController from '../controllers/booking.controller.js';
-import { validateIdParam, validateRequired } from '../middleware/validation.js';
-import { uploadCSV as uploadCSVMiddleware, handleUploadError, requireFile } from '../middleware/fileUpload.js';
+import * as bookingController from '../controllers/booking.controller';
+import { validateIdParam, validateRequired } from '../middleware/validation';
+import { uploadCSV as uploadCSVMiddleware, handleUploadError, requireFile } from '../middleware/fileUpload';
 
 const router = Router();
 

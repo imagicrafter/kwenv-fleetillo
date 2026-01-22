@@ -6,16 +6,16 @@
  * provides read access and the ability to manually create entries if needed.
  */
 
-import { getAdminSupabaseClient } from './supabase.js';
-import { createContextLogger } from '../utils/logger.js';
-import type { Result } from '../types/index.js';
+import { getAdminSupabaseClient } from './supabase';
+import { createContextLogger } from '../utils/logger';
+import type { Result } from '../types/index';
 import type {
     ActivityLog,
     ActivityLogRow,
     CreateActivityInput,
     ActivityFilters,
-} from '../types/activity.js';
-import { rowToActivityLog, activityInputToRow } from '../types/activity.js';
+} from '../types/activity';
+import { rowToActivityLog, activityInputToRow } from '../types/activity';
 
 /**
  * Logger instance for activity operations

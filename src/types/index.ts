@@ -3,39 +3,39 @@
  */
 
 // Re-export logger types
-export * from './logger.js';
+export * from './logger';
 
 // Re-export error types
-export * from './errors.js';
+export * from './errors';
 
 // Re-export customer types
-export * from './customer.js';
+export * from './customer';
 
 // Re-export service types
-export * from './service.js';
+export * from './service';
 
 // Re-export vehicle types
-export * from './vehicle.js';
+export * from './vehicle';
 
 // Re-export driver types
-export * from './driver.js';
+export * from './driver';
 
 // Re-export booking types
-export * from './booking.js';
+export * from './booking';
 
 // Re-export maintenance schedule types
-export * from './maintenanceSchedule.js';
+export * from './maintenanceSchedule';
 
 // Re-export route types
-export * from './route.js';
+export * from './route';
 
 // Re-export Google Maps types
-export * from './googlemaps.js';
+export * from './googlemaps';
 
 // Re-export Address Validation types
-export * from './address-validation.js';
+export * from './address-validation';
 
-// Note: Google Routes types are available via direct import from './google-routes.js'
+// Note: Google Routes types are available via direct import from './google-routes'
 // to avoid naming conflicts with existing Route and TravelMode types
 
 /**

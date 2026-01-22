@@ -5,11 +5,11 @@
  * in the RouteIQ application.
  */
 
-import { getSupabaseClient, getAdminSupabaseClient } from './supabase.js';
-import { createContextLogger } from '../utils/logger.js';
-import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
-import type { Vehicle, VehicleFilters, CreateVehicleInput, UpdateVehicleInput, VehicleRow } from '../types/index.js';
-import { rowToVehicle as convertRowToVehicle, vehicleInputToRow as convertInputToRow } from '../types/vehicle.js';
+import { getSupabaseClient, getAdminSupabaseClient } from './supabase';
+import { createContextLogger } from '../utils/logger';
+import type { Result, PaginationParams, PaginatedResponse } from '../types/index';
+import type { Vehicle, VehicleFilters, CreateVehicleInput, UpdateVehicleInput, VehicleRow } from '../types/index';
+import { rowToVehicle as convertRowToVehicle, vehicleInputToRow as convertInputToRow } from '../types/vehicle';
 
 /**
  * Logger instance for vehicle operations

@@ -42,7 +42,7 @@ export {
   getErrorCodesByCategory,
   getErrorCodesBySeverity,
   isRetryableError,
-} from './codes.js';
+} from './codes';
 
 // Export main error class and specialized error classes
 export {
@@ -57,7 +57,7 @@ export {
   ConfigurationError,
   NetworkError,
   InternalError,
-} from './AppError.js';
+} from './AppError';
 
 // Export error utilities
 export {
@@ -84,7 +84,7 @@ export {
   // Helpers
   getUserFriendlyMessage,
   shouldLogAsError,
-} from './utils.js';
+} from './utils';
 
 // Re-export error types
 export type {
@@ -98,4 +98,4 @@ export type {
   ErrorResponse,
   AppErrorOptions,
   IAppError,
-} from '../types/errors.js';
+} from '../types/errors';

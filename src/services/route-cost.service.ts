@@ -3,11 +3,11 @@
  * Handles cost and revenue calculations for routes
  */
 
-import { getSupabaseClient, getAdminSupabaseClient } from './supabase.js';
-import { createContextLogger } from '../utils/logger.js';
-import type { Result } from '../types/index.js';
-import { getSetting } from './settings.service.js';
-import { SettingKeys, DEFAULT_COST_SETTINGS, CostSettings } from '../types/settings.js';
+import { getSupabaseClient, getAdminSupabaseClient } from './supabase';
+import { createContextLogger } from '../utils/logger';
+import type { Result } from '../types/index';
+import { getSetting } from './settings.service';
+import { SettingKeys, DEFAULT_COST_SETTINGS, CostSettings } from '../types/settings';
 
 const logger = createContextLogger('RouteCostService');
 

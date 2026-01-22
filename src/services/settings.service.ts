@@ -3,9 +3,9 @@
  * Handles CRUD operations for application settings
  */
 
-import { getSupabaseClient, getAdminSupabaseClient } from './supabase.js';
-import { createContextLogger } from '../utils/logger.js';
-import type { Result } from '../types/index.js';
+import { getSupabaseClient, getAdminSupabaseClient } from './supabase';
+import { createContextLogger } from '../utils/logger';
+import type { Result } from '../types/index';
 import {
     SettingRow,
     SettingKey,
@@ -15,7 +15,7 @@ import {
     DEFAULT_SETTINGS,
     DEFAULT_COST_SETTINGS,
     calculateMaxDailyMinutes,
-} from '../types/settings.js';
+} from '../types/settings';
 
 const logger = createContextLogger('SettingsService');
 const SETTINGS_TABLE = 'settings';

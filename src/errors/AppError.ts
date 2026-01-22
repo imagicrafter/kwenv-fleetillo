@@ -14,8 +14,8 @@ import {
   type ValidationErrorDetail,
   type IAppError,
   type AppErrorOptions,
-} from '../types/errors.js';
-import { ErrorCodes, type ErrorCodeDefinition } from './codes.js';
+} from '../types/errors';
+import { ErrorCodes, type ErrorCodeDefinition } from './codes';
 
 /**
  * Base application error class

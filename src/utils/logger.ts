@@ -5,7 +5,7 @@
  * context support, and environment-aware formatting.
  */
 
-import { config } from '../config/index.js';
+import { config } from '../config/index';
 import type {
   LogLevel,
   LogLevelString,
@@ -13,7 +13,7 @@ import type {
   LogEntry,
   LoggerConfig,
   ILogger,
-} from '../types/logger.js';
+} from '../types/logger';
 
 /**
  * Numeric values for log levels for comparison

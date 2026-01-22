@@ -2,7 +2,7 @@
  * Vehicle-related type definitions for RouteIQ application
  */
 
-import type { ID, Timestamps } from './index.js';
+import type { ID, Timestamps } from './index';
 
 /**
  * Vehicle status options

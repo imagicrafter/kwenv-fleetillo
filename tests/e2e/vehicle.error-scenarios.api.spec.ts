@@ -6,16 +6,16 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { generateTestId } from '../helpers/test-utils.js';
+import { generateTestId } from '../helpers/test-utils';
 import {
   createVehicle,
   getVehicleById,
   updateVehicle,
   deleteVehicle,
   VehicleErrorCodes,
-} from '../../src/services/vehicle.service.js';
-import { initializeSupabase, resetSupabaseClient } from '../../src/services/supabase.js';
-import type { CreateVehicleInput, UpdateVehicleInput } from '../../src/types/vehicle.js';
+} from '../../src/services/vehicle.service';
+import { initializeSupabase, resetSupabaseClient } from '../../src/services/supabase';
+import type { CreateVehicleInput, UpdateVehicleInput } from '../../src/types/vehicle';
 
 test.beforeAll(async () => {
   await initializeSupabase();

@@ -5,21 +5,21 @@
  * in the RouteIQ application.
  */
 
-import { getSupabaseClient, getAdminSupabaseClient } from './supabase.js';
-import { createContextLogger } from '../utils/logger.js';
-import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
+import { getSupabaseClient, getAdminSupabaseClient } from './supabase';
+import { createContextLogger } from '../utils/logger';
+import type { Result, PaginationParams, PaginatedResponse } from '../types/index';
 import type {
   Route,
   RouteRow,
   CreateRouteInput,
   UpdateRouteInput,
   RouteFilters,
-} from '../types/route.js';
+} from '../types/route';
 import {
   rowToRoute as convertRowToRoute,
   routeInputToRow as convertInputToRow,
   updateRouteInputToRow as convertUpdateInputToRow,
-} from '../types/route.js';
+} from '../types/route';
 
 /**
  * Logger instance for route operations

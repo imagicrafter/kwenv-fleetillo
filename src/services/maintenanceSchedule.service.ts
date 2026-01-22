@@ -5,20 +5,20 @@
  * in the RouteIQ application.
  */
 
-import { getSupabaseClient, getAdminSupabaseClient } from './supabase.js';
-import { createContextLogger } from '../utils/logger.js';
-import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
+import { getSupabaseClient, getAdminSupabaseClient } from './supabase';
+import { createContextLogger } from '../utils/logger';
+import type { Result, PaginationParams, PaginatedResponse } from '../types/index';
 import type {
   MaintenanceSchedule,
   MaintenanceScheduleRow,
   CreateMaintenanceScheduleInput,
   UpdateMaintenanceScheduleInput,
   MaintenanceScheduleFilters,
-} from '../types/maintenanceSchedule.js';
+} from '../types/maintenanceSchedule';
 import {
   rowToMaintenanceSchedule as convertRowToMaintenanceSchedule,
   maintenanceScheduleInputToRow as convertInputToRow,
-} from '../types/maintenanceSchedule.js';
+} from '../types/maintenanceSchedule';
 
 /**
  * Logger instance for maintenance schedule operations

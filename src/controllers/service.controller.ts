@@ -8,9 +8,9 @@ import {
   deleteService,
   restoreService,
   countServices,
-} from '../services/service.service.js';
-import type { CreateServiceInput, UpdateServiceInput, ServiceFilters } from '../types/service.js';
-import type { PaginationParams } from '../types/index.js';
+} from '../services/service.service';
+import type { CreateServiceInput, UpdateServiceInput, ServiceFilters } from '../types/service';
+import type { PaginationParams } from '../types/index';
 
 /**
  * Service Controller

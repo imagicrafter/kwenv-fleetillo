@@ -11,8 +11,8 @@ import {
   resetSupabaseClient,
   getConnectionStatus,
   type ConnectionStatus,
-} from '../../src/services/supabase.js';
-import { createContextLogger } from '../../src/utils/logger.js';
+} from '../../src/services/supabase';
+import { createContextLogger } from '../../src/utils/logger';
 
 const logger = createContextLogger('TestSetup');
 

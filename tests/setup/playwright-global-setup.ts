@@ -5,8 +5,8 @@
  */
 
 import { chromium, FullConfig } from '@playwright/test';
-import { setupDatabaseForTests } from './database.js';
-import { createContextLogger } from '../../src/utils/logger.js';
+import { setupDatabaseForTests } from './database';
+import { createContextLogger } from '../../src/utils/logger';
 
 const logger = createContextLogger('PlaywrightGlobalSetup');
 

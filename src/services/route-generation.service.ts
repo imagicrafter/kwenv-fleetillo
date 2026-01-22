@@ -6,22 +6,22 @@
  * and generate optimized routes for efficient service delivery.
  */
 
-import { createContextLogger } from '../utils/logger.js';
-import type { Result } from '../types/index.js';
-import type { Booking } from '../types/booking.js';
-import { getBookingById } from './booking.service.js';
-import { computeRoutes } from './google-routes.service.js';
+import { createContextLogger } from '../utils/logger';
+import type { Result } from '../types/index';
+import type { Booking } from '../types/booking';
+import { getBookingById } from './booking.service';
+import { computeRoutes } from './google-routes.service';
 import {
   TravelMode,
   RoutingPreference,
   PolylineQuality,
-} from '../types/google-routes.js';
+} from '../types/google-routes';
 import type {
   ComputeRoutesInput,
   ComputeRoutesResponse,
   Route,
   Waypoint,
-} from '../types/google-routes.js';
+} from '../types/google-routes';
 
 /**
  * Logger instance for route generation operations

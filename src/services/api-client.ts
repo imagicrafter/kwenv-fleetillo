@@ -28,17 +28,17 @@
  */
 
 import type { SupabaseClient, PostgrestError } from '@supabase/supabase-js';
-import { getSupabaseClient, getAdminSupabaseClient, isSupabaseInitialized } from './supabase.js';
-import { createContextLogger } from '../utils/logger.js';
+import { getSupabaseClient, getAdminSupabaseClient, isSupabaseInitialized } from './supabase';
+import { createContextLogger } from '../utils/logger';
 import {
   DatabaseError,
   ResourceError,
   ValidationError,
   retryWithBackoff,
   normalizeError,
-} from '../errors/index.js';
-import { ErrorCodes } from '../errors/codes.js';
-import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
+} from '../errors/index';
+import { ErrorCodes } from '../errors/codes';
+import type { Result, PaginationParams, PaginatedResponse } from '../types/index';
 
 /**
  * Logger instance for API client operations

@@ -5,7 +5,7 @@
  * standardization, and geocoding operations.
  */
 
-import type { Coordinates } from './googlemaps.js';
+import type { Coordinates } from './googlemaps';
 
 /**
  * Address input for validation - supports multiple formats

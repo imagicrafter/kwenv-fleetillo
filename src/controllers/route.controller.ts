@@ -10,11 +10,11 @@ import {
   getRoutesByVehicle,
   getRoutesByDateRange,
   updateRouteStatus,
-} from '../services/route.service.js';
-import { generateOptimizedRoutes } from '../services/route-generation.service.js';
-import { planRoutes } from '../services/route-planning.service.js';
-import type { CreateRouteInput, UpdateRouteInput, RouteFilters, RouteStatus } from '../types/route.js';
-import type { PaginationParams } from '../types/index.js';
+} from '../services/route.service';
+import { generateOptimizedRoutes } from '../services/route-generation.service';
+import { planRoutes } from '../services/route-planning.service';
+import type { CreateRouteInput, UpdateRouteInput, RouteFilters, RouteStatus } from '../types/route';
+import type { PaginationParams } from '../types/index';
 
 /**
  * Route Controller

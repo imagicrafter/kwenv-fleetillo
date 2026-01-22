@@ -3,8 +3,8 @@
  * This script is run by DigitalOcean App Platform on a cron schedule
  * to mark dispatched routes as completed at end of business day
  */
-import { endOfDayService } from '../services/end-of-day.service.js';
-import { createContextLogger } from '../utils/logger.js';
+import { endOfDayService } from '../services/end-of-day.service';
+import { createContextLogger } from '../utils/logger';
 
 const logger = createContextLogger('EndOfDayJob');
 

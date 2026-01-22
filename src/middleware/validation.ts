@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { AppError } from '../errors/AppError.js';
-import { ErrorCodes } from '../errors/codes.js';
+import { AppError } from '../errors/AppError';
+import { ErrorCodes } from '../errors/codes';
 
 /**
  * Validation middleware factory

@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import customerRoutes from './customer.routes.js';
-import bookingRoutes from './booking.routes.js';
-import serviceRoutes from './service.routes.js';
-import vehicleRoutes from './vehicle.routes.js';
-import routeRoutes from './route.routes.js';
-import dispatchJobRoutes from './dispatch-job.routes.js';
-import driverRoutes from './driver.routes.js';
+import customerRoutes from './customer.routes';
+import bookingRoutes from './booking.routes';
+import serviceRoutes from './service.routes';
+import vehicleRoutes from './vehicle.routes';
+import routeRoutes from './route.routes';
+import dispatchJobRoutes from './dispatch-job.routes';
+import driverRoutes from './driver.routes';
 
 const router = Router();
 

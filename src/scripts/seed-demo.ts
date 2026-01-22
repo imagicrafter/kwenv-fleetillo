@@ -26,22 +26,22 @@
 
 import 'dotenv/config';
 import { faker } from '@faker-js/faker';
-import { initializeSupabase, getAdminSupabaseClient } from '../services/supabase.js';
-import { createCustomer } from '../services/customer.service.js';
-import { createLocation } from '../services/location.service.js';
-import { createService } from '../services/service.service.js';
-import { createVehicle } from '../services/vehicle.service.js';
-import { setVehicleLocations } from '../services/vehicle-location.service.js';
-import { createDriver, assignDriverToVehicle } from '../services/driver.service.js';
-import { createBooking } from '../services/booking.service.js';
-import { createRoute } from '../services/route.service.js';
-import type { CreateCustomerInput } from '../types/customer.js';
-import type { CreateLocationInput } from '../services/location.service.js';
-import type { CreateServiceInput } from '../types/service.js';
-import type { CreateVehicleInput, FuelType } from '../types/vehicle.js';
-import type { CreateDriverInput } from '../types/driver.js';
-import type { CreateBookingInput, BookingServiceItem } from '../types/booking.js';
-import type { CreateRouteInput } from '../types/route.js';
+import { initializeSupabase, getAdminSupabaseClient } from '../services/supabase';
+import { createCustomer } from '../services/customer.service';
+import { createLocation } from '../services/location.service';
+import { createService } from '../services/service.service';
+import { createVehicle } from '../services/vehicle.service';
+import { setVehicleLocations } from '../services/vehicle-location.service';
+import { createDriver, assignDriverToVehicle } from '../services/driver.service';
+import { createBooking } from '../services/booking.service';
+import { createRoute } from '../services/route.service';
+import type { CreateCustomerInput } from '../types/customer';
+import type { CreateLocationInput } from '../services/location.service';
+import type { CreateServiceInput } from '../types/service';
+import type { CreateVehicleInput, FuelType } from '../types/vehicle';
+import type { CreateDriverInput } from '../types/driver';
+import type { CreateBookingInput, BookingServiceItem } from '../types/booking';
+import type { CreateRouteInput } from '../types/route';
 
 // ============================================================================
 // Configuration

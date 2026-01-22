@@ -5,9 +5,9 @@
  * Includes proper error handling, retry logic, and caching for transient failures.
  */
 
-import { config } from '../config/index.js';
-import { createContextLogger } from '../utils/logger.js';
-import type { Result } from '../types/index.js';
+import { config } from '../config/index';
+import { createContextLogger } from '../utils/logger';
+import type { Result } from '../types/index';
 import type {
   Coordinates,
   GeocodingResult,
@@ -24,8 +24,8 @@ import type {
   AddressIssue,
   AddressIssueCode,
   ValidationGranularity,
-} from '../types/googlemaps.js';
-import { rawToGeocodingResult, extractStructuredAddress } from '../types/googlemaps.js';
+} from '../types/googlemaps';
+import { rawToGeocodingResult, extractStructuredAddress } from '../types/googlemaps';
 
 /**
  * Logger instance for Google Maps service operations

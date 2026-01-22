@@ -20,17 +20,17 @@ import type {
   VehicleLocation,
   VehicleMaintenanceInfo,
   VehicleFuelInfo,
-} from '../../src/types/vehicle.js';
+} from '../../src/types/vehicle';
 
 import {
   rowToVehicle,
   vehicleInputToRow,
-} from '../../src/types/vehicle.js';
+} from '../../src/types/vehicle';
 
 import {
   VehicleServiceError,
   VehicleErrorCodes,
-} from '../../src/services/vehicle.service.js';
+} from '../../src/services/vehicle.service';
 
 test.describe('Vehicles Schema and Types Verification', () => {
 

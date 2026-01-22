@@ -17,12 +17,12 @@ import {
   hardDeleteService,
   ServiceServiceError,
   ServiceErrorCodes,
-} from '../../../src/services/index.js';
+} from '../../../src/services/index';
 import {
   initializeSupabase,
   resetSupabaseClient,
-} from '../../../src/services/supabase.js';
-import type { CreateServiceInput, Service } from '../../../src/types/service.js';
+} from '../../../src/services/supabase';
+import type { CreateServiceInput, Service } from '../../../src/types/service';
 
 // Test data
 const testServiceInput: CreateServiceInput = {

@@ -7,9 +7,9 @@ import {
   deleteCustomer,
   restoreCustomer,
   countCustomers,
-} from '../services/customer.service.js';
-import type { CreateCustomerInput, UpdateCustomerInput, CustomerFilters } from '../types/customer.js';
-import type { PaginationParams } from '../types/index.js';
+} from '../services/customer.service';
+import type { CreateCustomerInput, UpdateCustomerInput, CustomerFilters } from '../types/customer';
+import type { PaginationParams } from '../types/index';
 
 /**
  * Customer Controller

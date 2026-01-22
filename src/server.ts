@@ -1,7 +1,7 @@
-import { createApp } from './app.js';
-import { config, validateConfig } from './config/index.js';
-import { logger } from './utils/logger.js';
-import { getSupabaseClient } from './services/supabase.js';
+import { createApp } from './app';
+import { config, validateConfig } from './config/index';
+import { logger } from './utils/logger';
+import { getSupabaseClient } from './services/supabase';
 
 /**
  * Start the Express server

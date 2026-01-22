@@ -3,11 +3,11 @@
  * Manages the many-to-many relationship between vehicles and locations
  */
 
-import { getAdminSupabaseClient, getSupabaseClient } from './supabase.js';
-import { createContextLogger } from '../utils/logger.js';
-import type { Result } from '../types/index.js';
-import type { VehicleLocation, VehicleLocationRow, SetVehicleLocationInput } from '../types/vehicle-location.js';
-import { rowToVehicleLocation } from '../types/vehicle-location.js';
+import { getAdminSupabaseClient, getSupabaseClient } from './supabase';
+import { createContextLogger } from '../utils/logger';
+import type { Result } from '../types/index';
+import type { VehicleLocation, VehicleLocationRow, SetVehicleLocationInput } from '../types/vehicle-location';
+import { rowToVehicleLocation } from '../types/vehicle-location';
 
 const logger = createContextLogger('VehicleLocationService');
 

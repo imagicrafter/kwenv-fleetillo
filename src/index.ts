@@ -1,5 +1,5 @@
-import { config, validateConfig, isDevelopment, isDebugEnabled } from './config/index.js';
-import { logger, createContextLogger } from './utils/logger.js';
+import { config, validateConfig, isDevelopment, isDebugEnabled } from './config/index';
+import { logger, createContextLogger } from './utils/logger';
 
 /**
  * RouteIQ TypeScript Application
@@ -46,4 +46,4 @@ main();
 export { config, validateConfig, logger };
 
 // Re-export error handling module
-export * from './errors/index.js';
+export * from './errors/index';

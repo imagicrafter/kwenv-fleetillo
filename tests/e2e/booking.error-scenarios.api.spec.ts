@@ -6,20 +6,20 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { generateTestId } from '../helpers/test-utils.js';
+import { generateTestId } from '../helpers/test-utils';
 import {
   createBooking,
   getBookingById,
   updateBooking,
   deleteBooking,
   BookingErrorCodes,
-} from '../../src/services/booking.service.js';
-import { createService, deleteService as deleteServiceRecord } from '../../src/services/service.service.js';
-import { createClient, deleteClient as deleteClientRecord } from '../../src/services/client.service.js';
-import { initializeSupabase, resetSupabaseClient } from '../../src/services/supabase.js';
-import type { CreateBookingInput, UpdateBookingInput } from '../../src/types/booking.js';
-import type { CreateServiceInput } from '../../src/types/service.js';
-import type { CreateClientInput } from '../../src/types/client.js';
+} from '../../src/services/booking.service';
+import { createService, deleteService as deleteServiceRecord } from '../../src/services/service.service';
+import { createClient, deleteClient as deleteClientRecord } from '../../src/services/client.service';
+import { initializeSupabase, resetSupabaseClient } from '../../src/services/supabase';
+import type { CreateBookingInput, UpdateBookingInput } from '../../src/types/booking';
+import type { CreateServiceInput } from '../../src/types/service';
+import type { CreateClientInput } from '../../src/types/client';
 
 test.beforeAll(async () => {
   await initializeSupabase();

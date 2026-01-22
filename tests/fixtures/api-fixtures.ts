@@ -9,8 +9,8 @@
  */
 
 import { test as base, expect } from '@playwright/test';
-import { ApiClient } from '../helpers/api-client.js';
-import { setupDatabaseForTests, teardownDatabase } from '../setup/database.js';
+import { ApiClient } from '../helpers/api-client';
+import { setupDatabaseForTests, teardownDatabase } from '../setup/database';
 
 /**
  * Extended test fixtures

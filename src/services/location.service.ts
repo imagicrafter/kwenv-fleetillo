@@ -5,9 +5,9 @@
  * in the Fleetillo application.
  */
 
-import { getSupabaseClient, getAdminSupabaseClient } from './supabase.js';
-import { createContextLogger } from '../utils/logger.js';
-import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
+import { getSupabaseClient, getAdminSupabaseClient } from './supabase';
+import { createContextLogger } from '../utils/logger';
+import type { Result, PaginationParams, PaginatedResponse } from '../types/index';
 
 /**
  * Logger instance for location operations

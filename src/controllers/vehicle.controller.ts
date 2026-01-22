@@ -10,9 +10,9 @@ import {
   getVehiclesByServiceType,
   updateVehicleLocation,
   updateVehicleStatus,
-} from '../services/vehicle.service.js';
-import type { CreateVehicleInput, UpdateVehicleInput, VehicleFilters, VehicleStatus } from '../types/vehicle.js';
-import type { PaginationParams } from '../types/index.js';
+} from '../services/vehicle.service';
+import type { CreateVehicleInput, UpdateVehicleInput, VehicleFilters, VehicleStatus } from '../types/vehicle';
+import type { PaginationParams } from '../types/index';
 
 /**
  * Vehicle Controller

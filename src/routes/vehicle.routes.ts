@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import * as vehicleController from '../controllers/vehicle.controller.js';
-import { validateIdParam, validateRequired } from '../middleware/validation.js';
+import * as vehicleController from '../controllers/vehicle.controller';
+import { validateIdParam, validateRequired } from '../middleware/validation';
 
 const router = Router();
 

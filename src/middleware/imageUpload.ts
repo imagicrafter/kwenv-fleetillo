@@ -1,7 +1,7 @@
 import multer, { FileFilterCallback } from 'multer';
 import { Request } from 'express';
-import { AppError } from '../errors/AppError.js';
-import { ErrorCodes } from '../errors/codes.js';
+import { AppError } from '../errors/AppError';
+import { ErrorCodes } from '../errors/codes';
 
 /**
  * Image upload middleware using multer

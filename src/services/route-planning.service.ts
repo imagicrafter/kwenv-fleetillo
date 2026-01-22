@@ -10,36 +10,36 @@
  * 6. Persists routes and updates bookings
  */
 
-import { createContextLogger } from '../utils/logger.js';
-import type { Result } from '../types/index.js';
-import type { Booking, BookingFilters } from '../types/booking.js';
-import type { Route, CreateRouteInput } from '../types/route.js';
-import { getBookings, updateBooking } from './booking.service.js';
-import { getVehicles } from './vehicle.service.js';
-import { getServices } from './service.service.js';
-import type { Vehicle } from '../types/vehicle.js';
+import { createContextLogger } from '../utils/logger';
+import type { Result } from '../types/index';
+import type { Booking, BookingFilters } from '../types/booking';
+import type { Route, CreateRouteInput } from '../types/route';
+import { getBookings, updateBooking } from './booking.service';
+import { getVehicles } from './vehicle.service';
+import { getServices } from './service.service';
+import type { Vehicle } from '../types/vehicle';
 import {
     getRouteSettings,
-} from './settings.service.js';
+} from './settings.service';
 import {
     createRoute,
-} from './route.service.js';
-import { getLocationById } from './location.service.js';
-import { getVehiclePrimaryLocation } from './vehicle-location.service.js';
-import { getAdminSupabaseClient, getSupabaseClient } from './supabase.js';
-import { getRoutePlanningParams } from './settings.service.js';
-import { computeRoutes } from './google-routes.service.js';
+} from './route.service';
+import { getLocationById } from './location.service';
+import { getVehiclePrimaryLocation } from './vehicle-location.service';
+import { getAdminSupabaseClient, getSupabaseClient } from './supabase';
+import { getRoutePlanningParams } from './settings.service';
+import { computeRoutes } from './google-routes.service';
 import {
     TravelMode,
     RoutingPreference,
     PolylineQuality,
-} from '../types/google-routes.js';
+} from '../types/google-routes';
 import type {
     ComputeRoutesInput,
     ComputeRoutesResponse,
     Waypoint,
     Route as GoogleRoute,
-} from '../types/google-routes.js';
+} from '../types/google-routes';
 
 /**
  * Logger instance for route planning operations

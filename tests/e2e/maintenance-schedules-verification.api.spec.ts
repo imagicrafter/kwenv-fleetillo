@@ -16,19 +16,19 @@ import type {
   CreateMaintenanceScheduleInput,
   UpdateMaintenanceScheduleInput,
   MaintenanceScheduleFilters,
-} from '../../src/types/maintenanceSchedule.js';
+} from '../../src/types/maintenanceSchedule';
 
 import {
   rowToMaintenanceSchedule,
   maintenanceScheduleInputToRow,
   isMaintenanceOverdue,
   getDaysUntilDue,
-} from '../../src/types/maintenanceSchedule.js';
+} from '../../src/types/maintenanceSchedule';
 
 import {
   MaintenanceScheduleServiceError,
   MaintenanceScheduleErrorCodes,
-} from '../../src/services/maintenanceSchedule.service.js';
+} from '../../src/services/maintenanceSchedule.service';
 
 test.describe('Maintenance Schedules Schema and Types Verification', () => {
 

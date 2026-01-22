@@ -5,18 +5,18 @@
  * in the Fleetillo application.
  */
 
-import { getSupabaseClient, getAdminSupabaseClient } from './supabase.js';
-import { createContextLogger } from '../utils/logger.js';
-import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
+import { getSupabaseClient, getAdminSupabaseClient } from './supabase';
+import { createContextLogger } from '../utils/logger';
+import type { Result, PaginationParams, PaginatedResponse } from '../types/index';
 import type {
   Customer,
   CustomerRow,
   CreateCustomerInput,
   UpdateCustomerInput,
   CustomerFilters,
-} from '../types/customer.js';
-import { rowToCustomer as convertRowToCustomer, customerInputToRow as convertInputToRow } from '../types/customer.js';
-import { createLocation, CreateLocationInput } from './location.service.js';
+} from '../types/customer';
+import { rowToCustomer as convertRowToCustomer, customerInputToRow as convertInputToRow } from '../types/customer';
+import { createLocation, CreateLocationInput } from './location.service';
 
 /**
  * Logger instance for customer operations

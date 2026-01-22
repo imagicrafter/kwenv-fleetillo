@@ -4,7 +4,7 @@
  */
 
 import 'dotenv/config';
-import { initializeSupabase, getAdminSupabaseClient } from '../services/supabase.js';
+import { initializeSupabase, getAdminSupabaseClient } from '../services/supabase';
 
 // Initialize Supabase with environment variables
 initializeSupabase({

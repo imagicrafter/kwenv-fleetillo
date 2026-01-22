@@ -2,9 +2,9 @@
  * Dispatch Job Service
  * Manages batch dispatch job scheduling with driver exclusivity enforcement
  */
-import { getSupabaseClient, getAdminSupabaseClient } from './supabase.js';
-import { createContextLogger } from '../utils/logger.js';
-import type { Result } from '../types/index.js';
+import { getSupabaseClient, getAdminSupabaseClient } from './supabase';
+import { createContextLogger } from '../utils/logger';
+import type { Result } from '../types/index';
 import {
     DispatchJob,
     DispatchJobRow,
@@ -13,7 +13,7 @@ import {
     DispatchJobFilters,
     rowToDispatchJob,
     dispatchJobInputToRow,
-} from '../types/dispatch-job.js';
+} from '../types/dispatch-job';
 
 const logger = createContextLogger('DispatchJobService');
 const DISPATCH_JOBS_TABLE = 'dispatch_jobs';

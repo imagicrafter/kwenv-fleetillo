@@ -5,19 +5,19 @@
  * in the Fleetillo application.
  */
 
-import { getAdminSupabaseClient } from './supabase.js';
-import { createContextLogger } from '../utils/logger.js';
-import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
+import { getAdminSupabaseClient } from './supabase';
+import { createContextLogger } from '../utils/logger';
+import type { Result, PaginationParams, PaginatedResponse } from '../types/index';
 import type {
   Driver,
   DriverRow,
   CreateDriverInput,
   UpdateDriverInput,
   DriverFilters,
-} from '../types/driver.js';
-import { rowToDriver as convertRowToDriver, driverInputToRow as convertInputToRow } from '../types/driver.js';
-import type { Vehicle, VehicleRow } from '../types/vehicle.js';
-import { rowToVehicle } from '../types/vehicle.js';
+} from '../types/driver';
+import { rowToDriver as convertRowToDriver, driverInputToRow as convertInputToRow } from '../types/driver';
+import type { Vehicle, VehicleRow } from '../types/vehicle';
+import { rowToVehicle } from '../types/vehicle';
 
 /**
  * Logger instance for driver operations

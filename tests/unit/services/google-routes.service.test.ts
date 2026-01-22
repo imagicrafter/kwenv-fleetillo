@@ -12,7 +12,7 @@ import {
   calculateRouteTotals,
   GoogleRoutesServiceError,
   GoogleRoutesErrorCodes,
-} from '../../../src/services/google-routes.service.js';
+} from '../../../src/services/google-routes.service';
 import type {
   ComputeRoutesInput,
   ComputeRoutesResponse,
@@ -20,7 +20,7 @@ import type {
   Waypoint,
   Route,
   TravelMode,
-} from '../../../src/types/google-routes.js';
+} from '../../../src/types/google-routes';
 
 // Mock the config module
 jest.mock('../../../src/config/index.js', () => ({

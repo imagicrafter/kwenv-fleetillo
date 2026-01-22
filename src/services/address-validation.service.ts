@@ -14,9 +14,9 @@
  * - Detailed validation feedback
  */
 
-import { createContextLogger } from '../utils/logger.js';
-import { config } from '../config/index.js';
-import type { Result } from '../types/index.js';
+import { createContextLogger } from '../utils/logger';
+import { config } from '../config/index';
+import type { Result } from '../types/index';
 import type {
   AddressInput,
   StandardizedAddress,
@@ -35,20 +35,20 @@ import type {
   StandardizeAddressResponse,
   GeocodeWithValidationInput,
   GeocodeWithValidationResponse,
-} from '../types/address-validation.js';
+} from '../types/address-validation';
 import type {
   Coordinates,
   GeocodingResult,
   GeocodingLocationType,
   PlacePrediction,
-} from '../types/googlemaps.js';
+} from '../types/googlemaps';
 import {
   geocodeAddress,
   getPlaceAutocomplete,
   GoogleMapsServiceError,
   GoogleMapsErrorCodes,
-} from './googlemaps.service.js';
-import { extractStructuredAddress } from '../types/googlemaps.js';
+} from './googlemaps.service';
+import { extractStructuredAddress } from '../types/googlemaps';
 
 /**
  * Logger instance for Address Validation service operations

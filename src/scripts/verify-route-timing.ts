@@ -1,8 +1,8 @@
 
 import 'dotenv/config';
-import { initializeSupabase } from '../services/supabase.js';
-import { planRoutes } from '../services/route-planning.service.js';
-import { getAdminSupabaseClient } from '../services/supabase.js';
+import { initializeSupabase } from '../services/supabase';
+import { planRoutes } from '../services/route-planning.service';
+import { getAdminSupabaseClient } from '../services/supabase';
 
 // Initialize Supabase
 initializeSupabase({

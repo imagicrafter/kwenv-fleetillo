@@ -6,9 +6,9 @@ import {
     updateDriver,
     deleteDriver,
     countDrivers,
-} from '../services/driver.service.js';
-import type { CreateDriverInput, UpdateDriverInput, DriverFilters } from '../types/driver.js';
-import type { PaginationParams } from '../types/index.js';
+} from '../services/driver.service';
+import type { CreateDriverInput, UpdateDriverInput, DriverFilters } from '../types/driver';
+import type { PaginationParams } from '../types/index';
 
 /**
  * Driver Controller

@@ -6,7 +6,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import type { ComputeRoutesInput, Waypoint } from '../../src/types/google-routes.js';
+import type { ComputeRoutesInput, Waypoint } from '../../src/types/google-routes';
 
 // Note: These tests validate the error handling logic in the Google Routes service
 // They test validation and error mapping without making actual API calls

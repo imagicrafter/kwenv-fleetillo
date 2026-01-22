@@ -6,7 +6,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { generateTestId } from '../helpers/test-utils.js';
+import { generateTestId } from '../helpers/test-utils';
 import {
   createService,
   getServiceById,
@@ -15,9 +15,9 @@ import {
   deleteService,
   restoreService,
   ServiceErrorCodes,
-} from '../../src/services/service.service.js';
-import { initializeSupabase, resetSupabaseClient } from '../../src/services/supabase.js';
-import type { CreateServiceInput, UpdateServiceInput } from '../../src/types/service.js';
+} from '../../src/services/service.service';
+import { initializeSupabase, resetSupabaseClient } from '../../src/services/supabase';
+import type { CreateServiceInput, UpdateServiceInput } from '../../src/types/service';
 
 test.beforeAll(async () => {
   await initializeSupabase();

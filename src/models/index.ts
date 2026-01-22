@@ -14,9 +14,9 @@ export type {
   Address,
   GeoLocation,
   ContactInfo,
-} from '../types/customer.js';
+} from '../types/customer';
 
-export { rowToCustomer, customerInputToRow } from '../types/customer.js';
+export { rowToCustomer, customerInputToRow } from '../types/customer';
 
 // Re-export booking types and utilities
 export type {
@@ -30,10 +30,10 @@ export type {
   BookingPriority,
   RecurrencePattern,
   ServiceLocation,
-} from '../types/booking.js';
+} from '../types/booking';
 
 export {
   rowToBooking,
   bookingInputToRow,
   updateBookingInputToRow,
-} from '../types/booking.js';
+} from '../types/booking';

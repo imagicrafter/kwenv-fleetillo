@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { dispatchJobService } from '../services/dispatch-job.service.js';
-import type { CreateDispatchJobInput, DispatchJobFilters } from '../types/dispatch-job.js';
+import { dispatchJobService } from '../services/dispatch-job.service';
+import type { CreateDispatchJobInput, DispatchJobFilters } from '../types/dispatch-job';
 
 /**
  * Dispatch Job Controller

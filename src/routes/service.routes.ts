@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import * as serviceController from '../controllers/service.controller.js';
-import { validateIdParam, validateRequired } from '../middleware/validation.js';
+import * as serviceController from '../controllers/service.controller';
+import { validateIdParam, validateRequired } from '../middleware/validation';
 
 const router = Router();
 

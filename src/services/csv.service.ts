@@ -3,14 +3,14 @@
  */
 
 import { parse } from 'csv-parse/sync';
-import type { Result } from '../types/index.js';
+import type { Result } from '../types/index';
 import type {
   CreateBookingInput,
   BookingType,
   BookingStatus,
   BookingPriority,
-} from '../types/booking.js';
-import { isValidUUID } from '../middleware/validation.js';
+} from '../types/booking';
+import { isValidUUID } from '../middleware/validation';
 
 /**
  * Expected CSV columns for booking import

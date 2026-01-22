@@ -3,13 +3,13 @@ import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
 import 'express-async-errors';
-import { config } from './config/index.js';
-import { errorHandler, notFoundHandler } from './middleware/error-handler.js';
-import { requestLogger, logRequest } from './middleware/request-logger.js';
-import { sanitizeBody } from './middleware/validation.js';
-import routes from './routes/index.js';
-import healthRoutes from './routes/health.routes.js';
-import { logger } from './utils/logger.js';
+import { config } from './config/index';
+import { errorHandler, notFoundHandler } from './middleware/error-handler';
+import { requestLogger, logRequest } from './middleware/request-logger';
+import { sanitizeBody } from './middleware/validation';
+import routes from './routes/index';
+import healthRoutes from './routes/health.routes';
+import { logger } from './utils/logger';
 
 /**
  * Create and configure Express application

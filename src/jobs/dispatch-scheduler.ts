@@ -3,8 +3,8 @@
  * This script is run by DigitalOcean App Platform on a cron schedule
  * to execute pending dispatch jobs that are due
  */
-import { dispatchJobService } from '../services/dispatch-job.service.js';
-import { createContextLogger } from '../utils/logger.js';
+import { dispatchJobService } from '../services/dispatch-job.service';
+import { createContextLogger } from '../utils/logger';
 
 const logger = createContextLogger('DispatchSchedulerJob');
 

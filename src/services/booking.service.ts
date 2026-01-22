@@ -5,21 +5,21 @@
  * in the Fleetillo application.
  */
 
-import { getSupabaseClient, getAdminSupabaseClient } from './supabase.js';
-import { createContextLogger } from '../utils/logger.js';
-import type { Result, PaginationParams, PaginatedResponse } from '../types/index.js';
+import { getSupabaseClient, getAdminSupabaseClient } from './supabase';
+import { createContextLogger } from '../utils/logger';
+import type { Result, PaginationParams, PaginatedResponse } from '../types/index';
 import type {
   Booking,
   BookingRow,
   CreateBookingInput,
   UpdateBookingInput,
   BookingFilters,
-} from '../types/booking.js';
+} from '../types/booking';
 import {
   rowToBooking as convertRowToBooking,
   bookingInputToRow as convertInputToRow,
   updateBookingInputToRow as convertUpdateInputToRow,
-} from '../types/booking.js';
+} from '../types/booking';
 
 /**
  * Logger instance for booking operations
