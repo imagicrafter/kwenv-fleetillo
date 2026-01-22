@@ -717,10 +717,20 @@ Each sub-agent in complex tier:
 
 | Hook | Script | Purpose |
 |------|--------|---------|
-| **SessionStart** | `memory-persistence/session-start.sh` | Notify of recent sessions |
+| **SessionStart** | `memory-persistence/session-start.sh` | Load context, auto-archive closed issue plans |
 | **Stop** | `memory-persistence/session-end.sh` | Save session context |
 | **Stop** | `continuous-learning/evaluate-session.sh` | Extract learned patterns |
 | **PreCompact** | `memory-persistence/pre-compact.sh` | Preserve state before compaction |
+
+#### SessionStart Auto-Archive
+
+When a new Claude session starts, the SessionStart hook automatically:
+1. Checks `.claude/plans/issue-*/` folders
+2. Queries GitHub to see if each issue is closed
+3. Archives closed issue plans to `.claude/plans/archive/completed/`
+4. Reports: `[SessionStart] Archived N closed issue plan(s)`
+
+This ensures plan folders are cleaned up without manual intervention.
 
 ### PostToolUse Hooks
 
