@@ -35,3 +35,39 @@ learned_count=$(find "$LEARNED_DIR" -name "*.md" 2>/dev/null | wc -l | tr -d ' '
 if [ "$learned_count" -gt 0 ]; then
   echo "[SessionStart] $learned_count learned skill(s) available in $LEARNED_DIR" >&2
 fi
+
+# Auto-archive plans for closed issues (lightweight check)
+PLANS_DIR=".claude/plans"
+ARCHIVE_DIR="$PLANS_DIR/archive/completed"
+
+if [ -d "$PLANS_DIR" ]; then
+  archived_count=0
+
+  for dir in "$PLANS_DIR"/issue-*/; do
+    [ -d "$dir" ] || continue
+
+    issue_num=$(basename "$dir" | grep -oE '[0-9]+' | head -1)
+
+    if [ -n "$issue_num" ]; then
+      # Quick check if issue is closed
+      state=$(gh issue view "$issue_num" --json state --jq '.state' 2>/dev/null || echo "")
+
+      if [ "$state" = "CLOSED" ]; then
+        mkdir -p "$ARCHIVE_DIR"
+        folder_name=$(basename "$dir")
+
+        if [ ! -d "$ARCHIVE_DIR/$folder_name" ]; then
+          mv "$dir" "$ARCHIVE_DIR/"
+          archived_count=$((archived_count + 1))
+        else
+          # Duplicate - remove active copy
+          rm -rf "$dir"
+        fi
+      fi
+    fi
+  done
+
+  if [ "$archived_count" -gt 0 ]; then
+    echo "[SessionStart] Archived $archived_count closed issue plan(s)" >&2
+  fi
+fi
