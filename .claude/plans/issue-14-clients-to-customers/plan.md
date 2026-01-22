@@ -105,9 +105,6 @@ Instead of complex ALTER TABLE renames and migration rollbacks, we:
 **[MODIFY] `.env.example`**
 - `SUPABASE_SCHEMA=routeiq` → `SUPABASE_SCHEMA=fleetillo`
 
-**[MODIFY] `docs/yokeflow/optiroute_schema.sql`**
-- Update to reflect new `fleetillo` schema with `customers` table
-
 ### UI Files
 
 **[MODIFY] `shared/public/customers.html`**

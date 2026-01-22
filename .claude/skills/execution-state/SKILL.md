@@ -24,7 +24,7 @@ This skill manages two files that enable sub-agents to understand prior work:
 | `execution-state.json` | Authoritative task state | Structured JSON |
 | `journal.md` | Rich context, decisions, rationale | Markdown narrative |
 
-This approach is inspired by yokeflow2's pattern where agents self-orient by querying state rather than receiving pre-built summaries.
+This approach enables agents to self-orient by querying state rather than receiving pre-built summaries.
 
 ---
 

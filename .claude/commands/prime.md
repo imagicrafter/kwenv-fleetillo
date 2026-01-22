@@ -18,24 +18,14 @@ Read these files to understand the Fleetillo system:
 
 ## Core Documentation
 
-### Architecture & Design
-- **docs/yokeflow/architecture_overview.md** - System architecture
-  - Multi-component architecture diagram
-  - Tech stack details (TypeScript, Express, Supabase, React)
-  - Directory structure and organization
-  
 ### API Documentation
-- **docs/yokeflow/rest_api_specification.md** - Main REST API endpoints
-  - Route planning and management endpoints
-  - Request/response formats
-  
 - **dispatch-service/API.md** - Dispatch Service API
   - Driver notification system (Telegram + Email)
   - Dispatch endpoints and integration patterns
   - UI integration examples
 
 ### Database & Data Model
-- **docs/yokeflow/optiroute_schema.sql** - Complete database schema
+- **supabase/migrations/** - Database migrations
   - All tables, indexes, triggers, and constraints
   - Database schema name: `routeiq`
 
@@ -149,8 +139,7 @@ npm run db:check      # Database connection validation
 
 #### Database Changes
 1. Create migration: `supabase/migrations/YYYYMMDDHHMMSS_description.sql`
-2. Update schema file: `docs/yokeflow/optiroute_schema.sql`
-3. Apply via Supabase CLI or dashboard
+2. Apply via Supabase CLI or dashboard
 
 #### UI Changes
 - Web launcher: `web-launcher/public/` (HTML/CSS/JS)
@@ -209,11 +198,11 @@ SESSION_SECRET=your-session-secret
 
 | What You're Doing | Start Here |
 |-------------------|-----------|
-| Understanding the system | README.md → architecture_overview.md |
-| Database changes | optiroute_schema.sql |
-| New API endpoint | rest_api_specification.md + service_implementation_guide.md |
-| New entity/service | service_implementation_guide.md + type_definitions_guide.md |
+| Understanding the system | README.md → docs/optiroute_code_specification.md |
+| Database changes | supabase/migrations/ |
+| New API endpoint | dispatch-service/src/routes/ + dispatch-service/src/controllers/ |
+| New entity/service | dispatch-service/src/services/ + dispatch-service/src/types/ |
 | Dispatch/notifications | dispatch-service/API.md |
-| Maps/geocoding | google_maps_integration_guide.md |
-| Route optimization | route_planning_guide.md |
-| Environment setup | environment_configuration_guide.md |
+| Maps/geocoding | dispatch-service/src/services/google-maps.service.ts |
+| Route optimization | dispatch-service/src/services/route.service.ts |
+| Environment setup | .env.example |
