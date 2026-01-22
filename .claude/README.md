@@ -112,8 +112,9 @@ Create these labels in GitHub:
 ├── commands/                    # Slash commands (user-invoked only)
 │   ├── execute.md               # /execute - Implement planned issues
 │   ├── learn.md                 # /learn - Extract patterns from session
-│   ├── prioritize.md            # /prioritize - Recommend next issue
+│   ├── merge-pr.md              # /merge-pr - Merge PR, delete branch, clean worktree
 │   ├── plan-cleanup.md          # /plan-cleanup - Archive closed plans
+│   ├── prioritize.md            # /prioritize - Recommend next issue
 │   ├── prime.md                 # /prime - Load project context
 │   ├── verify.md                # /verify - Run verification checks
 │   └── ...                      # Other workflow commands
