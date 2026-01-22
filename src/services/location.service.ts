@@ -19,26 +19,41 @@ const logger = createContextLogger('LocationService');
  */
 const LOCATIONS_TABLE = 'locations';
 
+/**
+ * Location metadata for site-specific requirements
+ */
+export interface LocationMetadata {
+  capacityGallons?: number;
+  trapCount?: number;
+  serviceFrequencyWeeks?: number;
+  hoseLengthReq?: string;
+  requiresTanker?: boolean;
+  preferredServiceTime?: string;
+  capacityNotes?: string;
+  [key: string]: unknown; // Allow additional arbitrary metadata
+}
+
 export interface Location {
-    id: string;
-    customerId?: string | null;
-    customerName?: string; // Populated from join
-    name: string;
-    locationType: 'client' | 'depot' | 'disposal' | 'maintenance' | 'home' | 'other';
-    addressLine1: string;
-    addressLine2?: string | null;
-    city: string;
-    state: string;
-    postalCode: string;
-    country: string;
-    latitude?: number | null;
-    longitude?: number | null;
-    isPrimary: boolean;
-    notes?: string | null;
-    tags: string[];
-    createdAt: string;
-    updatedAt: string;
-    deletedAt?: string | null;
+  id: string;
+  customerId?: string | null;
+  customerName?: string; // Populated from join
+  name: string;
+  locationType: 'client' | 'depot' | 'disposal' | 'maintenance' | 'home' | 'other';
+  addressLine1: string;
+  addressLine2?: string | null;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  isPrimary: boolean;
+  notes?: string | null;
+  tags: string[];
+  metadata?: LocationMetadata;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string | null;
 }
 
 export type CreateLocationInput = Omit<Location, 'id' | 'createdAt' | 'updatedAt' | 'deletedAt'>;
@@ -48,226 +63,275 @@ export type UpdateLocationInput = Partial<CreateLocationInput> & { id: string };
  * Helper to get the appropriate Supabase client
  */
 function getConnection() {
-    return getAdminSupabaseClient() || getSupabaseClient();
+  return getAdminSupabaseClient() || getSupabaseClient();
+}
+
+/**
+ * Converts DB row metadata (snake_case) to LocationMetadata (camelCase)
+ */
+function rowMetadataToMetadata(row: any): LocationMetadata {
+  if (!row) return {};
+  return {
+    capacityGallons: row.capacity_gallons,
+    trapCount: row.trap_count,
+    serviceFrequencyWeeks: row.service_frequency_weeks,
+    hoseLengthReq: row.hose_length_req,
+    requiresTanker: row.requires_tanker,
+    preferredServiceTime: row.preferred_service_time,
+    capacityNotes: row.capacity_notes,
+    ...row, // Include any additional fields
+  };
+}
+
+/**
+ * Converts LocationMetadata (camelCase) to DB format (snake_case)
+ */
+function metadataToRow(metadata: LocationMetadata): any {
+  if (!metadata) return {};
+  const {
+    capacityGallons,
+    trapCount,
+    serviceFrequencyWeeks,
+    hoseLengthReq,
+    requiresTanker,
+    preferredServiceTime,
+    capacityNotes,
+    ...rest
+  } = metadata;
+  return {
+    capacity_gallons: capacityGallons,
+    trap_count: trapCount,
+    service_frequency_weeks: serviceFrequencyWeeks,
+    hose_length_req: hoseLengthReq,
+    requires_tanker: requiresTanker,
+    preferred_service_time: preferredServiceTime,
+    capacity_notes: capacityNotes,
+    ...rest,
+  };
 }
 
 /**
  * Converts DB row to Location object
  */
 function rowToLocation(row: any): Location {
-    return {
-        id: row.id,
-        customerId: row.customer_id,
-        customerName: row.customers?.name,
-        name: row.name,
-        locationType: row.location_type,
-        addressLine1: row.address_line1,
-        addressLine2: row.address_line2,
-        city: row.city,
-        state: row.state,
-        postalCode: row.postal_code,
-        country: row.service_country || row.country || 'USA', // Handle potential schema variations
-        latitude: row.latitude,
-        longitude: row.longitude,
-        isPrimary: row.is_primary,
-        notes: row.notes,
-        tags: row.tags ?? [],
-        createdAt: row.created_at,
-        updatedAt: row.updated_at,
-        deletedAt: row.deleted_at
-    };
+  return {
+    id: row.id,
+    customerId: row.customer_id,
+    customerName: row.customers?.name,
+    name: row.name,
+    locationType: row.location_type,
+    addressLine1: row.address_line1,
+    addressLine2: row.address_line2,
+    city: row.city,
+    state: row.state,
+    postalCode: row.postal_code,
+    country: row.service_country || row.country || 'USA', // Handle potential schema variations
+    latitude: row.latitude,
+    longitude: row.longitude,
+    isPrimary: row.is_primary,
+    notes: row.notes,
+    tags: row.tags ?? [],
+    metadata: row.metadata ? rowMetadataToMetadata(row.metadata) : undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+    deletedAt: row.deleted_at,
+  };
 }
 
 /**
  * Converts input to DB row
  */
 function inputToRow(input: CreateLocationInput | UpdateLocationInput): any {
-    const row: any = {};
-    if ('customerId' in input) row.customer_id = input.customerId;
-    if ('name' in input) row.name = input.name;
-    if ('locationType' in input) row.location_type = input.locationType;
-    if ('addressLine1' in input) row.address_line1 = input.addressLine1;
-    if ('addressLine2' in input) row.address_line2 = input.addressLine2;
-    if ('city' in input) row.city = input.city;
-    if ('state' in input) row.state = input.state;
-    if ('postalCode' in input) row.postal_code = input.postalCode;
-    if ('country' in input) row.country = input.country;
-    if ('latitude' in input) row.latitude = input.latitude;
-    if ('longitude' in input) row.longitude = input.longitude;
-    if ('isPrimary' in input) row.is_primary = input.isPrimary;
-    if ('notes' in input) row.notes = input.notes;
-    if ('tags' in input) row.tags = input.tags;
-    return row;
+  const row: any = {};
+  if ('customerId' in input) row.customer_id = input.customerId;
+  if ('name' in input) row.name = input.name;
+  if ('locationType' in input) row.location_type = input.locationType;
+  if ('addressLine1' in input) row.address_line1 = input.addressLine1;
+  if ('addressLine2' in input) row.address_line2 = input.addressLine2;
+  if ('city' in input) row.city = input.city;
+  if ('state' in input) row.state = input.state;
+  if ('postalCode' in input) row.postal_code = input.postalCode;
+  if ('country' in input) row.country = input.country;
+  if ('latitude' in input) row.latitude = input.latitude;
+  if ('longitude' in input) row.longitude = input.longitude;
+  if ('isPrimary' in input) row.is_primary = input.isPrimary;
+  if ('notes' in input) row.notes = input.notes;
+  if ('tags' in input) row.tags = input.tags;
+  if ('metadata' in input) row.metadata = metadataToRow(input.metadata as LocationMetadata);
+  return row;
 }
 
 /**
  * Creates a new location
  */
 export async function createLocation(input: CreateLocationInput): Promise<Result<Location>> {
-    logger.debug('Creating location', { name: input.name, customerId: input.customerId });
+  logger.debug('Creating location', { name: input.name, customerId: input.customerId });
 
-    try {
-        const supabase = getConnection();
-        const rowData = inputToRow(input);
+  try {
+    const supabase = getConnection();
+    const rowData = inputToRow(input);
 
-        const { data, error } = await supabase
-            .from(LOCATIONS_TABLE)
-            .insert(rowData)
-            .select('*, customers(name)')
-            .single();
+    const { data, error } = await supabase
+      .from(LOCATIONS_TABLE)
+      .insert(rowData)
+      .select('*, customers(name)')
+      .single();
 
-        if (error) throw error;
+    if (error) throw error;
 
-        return { success: true, data: rowToLocation(data) };
-    } catch (error: any) {
-        logger.error('Failed to create location', error);
-        return { success: false, error: new Error(`Failed to create location: ${error.message}`) };
-    }
+    return { success: true, data: rowToLocation(data) };
+  } catch (error: any) {
+    logger.error('Failed to create location', error);
+    return { success: false, error: new Error(`Failed to create location: ${error.message}`) };
+  }
 }
 
 /**
  * Gets a location by ID
  */
 export async function getLocationById(id: string): Promise<Result<Location>> {
-    try {
-        const supabase = getConnection();
-        const { data, error } = await supabase
-            .from(LOCATIONS_TABLE)
-            .select('*, customers(name)')
-            .eq('id', id)
-            .single();
+  try {
+    const supabase = getConnection();
+    const { data, error } = await supabase
+      .from(LOCATIONS_TABLE)
+      .select('*, customers(name)')
+      .eq('id', id)
+      .single();
 
-        if (error) throw error;
-        return { success: true, data: rowToLocation(data) };
-    } catch (error: any) {
-        logger.error('Failed to get location', error);
-        return { success: false, error: new Error(`Failed to get location: ${error.message}`) };
-    }
+    if (error) throw error;
+    return { success: true, data: rowToLocation(data) };
+  } catch (error: any) {
+    logger.error('Failed to get location', error);
+    return { success: false, error: new Error(`Failed to get location: ${error.message}`) };
+  }
 }
 
 /**
  * Gets all locations with optional filters
  */
 export async function getAllLocations(
-    filters?: { type?: string; customerId?: string; searchTerm?: string },
-    pagination?: PaginationParams
+  filters?: { type?: string; customerId?: string; searchTerm?: string },
+  pagination?: PaginationParams
 ): Promise<Result<PaginatedResponse<Location>>> {
-    try {
-        const supabase = getConnection();
-        let query = supabase
-            .from(LOCATIONS_TABLE)
-            .select('*, customers(name)', { count: 'exact' });
+  try {
+    const supabase = getConnection();
+    let query = supabase.from(LOCATIONS_TABLE).select('*, customers(name)', { count: 'exact' });
 
-        query = query.is('deleted_at', null);
+    query = query.is('deleted_at', null);
 
-        if (filters?.type) {
-            query = query.eq('location_type', filters.type);
-        }
-
-        if (filters?.customerId) {
-            query = query.eq('customer_id', filters.customerId);
-        }
-
-        if (filters?.searchTerm) {
-            query = query.or(`name.ilike.%${filters.searchTerm}%,address_line1.ilike.%${filters.searchTerm}%,city.ilike.%${filters.searchTerm}%`);
-        }
-
-        // Apply pagination
-        const page = pagination?.page ?? 1;
-        const limit = pagination?.limit ?? 20;
-        const offset = (page - 1) * limit;
-
-        query = query.range(offset, offset + limit - 1);
-
-        // Apply sorting
-        const sortBy = pagination?.sortBy ?? 'created_at';
-        const sortOrder = pagination?.sortOrder ?? 'desc';
-        // Note: 'customers(name)' alias sorting might be tricky, sticking to main table columns for now
-        query = query.order(sortBy, { ascending: sortOrder === 'asc' });
-
-        const { data, error, count } = await query;
-
-        if (error) throw error;
-
-        const total = count ?? 0;
-
-        return {
-            success: true,
-            data: {
-                data: data.map(rowToLocation),
-                pagination: {
-                    page,
-                    limit,
-                    total,
-                    totalPages: Math.ceil(total / limit)
-                }
-            }
-        };
-    } catch (error: any) {
-        logger.error('Failed to get all locations', error);
-        return { success: false, error: new Error(`Failed to get all locations: ${error.message}`) };
+    if (filters?.type) {
+      query = query.eq('location_type', filters.type);
     }
+
+    if (filters?.customerId) {
+      query = query.eq('customer_id', filters.customerId);
+    }
+
+    if (filters?.searchTerm) {
+      query = query.or(
+        `name.ilike.%${filters.searchTerm}%,address_line1.ilike.%${filters.searchTerm}%,city.ilike.%${filters.searchTerm}%`
+      );
+    }
+
+    // Apply pagination
+    const page = pagination?.page ?? 1;
+    const limit = pagination?.limit ?? 20;
+    const offset = (page - 1) * limit;
+
+    query = query.range(offset, offset + limit - 1);
+
+    // Apply sorting
+    const sortBy = pagination?.sortBy ?? 'created_at';
+    const sortOrder = pagination?.sortOrder ?? 'desc';
+    // Note: 'customers(name)' alias sorting might be tricky, sticking to main table columns for now
+    query = query.order(sortBy, { ascending: sortOrder === 'asc' });
+
+    const { data, error, count } = await query;
+
+    if (error) throw error;
+
+    const total = count ?? 0;
+
+    return {
+      success: true,
+      data: {
+        data: data.map(rowToLocation),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+        },
+      },
+    };
+  } catch (error: any) {
+    logger.error('Failed to get all locations', error);
+    return { success: false, error: new Error(`Failed to get all locations: ${error.message}`) };
+  }
 }
 
 /**
  * Gets all locations for a customer
  */
 export async function getCustomerLocations(customerId: string): Promise<Result<Location[]>> {
-    try {
-        const supabase = getConnection();
-        const { data, error } = await supabase
-            .from(LOCATIONS_TABLE)
-            .select('*, customers(name)')
-            .eq('customer_id', customerId)
-            .is('deleted_at', null)
-            .order('is_primary', { ascending: false }); // Primary first
+  try {
+    const supabase = getConnection();
+    const { data, error } = await supabase
+      .from(LOCATIONS_TABLE)
+      .select('*, customers(name)')
+      .eq('customer_id', customerId)
+      .is('deleted_at', null)
+      .order('is_primary', { ascending: false }); // Primary first
 
-        if (error) throw error;
-        return { success: true, data: data.map(rowToLocation) };
-    } catch (error: any) {
-        logger.error('Failed to get customer locations', error);
-        return { success: false, error: new Error(`Failed to get customer locations: ${error.message}`) };
-    }
+    if (error) throw error;
+    return { success: true, data: data.map(rowToLocation) };
+  } catch (error: any) {
+    logger.error('Failed to get customer locations', error);
+    return {
+      success: false,
+      error: new Error(`Failed to get customer locations: ${error.message}`),
+    };
+  }
 }
 
 /**
  * Updates a location
  */
 export async function updateLocation(input: UpdateLocationInput): Promise<Result<Location>> {
-    try {
-        const supabase = getConnection();
-        const rowData = inputToRow(input);
+  try {
+    const supabase = getConnection();
+    const rowData = inputToRow(input);
 
-        const { data, error } = await supabase
-            .from(LOCATIONS_TABLE)
-            .update(rowData)
-            .eq('id', input.id)
-            .select('*, customers(name)')
-            .single();
+    const { data, error } = await supabase
+      .from(LOCATIONS_TABLE)
+      .update(rowData)
+      .eq('id', input.id)
+      .select('*, customers(name)')
+      .single();
 
-        if (error) throw error;
-        return { success: true, data: rowToLocation(data) };
-    } catch (error: any) {
-        logger.error('Failed to update location', error);
-        return { success: false, error: new Error(`Failed to update location: ${error.message}`) };
-    }
+    if (error) throw error;
+    return { success: true, data: rowToLocation(data) };
+  } catch (error: any) {
+    logger.error('Failed to update location', error);
+    return { success: false, error: new Error(`Failed to update location: ${error.message}`) };
+  }
 }
 
 /**
  * Soft deletes a location
  */
 export async function deleteLocation(id: string): Promise<Result<void>> {
-    try {
-        const supabase = getConnection();
-        const { error } = await supabase
-            .from(LOCATIONS_TABLE)
-            .update({ deleted_at: new Date().toISOString() })
-            .eq('id', id);
+  try {
+    const supabase = getConnection();
+    const { error } = await supabase
+      .from(LOCATIONS_TABLE)
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', id);
 
-        if (error) throw error;
-        return { success: true };
-    } catch (error: any) {
-        logger.error('Failed to delete location', error);
-        return { success: false, error: new Error(`Failed to delete location: ${error.message}`) };
-    }
+    if (error) throw error;
+    return { success: true };
+  } catch (error: any) {
+    logger.error('Failed to delete location', error);
+    return { success: false, error: new Error(`Failed to delete location: ${error.message}`) };
+  }
 }

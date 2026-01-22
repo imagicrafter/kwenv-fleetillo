@@ -134,6 +134,10 @@ export interface Booking extends Timestamps {
   // Metadata
   tags?: string[];
 
+  // CRM tracking for data import
+  crmStatus?: string;
+  crmId?: string;
+
   // Soft delete
   deletedAt?: Date;
 
@@ -219,6 +223,10 @@ export interface BookingRow {
   // Metadata
   tags: string[] | null;
 
+  // CRM tracking for data import
+  crm_status: string | null;
+  crm_id: string | null;
+
   // Audit timestamps
   created_at: string;
   updated_at: string;
@@ -293,6 +301,10 @@ export interface CreateBookingInput {
 
   // Metadata
   tags?: string[];
+
+  // CRM tracking for data import
+  crmStatus?: string;
+  crmId?: string;
 }
 
 /**
@@ -412,6 +424,10 @@ export function rowToBooking(row: BookingRow): Booking {
     // Metadata
     tags: row.tags ?? undefined,
 
+    // CRM tracking
+    crmStatus: row.crm_status ?? undefined,
+    crmId: row.crm_id ?? undefined,
+
     // Audit timestamps
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
@@ -490,6 +506,10 @@ export function bookingInputToRow(input: CreateBookingInput): Partial<BookingRow
     confirmation_sent: input.confirmationSent ?? false,
 
     tags: input.tags ?? null,
+
+    // CRM tracking
+    crm_status: input.crmStatus ?? null,
+    crm_id: input.crmId ?? null,
   };
 }
 
@@ -566,6 +586,10 @@ export function updateBookingInputToRow(input: UpdateBookingInput): Partial<Book
 
   // Metadata
   if (input.tags !== undefined) row.tags = input.tags ?? null;
+
+  // CRM tracking
+  if (input.crmStatus !== undefined) row.crm_status = input.crmStatus ?? null;
+  if (input.crmId !== undefined) row.crm_id = input.crmId ?? null;
 
   // Update-specific fields
   if (input.actualStartTime !== undefined) {
