@@ -88,3 +88,14 @@ The goal is to establish automated testing infrastructure that catches UI breaks
 3. IF visual differences exceed threshold, THE system SHALL flag the PR for visual review
 4. THE system SHALL allow developers to update baseline images when changes are intentional
 5. THE system SHALL integrate visual regression reports into the PR review workflow
+
+### Requirement 7: AI Agent Infrastructure Audit & Integration
+
+**User Story:** As a developer using AI agents, I want the `.claude` infrastructure (commands, hooks, rules, skills) to enforce regression testing, so that AI-generated changes are automatically verified and failures are mitigated before issues are closed.
+
+#### Acceptance Criteria
+
+1. THE system SHALL run an audit of existing `.claude/commands`, `.claude/hooks`, `.claude/rules`, and `.claude/skills` to determine regression testing readiness
+2. THE system SHALL implement or update hooks (e.g., `pre-push` or custom agent hooks) to trigger standard regression workflow automatically
+3. THE system SHALL enforce a validation step where test failures are tracked and must be resolved before an issue can be marked closed
+4. THE system SHALL enable the agent to interpret regression test results and attempt mitigation (fixes) autonomously where possible

@@ -233,3 +233,23 @@ INSERT INTO locations (id, name, customer_id) VALUES
 | Individual test | < 30 seconds |
 | CI feedback | < 15 minutes total |
 | Parallel workers | 4 |
+
+## Agent Integration
+
+### Infrastructure Audit & Updates
+
+To ensure AI agents automatically leverage regression testing:
+
+1.  **Rules (`.claude/rules/testing.md`)**: Update to explicitly require `npm run test:e2e` passing before task completion.
+2.  **Hooks**: Implement `git` hooks or agent-specific workflow hooks (if available) to auto-trigger tests on task boundary verification phases.
+3.  **Skills**: Create/Update a `verify-changes` skill that orchestrates running the regression suite and parsing the JSON report to prompt the agent for fixes.
+
+```mermaid
+flowchart LR
+    Agent[AI Agent] -->|Calls| VerifySkill[verify-changes Skill]
+    VerifySkill -->|Executes| Playwright
+    Playwright -->|Json Report| VerifySkill
+    VerifySkill -->|Summarizes| Agent
+    Agent -->|If Fail| Mitigation[Fix Code]
+    Mitigation -->|Retry| VerifySkill
+```

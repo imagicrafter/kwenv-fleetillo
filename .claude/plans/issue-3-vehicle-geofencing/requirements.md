@@ -1,52 +1,55 @@
 # Requirements: Issue #3 - Vehicle Geofencing
 
 ## Introduction
-The system currently tracks vehicle locations via coordinates, but lacks spatial context. Fleet managers need to define geographic boundaries (geofences) and monitor when vehicles enter or exit these areas to improve operational oversight, security, and compliance. This feature introduces geofence management, vehicle assignment, and event logging.
+
+This document defines the requirements for implementing vehicle geofencing to constrain route assignments. Vehicles will be assigned geographic zones (polygons) where they are allowed to operate. The route optimization engine must respect these boundaries when assigning vehicles to routes.
 
 ## Glossary
-- **Geofence**: A virtual geographic boundary, defined by a circle (center + radius) or a polygon (set of vertices).
-- **Geofence Event**: A record of a vehicle entering or exiting a geofence.
-- **Geofence Assignment**: The link between a vehicle and a geofence it should be monitored against.
+
+- **Geofence**: A virtual geographic boundary (polygon) defined by a set of coordinates
+- **Operational Zone**: The specific geofence assigned to a vehicle
+- **Containment Check**: Verifying if a location (lat/lng) falls within a polygon
 
 ## Requirements
 
-### Requirement 1: Geofence Management
+### Requirement 1: Database Schema
 
-**User Story:** As a fleet manager, I want to create, update, and delete geofences, so that I can define important areas like depots, client sites, or restricted zones.
-
-#### Acceptance Criteria
-1. WHEN the admin submits a valid geofence definition (Name, Type: Circle|Polygon, Coordinates), THE system SHALL create a new geofence record.
-2. IF the type is 'Circle', THEN a center latitude, longitude, and radius (in meters) MUST be provided.
-3. IF the type is 'Polygon', THEN a list of at least 3 vertices (lat/long) MUST be provided.
-4. THE system SHALL prevent creation of invalid polygons (e.g., self-intersections, if feasible, otherwise basic vertex count check).
-5. THE admin SHALL be able to retrieve a list of all defined geofences.
-6. THE admin SHALL be able to update or delete an existing geofence.
-
-### Requirement 2: Vehicle-Geofence Assignment
-
-**User Story:** As a fleet manager, I want to assign specific geofences to specific vehicles, so that I only monitor relevant areas for each vehicle.
+**User Story:** As a system, I need to store geofence data for each vehicle, so that it persists.
 
 #### Acceptance Criteria
-1. WHEN the admin selects a vehicle and a set of geofences, THE system SHALL store these associations.
-2. THE system SHALL support Many-to-Many relationships (One vehicle can have multiple geofences; One geofence can be assigned to multiple vehicles).
-3. THE admin SHALL be able to view which geofences are assigned to a specific vehicle.
 
-### Requirement 3: Geofence Event Detection
+1. THE system SHALL add a `geofence` column to the `vehicles` table
+2. The column SHALL store GeoJSON Polygon data (or null if no geofence)
+3. THE system SHALL support complex polygons (multiple points)
 
-**User Story:** As a system, I want to detect when a vehicle crosses a geofence boundary, so that I can log the event.
+### Requirement 2: Vehicle Management UI
 
-#### Acceptance Criteria
-1. WHEN a vehicle's location is updated, THE system SHALL check all assigned geofences for that vehicle.
-2. IF a vehicle transitions from "outside" to "inside" a geofence, THE system SHALL create an 'ENTER' event.
-3. IF a vehicle transitions from "inside" to "outside" a geofence, THE system SHALL create an 'EXIT' event.
-4. THE system SHALL store the event with timestamp, vehicle_id, geofence_id, and event_type.
-5. THE system SHALL handle location updates efficiently to minimize latency.
-
-### Requirement 4: Geofence History & Reporting
-
-**User Story:** As a fleet manager, I want to view a history of geofence events, so that I can analyze vehicle movements.
+**User Story:** As a fleet manager, I want to draw a geofence on a map for each vehicle, so that I can define its operating area.
 
 #### Acceptance Criteria
-1. THE admin SHALL be able to query geofence events for a specific vehicle over a time range.
-2. THE admin SHALL be able to query geofence events for a specific geofence over a time range.
-3. THE response SHALL include timestamp, vehicle name, geofence name, and event type.
+
+1. THE Vehicle Edit Modal SHALL include a map interface
+2. THE UI SHALL allow drawing a polygon on the map
+3. THE UI SHALL allow editing existing polygons
+4. THE UI SHALL allow clearing the geofence (unrestricted vehicle)
+5. THE UI SHALL save the drawn polygon as GeoJSON to the backend
+
+### Requirement 3: Route Assignment Logic
+
+**User Story:** As a dispatcher, I want vehicles to only receive routes within their geofence, so that they stay in their territory.
+
+#### Acceptance Criteria
+
+1. WHEN assigning a route to a vehicle, THE system SHALL check if all route stops are within the vehicle's geofence
+2. IF a vehicle has a geofence and a stop is outside it, THE system SHALL NOT assign that vehicle
+3. IF a vehicle has no geofence, THE system SHALL treat it as unrestricted (allow any route)
+4. THE system SHALL prefer vehicles with smaller geofences (more specific) over unrestricted ones when multiple matches exist
+
+### Requirement 4: Visualization
+
+**User Story:** As a user, I want to see vehicle geofences on the map, so that I understand their territories.
+
+#### Acceptance Criteria
+
+1. The Vehicles list/map view SHALL display the geofences of selected vehicles
+2. The Route Planning map SHALL optionally show vehicle geofences overlays

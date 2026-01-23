@@ -93,10 +93,30 @@ Implementation of E2E testing infrastructure using Playwright, with GitHub Actio
 
 ---
 
-### Phase 3: CI Integration
+### Phase 3: Agent Infrastructure Integration
 
-- [ ] 11. GitHub Actions Workflow
-  - [ ] 11.1 Create .github/workflows/e2e-tests.yml
+- [ ] 11. Audit & Configuration
+  - [ ] 11.1 Audit existing `.claude` config (rules, commands, hooks)
+    - Check availability of test commands
+    - _Requirements: 7.1_
+  - [ ] 11.2 Update `.claude/rules/testing.md`
+    - Mandate E2E pass for "Verification" mode
+    - _Requirements: 7.3_
+
+- [ ] 12. Automation & Workflow
+  - [ ] 12.1 Create/Update `verify` workflow/skill
+    - Script to run tests and output agent-friendly summary
+    - _Requirements: 7.2, 7.4_
+  - [ ] 12.2 Configure hooks
+    - Ensure tests run on pre-push or pre-PR creation
+    - _Requirements: 7.2_
+
+---
+
+### Phase 4: CI Integration
+
+- [ ] 13. GitHub Actions Workflow
+  - [ ] 13.1 Create .github/workflows/e2e-tests.yml
     - Trigger on pull_request
     - Install dependencies
     - Start test server
