@@ -18,6 +18,9 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+bundle.env
+*.env
+!.env.example
 
 # Logs
 logs/

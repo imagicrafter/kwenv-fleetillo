@@ -31,24 +31,24 @@ services:
     value: https://vtaufnxworztolfdwlll.supabase.co
     scope: RUN_TIME
   - key: SUPABASE_KEY
-    value: ***REMOVED_SUPABASE_ANON***
+    type: SECRET
     scope: RUN_TIME
   - key: SUPABASE_SERVICE_ROLE_KEY
-    value: ***REMOVED_SUPABASE_SECRET***
+    type: SECRET
     scope: RUN_TIME
   - key: SUPABASE_SCHEMA
     value: routeiq
     scope: RUN_TIME
   # Google Maps
   - key: GOOGLE_MAPS_API_KEY
-    value: ***REMOVED_GOOGLE_MAPS_KEY***
+    type: SECRET
     scope: RUN_TIME
   # App Configuration
   - key: DEMO_PASSWORD
-    value: demo123
+    type: SECRET
     scope: RUN_TIME
   - key: SESSION_SECRET
-    value: ***REMOVED_SESSION_SECRET***
+    type: SECRET
     scope: RUN_TIME
   - key: NODE_ENV
     value: production
@@ -72,7 +72,7 @@ services:
     value: https://vtaufnxworztolfdwlll.supabase.co
     scope: RUN_TIME
   - key: SUPABASE_KEY
-    value: ***REMOVED_SUPABASE_SECRET***
+    type: SECRET
     scope: RUN_TIME
   - key: SUPABASE_SCHEMA
     value: routeiq
