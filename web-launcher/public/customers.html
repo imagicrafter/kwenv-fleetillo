@@ -292,6 +292,22 @@
                         <label for="customer-state">State</label>
                         <input type="text" id="customer-state" placeholder="TX">
                     </div>
+
+                    <!-- Tags -->
+                    <div class="form-group">
+                        <label for="customer-tag-input">Tags</label>
+                        <div class="tag-input-container"
+                            style="display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 12px; background-color: rgba(0, 0, 0, 0.2); border: 1px solid var(--border-subtle); border-radius: 6px; min-height: 42px; align-items: center;">
+                            <div id="customer-tag-chips" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+                            <input type="text" id="customer-tag-input" placeholder="Add tag and press Enter"
+                                style="flex: 1; min-width: 120px; background: transparent; border: none; color: var(--text-primary); font-family: inherit; font-size: 0.95rem; outline: none; padding: 2px 0;">
+                        </div>
+                        <small
+                            style="color: var(--text-secondary); font-size: 0.75rem; margin-top: 4px; display: block;">
+                            Press Enter or comma to add a tag
+                        </small>
+                    </div>
+
                     <div class="form-actions">
                         <button type="button" class="btn-secondary close-modal-btn">Cancel</button>
                         <button type="submit" class="btn-primary">Add Customer</button>
@@ -527,6 +543,32 @@
         .action-btn:hover::after {
             opacity: 1;
         }
+
+        /* Tag Chip Styles */
+        .tag-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(64, 169, 255, 0.15);
+            border: 1px solid rgba(64, 169, 255, 0.3);
+            color: var(--accent-primary);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .tag-chip .tag-remove {
+            cursor: pointer;
+            opacity: 0.7;
+            font-size: 1rem;
+            line-height: 1;
+            margin-left: 2px;
+        }
+
+        .tag-chip .tag-remove:hover {
+            opacity: 1;
+        }
     </style>
 
     <script>
@@ -548,6 +590,7 @@
             const stateInput = document.getElementById('customer-state');
 
             let isEditing = false;
+            let currentCustomerTags = [];
             let currentClients = [];
             let currentPage = 1;
             let limit = 10;
@@ -558,10 +601,58 @@
             const nextPageBtn = document.getElementById('next-page-btn');
             const paginationInfo = document.getElementById('pagination-info');
 
+            // Tag Management
+            function renderCustomerTagChips() {
+                const container = document.getElementById('customer-tag-chips');
+                if (!container) return;
+                container.innerHTML = currentCustomerTags.map((tag, i) =>
+                    `<span class="tag-chip">${tag}<span class="tag-remove" data-index="${i}">&times;</span></span>`
+                ).join('');
+
+                container.querySelectorAll('.tag-remove').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const index = parseInt(e.target.dataset.index);
+                        currentCustomerTags.splice(index, 1);
+                        renderCustomerTagChips();
+                    });
+                });
+            }
+
+            function setupCustomerTagInput() {
+                const tagInput = document.getElementById('customer-tag-input');
+                if (!tagInput) return;
+
+                const addTag = () => {
+                    const tag = tagInput.value.trim().replace(/,/g, '');
+                    if (tag && !currentCustomerTags.includes(tag)) {
+                        currentCustomerTags.push(tag);
+                        renderCustomerTagChips();
+                    }
+                    tagInput.value = '';
+                };
+
+                tagInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ',') {
+                        e.preventDefault();
+                        addTag();
+                    }
+                });
+
+                tagInput.addEventListener('blur', addTag);
+            }
+
             // Modal Functions
             function openModal(editMode = false) {
                 isEditing = editMode;
                 if (modalTitle) modalTitle.textContent = editMode ? 'Edit Customer' : 'Add New Customer';
+
+                if (!editMode) {
+                    currentCustomerTags = [];
+                    renderCustomerTagChips();
+                } else {
+                    renderCustomerTagChips();
+                }
+
                 if (modal) {
                     modal.style.display = 'block';
                 }
@@ -571,6 +662,8 @@
                 if (modal) modal.style.display = 'none';
                 if (addCustomerForm) addCustomerForm.reset();
                 if (idField) idField.value = '';
+                currentCustomerTags = [];
+                renderCustomerTagChips();
                 isEditing = false;
             }
 
@@ -604,6 +697,7 @@
                         phone: phone || undefined,
                         city: city || undefined,
                         state: state || undefined,
+                        tags: currentCustomerTags,
                         status: 'active'
                     };
 
@@ -782,6 +876,8 @@
                             if (cityInput) cityInput.value = client.city || '';
                             if (stateInput) stateInput.value = client.state || '';
 
+                            currentCustomerTags = client.tags ? [...client.tags] : [];
+
                             openModal(true);
                         }
                     });
@@ -804,6 +900,9 @@
                     });
                 });
             }
+
+            // Init Tag Input
+            setupCustomerTagInput();
 
             // Initial Load
             loadCustomers();
