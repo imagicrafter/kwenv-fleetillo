@@ -367,6 +367,55 @@
             z-index: 6;
         }
 
+        /* All Day Row - for bookings without scheduled time */
+        .all-day-label {
+            padding: 8px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: right;
+            border-bottom: 2px solid var(--border-subtle);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .all-day-cell {
+            min-height: 40px;
+            padding: 4px;
+            border-bottom: 2px solid var(--border-subtle);
+            background: rgba(255, 255, 255, 0.02);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            align-content: flex-start;
+        }
+
+        .all-day-booking {
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+            /* Default styling - will be overridden by status classes */
+            background: rgba(88, 166, 255, 0.2);
+            border-left: 3px solid var(--accent-primary);
+        }
+
+        .all-day-booking:hover {
+            filter: brightness(1.1);
+        }
+
+        .all-day-booking .customer-name {
+            font-weight: 600;
+        }
+
+        .all-day-booking .vehicle-name {
+            font-size: 0.65rem;
+            opacity: 0.8;
+        }
+
         /* Day View (Resource View) */
         .day-view {
             display: none;
@@ -498,6 +547,54 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        /* Day View All Day Row */
+        .resource-all-day-label {
+            height: auto;
+            min-height: 40px;
+            padding: 8px 12px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: right;
+            border-bottom: 2px solid var(--border-subtle);
+            background: rgba(255, 255, 255, 0.02);
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            border-right: 1px solid var(--border-subtle);
+        }
+
+        .resource-all-day-cell {
+            border-bottom: 2px solid var(--border-subtle);
+            border-right: 1px solid var(--border-subtle);
+            min-height: 40px;
+            padding: 4px;
+            background: rgba(255, 255, 255, 0.02);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            align-content: flex-start;
+        }
+
+        .resource-all-day-booking {
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            /* Default styling - will be overridden by status classes */
+            background: rgba(88, 166, 255, 0.2);
+            border-left: 3px solid var(--accent-primary);
+        }
+
+        .resource-all-day-booking:hover {
+            filter: brightness(1.1);
+        }
+
+        .resource-all-day-booking .customer-name {
+            font-weight: 600;
         }
 
         /* Status Colors - Enhanced for better visibility on dark theme */
@@ -1734,6 +1831,42 @@
                     currentDay.setDate(currentDay.getDate() + 1);
                 }
 
+                // All Day row - for bookings without scheduled time
+                const allDayLabel = document.createElement('div');
+                allDayLabel.className = 'all-day-label';
+                allDayLabel.textContent = 'All Day';
+                weekGrid.appendChild(allDayLabel);
+
+                days.forEach((day) => {
+                    const allDayCell = document.createElement('div');
+                    allDayCell.className = 'all-day-cell';
+
+                    // Find bookings for this day WITHOUT a scheduled time
+                    const allDayBookings = bookings.filter(b => {
+                        const bookingDate = parseBookingDate(b.scheduledDate);
+                        if (!bookingDate || !isSameDay(bookingDate, day)) return false;
+                        // Include bookings without scheduledStartTime
+                        return !b.scheduledStartTime;
+                    });
+
+                    allDayBookings.forEach(booking => {
+                        const event = document.createElement('div');
+                        event.className = `all-day-booking status-${booking.status}`;
+                        const vehicleDisplay = booking.vehicleName ? `<span class="vehicle-name"> - ${booking.vehicleName}</span>` : '';
+                        event.innerHTML = `
+                            <span class="customer-name">${booking.customerName || booking.clientName || 'Unknown'}</span>
+                            ${vehicleDisplay}
+                        `;
+                        event.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            showBookingPopup(booking, e);
+                        });
+                        allDayCell.appendChild(event);
+                    });
+
+                    weekGrid.appendChild(allDayCell);
+                });
+
                 // Time slots (6 AM to 9 PM)
                 for (let hour = 6; hour <= 21; hour++) {
                     // Time label
@@ -1846,6 +1979,52 @@
                 // Time Range: 6 AM to 8 PM
                 const startHour = 6;
                 const endHour = 20;
+
+                // All Day row - for bookings without scheduled time
+                const allDayLabel = document.createElement('div');
+                allDayLabel.className = 'resource-all-day-label';
+                allDayLabel.textContent = 'All Day';
+                grid.appendChild(allDayLabel);
+
+                // All Day cells for each vehicle column
+                for (let i = 0; i < allVehicles.length + 1; i++) {
+                    const allDayCell = document.createElement('div');
+                    allDayCell.className = 'resource-all-day-cell';
+
+                    const vehicle = i < allVehicles.length ? allVehicles[i] : null;
+                    const vehicleId = vehicle ? vehicle.id : 'unassigned';
+
+                    // Find bookings for this vehicle WITHOUT a scheduled time
+                    const allDayBookings = bookings.filter(b => {
+                        const bDate = parseBookingDate(b.scheduledDate);
+                        if (!bDate || !isSameDay(bDate, currentDate)) return false;
+
+                        // Check Vehicle
+                        if (vehicleId === 'unassigned') {
+                            if (b.vehicleId) return false;
+                        } else {
+                            if (b.vehicleId !== vehicleId) return false;
+                        }
+
+                        // Include bookings without scheduledStartTime
+                        return !b.scheduledStartTime;
+                    });
+
+                    allDayBookings.forEach(booking => {
+                        const bDiv = document.createElement('div');
+                        bDiv.className = `resource-all-day-booking status-${booking.status}`;
+                        bDiv.innerHTML = `
+                            <span class="customer-name">${booking.customerName || booking.clientName || 'Unknown'}</span>
+                        `;
+                        bDiv.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            showBookingPopup(booking, e);
+                        });
+                        allDayCell.appendChild(bDiv);
+                    });
+
+                    grid.appendChild(allDayCell);
+                }
 
                 for (let h = startHour; h <= endHour; h++) {
                     // Time Label (Sticky)
