@@ -537,7 +537,7 @@ export async function updateBooking(
 
   const validationInput: CreateBookingInput = {
     customerId: input.customerId ?? existing.customerId,
-    serviceId: input.serviceId, // Deprecated, but keep if provided
+    serviceId: input.serviceId ?? existing.serviceId, // Deprecated, but keep if provided
     serviceItems: input.serviceItems ?? existing.serviceItems,
     bookingType: input.bookingType ?? existing.bookingType,
     scheduledDate: input.scheduledDate ?? existing.scheduledDate,
