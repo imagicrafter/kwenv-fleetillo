@@ -11,6 +11,9 @@ export const SettingKeys = {
     ROUTING_AVG_TRAVEL_SPEED: 'routing.avgTravelSpeed',
     ROUTING_TRAFFIC_BUFFER_PERCENT: 'routing.trafficBufferPercent',
     ROUTING_DEFAULT_SERVICE_DURATION: 'routing.defaultServiceDurationMinutes',
+    ROUTING_ENABLE_CITY_CLUSTERING: 'routing.enableCityClustering',
+    // Fleet settings
+    FLEET_DEFAULT_SERVICE_RADIUS: 'fleet.defaultServiceRadiusMiles',
     // Cost settings
     COSTS_LABOR_RATE_PER_HOUR: 'costs.laborRatePerHour',
     COSTS_GASOLINE_PRICE_PER_GALLON: 'costs.gasolinePricePerGallon',
@@ -65,6 +68,10 @@ export interface RouteSettings {
         avgTravelSpeed: number;        // Always stored in km/h
         trafficBufferPercent: number;  // 0-100
         defaultServiceDurationMinutes: number;
+        enableCityClustering: boolean; // Keep bookings grouped by city/depot
+    };
+    fleet: {
+        defaultServiceRadiusMiles: number; // Max distance from depot for bookings
     };
     dashboard: {
         showChatbot: boolean;
@@ -90,6 +97,10 @@ export const DEFAULT_SETTINGS: RouteSettings = {
         avgTravelSpeed: 30,  // km/h
         trafficBufferPercent: 20,
         defaultServiceDurationMinutes: 30,
+        enableCityClustering: true, // Default: keep same-city routes
+    },
+    fleet: {
+        defaultServiceRadiusMiles: 50, // Default: 50 mile radius from depot
     },
     dashboard: {
         showChatbot: true,

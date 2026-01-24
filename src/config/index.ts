@@ -26,6 +26,14 @@ export interface GoogleMapsConfig {
 }
 
 /**
+ * Route planning configuration
+ */
+export interface RoutePlanningConfig {
+  enableClusteringV2: boolean;
+  maxClusterRadiusMiles: number;
+}
+
+/**
  * Application configuration
  * Centralized configuration management for the RouteIQ application
  */
@@ -39,6 +47,7 @@ export interface AppConfig {
   };
   supabase: SupabaseConfig;
   googleMaps: GoogleMapsConfig;
+  routePlanning: RoutePlanningConfig;
   api: {
     prefix: string;
     version: string;
@@ -104,6 +113,10 @@ function createConfig(): AppConfig {
     },
     googleMaps: {
       apiKey: process.env.GOOGLE_MAPS_API_KEY,
+    },
+    routePlanning: {
+      enableClusteringV2: getBooleanEnv('ENABLE_CLUSTERING_V2', true),
+      maxClusterRadiusMiles: getIntEnv('MAX_CLUSTER_RADIUS_MILES', 50),
     },
     api: {
       prefix: getOptionalEnv('API_PREFIX', '/api'),
