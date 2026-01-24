@@ -6,6 +6,8 @@ import * as serviceService from '../services/service.service';
 import * as vehicleService from '../services/vehicle.service';
 import * as routeService from '../services/route.service';
 import * as driverService from '../services/driver.service';
+import * as locationService from '../services/location.service';
+import * as settingsService from '../services/settings.service';
 import { logger } from '../utils/logger';
 
 const router = Router();
@@ -44,7 +46,16 @@ const rpcRegistry: Record<string, Record<string, Function>> = {
         count: driverService.countDrivers,
     },
     settings: {
-        getRouteSettings: async () => ({ dashboard: { showChatbot: true } }), // Mock response for now
+        getRouteSettings: async () => ({ dashboard: { showChatbot: true } }),
+        getSetting: settingsService.getSetting,
+        getAll: settingsService.getAllSettings
+    },
+    locations: {
+        getAll: locationService.getAllLocations,
+        getById: locationService.getLocationById,
+        create: locationService.createLocation,
+        update: locationService.updateLocation,
+        delete: locationService.deleteLocation,
     },
     config: {
         getGoogleMapsApiKey: async () => ({ apiKey: process.env.GOOGLE_MAPS_API_KEY || '' }),
