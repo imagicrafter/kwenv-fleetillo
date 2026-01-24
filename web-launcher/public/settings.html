@@ -591,8 +591,23 @@
                                 <span class="icon">🚚</span>
                                 Fleet Settings
                             </h3>
-                            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
-                                <p>Detailed fleet configuration settings coming soon.</p>
+
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">Default Service Radius</div>
+                                    <div class="setting-description">Maximum distance from a vehicle's depot that bookings can be assigned. Bookings outside this radius will be marked as out of service area.</div>
+                                </div>
+                                <div class="setting-control">
+                                    <input type="number" id="default-service-radius" min="5" max="500" value="50">
+                                    <span>miles</span>
+                                </div>
+                            </div>
+
+                            <div class="setting-info-box" style="margin-top: 16px; padding: 12px 16px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border-left: 3px solid var(--accent-blue);">
+                                <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">
+                                    <strong>💡 Tip:</strong> When City-Based Clustering is enabled (in Routes tab), this radius determines how far from each depot bookings can be assigned.
+                                    Set a larger radius (100+ miles) for rural areas or a smaller radius (25 miles) for dense urban operations.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -652,6 +667,19 @@
                                 <div class="setting-control">
                                     <input type="number" id="default-service-duration" min="5" max="240" value="30">
                                     <span>minutes</span>
+                                </div>
+                            </div>
+
+                            <div class="setting-row">
+                                <div class="setting-info">
+                                    <div class="setting-label">City-Based Clustering</div>
+                                    <div class="setting-description">Keep bookings grouped by city/depot area. Disable to allow vehicles to service multiple cities.</div>
+                                </div>
+                                <div class="setting-control">
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" id="enable-city-clustering" checked>
+                                        <span class="toggle-slider"></span>
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -825,6 +853,12 @@
 
                         document.getElementById('traffic-buffer').value = settings.routing.trafficBufferPercent || 20;
                         document.getElementById('default-service-duration').value = settings.routing.defaultServiceDurationMinutes || 30;
+                        document.getElementById('enable-city-clustering').checked = settings.routing.enableCityClustering !== false; // Default true
+                    }
+
+                    // Fleet Settings
+                    if (settings.fleet) {
+                        document.getElementById('default-service-radius').value = settings.fleet.defaultServiceRadiusMiles || 50;
                     }
 
                     // Cost Settings (load from allSettings if available)
@@ -1052,6 +1086,10 @@
                     'routing.avgTravelSpeed': parseInt(document.getElementById('avg-travel-speed').value),
                     'routing.trafficBufferPercent': parseInt(document.getElementById('traffic-buffer').value),
                     'routing.defaultServiceDurationMinutes': parseInt(document.getElementById('default-service-duration').value),
+                    'routing.enableCityClustering': document.getElementById('enable-city-clustering').checked,
+
+                    // Fleet
+                    'fleet.defaultServiceRadiusMiles': parseInt(document.getElementById('default-service-radius').value),
 
                     // Costs
                     'costs.laborRatePerHour': parseFloat(document.getElementById('labor-rate').value),

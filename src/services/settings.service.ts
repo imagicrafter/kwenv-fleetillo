@@ -107,6 +107,12 @@ export async function getRouteSettings(): Promise<Result<RouteSettings>> {
             avgTravelSpeed: (raw[SettingKeys.ROUTING_AVG_TRAVEL_SPEED] as number) || DEFAULT_SETTINGS.routing.avgTravelSpeed,
             trafficBufferPercent: (raw[SettingKeys.ROUTING_TRAFFIC_BUFFER_PERCENT] as number) || DEFAULT_SETTINGS.routing.trafficBufferPercent,
             defaultServiceDurationMinutes: (raw[SettingKeys.ROUTING_DEFAULT_SERVICE_DURATION] as number) || DEFAULT_SETTINGS.routing.defaultServiceDurationMinutes,
+            enableCityClustering: raw[SettingKeys.ROUTING_ENABLE_CITY_CLUSTERING] !== undefined
+                ? Boolean(raw[SettingKeys.ROUTING_ENABLE_CITY_CLUSTERING])
+                : DEFAULT_SETTINGS.routing.enableCityClustering,
+        },
+        fleet: {
+            defaultServiceRadiusMiles: (raw[SettingKeys.FLEET_DEFAULT_SERVICE_RADIUS] as number) || DEFAULT_SETTINGS.fleet.defaultServiceRadiusMiles,
         },
         dashboard: {
             showChatbot: raw[SettingKeys.DASHBOARD_SHOW_CHATBOT] !== undefined

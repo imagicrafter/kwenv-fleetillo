@@ -1395,11 +1395,12 @@
                                 <span style="color: var(--text-primary); font-weight: 500;">${alloc.vehicleName}</span>
                                 ${homeLocationDisplay}
                             </div>
-                            <input type="number" 
-                                   class="vehicle-allocation-input" 
+                            <input type="number"
+                                   class="vehicle-allocation-input"
                                    data-vehicle-id="${alloc.vehicleId}"
-                                   value="${alloc.bookingCount}" 
-                                   min="0" 
+                                   data-booking-ids="${alloc.bookingIds ? alloc.bookingIds.join(',') : ''}"
+                                   value="${alloc.bookingCount}"
+                                   min="0"
                                    max="${preview.bookings.length}"
                                    style="width: 60px; padding: 6px 8px; border: 1px solid var(--border-subtle); border-radius: 4px; background: var(--bg-primary); color: var(--text-primary); text-align: center;"
                                    onclick="event.stopPropagation()"
@@ -1509,6 +1510,12 @@
 
                 if (bookingCount > 0) {
                     const allocation = { vehicleId, bookingCount };
+
+                    // Include booking IDs from clustering (critical for proper city-based routing)
+                    const bookingIdsAttr = input.getAttribute('data-booking-ids');
+                    if (bookingIdsAttr) {
+                        allocation.bookingIds = bookingIdsAttr.split(',').filter(id => id);
+                    }
 
                     // Add start location override if changed
                     if (startSelect && startSelect.value && startSelect.selectedIndex > 1) {
