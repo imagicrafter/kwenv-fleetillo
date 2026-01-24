@@ -123,6 +123,18 @@ git log -p -S 'secret_pattern_here'
 2. **Pre-push hook**: Final safety check before code reaches remote
 3. **GitHub Actions**: CI/CD scanning on all PRs and main branch
 
+### Detection Alerts
+When secrets are detected, you receive multiple notifications:
+
+- **Console Output**: Immediate feedback with file, line number, and fix instructions
+- **Desktop Notification** (macOS): Native notification showing repo, file, and pattern type
+- **Detection Log**: `~/.claude/logs/secret-detections.log` contains audit trail with:
+  - Timestamp (ISO 8601 UTC)
+  - Repository name
+  - File path and line number
+  - Secret pattern type
+- **Agent Blocking**: Claude Code agents are stopped immediately when attempting automated commits with secrets
+
 ### Setup
 Hooks are automatically installed when you run `npm install`:
 ```bash

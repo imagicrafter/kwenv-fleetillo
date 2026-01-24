@@ -70,6 +70,33 @@ is_placeholder() {
   return 1  # Not a placeholder
 }
 
+# Log secret detection event
+log_detection() {
+  local repo="$1"
+  local file="$2"
+  local line_num="$3"
+  local pattern_name="$4"
+  local timestamp="$5"
+
+  local log_file="$HOME/.claude/logs/secret-detections.log"
+  mkdir -p "$(dirname "$log_file")"
+
+  # Write structured log entry
+  echo "[$timestamp] REPO=$repo FILE=$file LINE=$line_num PATTERN=\"$pattern_name\"" >> "$log_file"
+}
+
+# Send desktop notification (macOS)
+send_notification() {
+  local repo="$1"
+  local file="$2"
+  local pattern_name="$3"
+
+  # Only send if running on macOS
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    osascript -e "display notification \"$file\" with title \"🔒 Secret Detected in $repo\" subtitle \"Pattern: $pattern_name\""
+  fi
+}
+
 # Scan a single file for secrets
 scan_file() {
   local file="$1"
@@ -106,6 +133,16 @@ scan_file() {
 
       # Secret detected!
       found_secrets=1
+
+      # Get repository name and timestamp
+      REPO_NAME=$(basename "$(git rev-parse --show-toplevel 2>/dev/null)" 2>/dev/null || echo "unknown-repo")
+      TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+
+      # Log detection event
+      log_detection "$REPO_NAME" "$file" "$line_num" "$name" "$TIMESTAMP"
+
+      # Send desktop notification
+      send_notification "$REPO_NAME" "$file" "$name"
 
       # Display error
       echo ""
