@@ -23,7 +23,9 @@
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,json}\"",
     "clean": "rm -rf dist",
-    "prepare": "npm run build"
+    "check-secrets": "tsx scripts/check-secrets.ts",
+    "install-hooks": "bash scripts/install-hooks.sh",
+    "prepare": "npm run build && npm run install-hooks"
   },
   "keywords": [
     "routing",

@@ -1,0 +1,55 @@
+# DigitalOcean App Spec Template
+# This template shows proper usage of SECRET type for sensitive values
+# NEVER commit actual secrets to git - use SECRET type and configure in DO dashboard
+
+name: fleetillo-app
+region: nyc
+services:
+  - name: web
+    source:
+      repo: your-org/fleetillo
+      branch: main
+    envs:
+      # Public configuration (safe to commit)
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "8080"
+
+      # SECRETS - Configure values in DigitalOcean dashboard
+      # These are REFERENCES, not actual values
+      - key: SUPABASE_URL
+        scope: RUN_TIME
+        type: SECRET  # ← Use SECRET type, not hardcoded value
+
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        scope: RUN_TIME
+        type: SECRET  # ← Configure in DO dashboard
+
+      - key: GOOGLE_MAPS_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+
+      - key: GOOGLE_MAPS_BROWSER_KEY
+        scope: RUN_TIME
+        type: SECRET
+
+      - key: SESSION_SECRET
+        scope: RUN_TIME
+        type: SECRET
+
+      - key: TELEGRAM_BOT_TOKEN
+        scope: RUN_TIME
+        type: SECRET
+
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: professional-xs
+    routes:
+      - path: /
+
+# HOW TO USE THIS TEMPLATE:
+# 1. Copy this file and customize for your environment
+# 2. Never add actual secret values - always use type: SECRET
+# 3. Configure actual values in DigitalOcean App Platform dashboard
+# 4. See deploy/SECRETS.md for detailed instructions

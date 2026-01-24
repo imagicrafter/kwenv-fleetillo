@@ -1,0 +1,84 @@
+# Gitleaks Configuration
+# Detects hardcoded secrets in git repositories
+# Used by GitHub Actions CI/CD workflow
+
+title = "Gitleaks Configuration for Fleetillo"
+
+[extend]
+# Use default gitleaks rules as base
+useDefault = true
+
+[allowlist]
+description = "Allowlisted files and patterns"
+
+# Allowlist specific files
+paths = [
+  ".env.example",
+  "deploy/SECRETS.md",
+  "deploy/SUPABASE_KEY_ROTATION.md",
+  "deploy/GOOGLE_MAPS_API_RESTRICTION.md",
+  ".claude/rules/security.md",
+  "scripts/secret-scanner.sh",
+  "scripts/secret-patterns.ts",
+  ".gitleaks.toml",
+  "README",
+  "CONTRIBUTING"
+]
+
+# Allowlist test files
+regexes = [
+  '''test/.*''',
+  '''tests/.*''',
+  '''__tests__/.*''',
+  '''\.test\..*''',
+  '''\.spec\..*'''
+]
+
+# Allowlist placeholder values
+stopwords = [
+  "your-api-key-here",
+  "xxxxx",
+  "placeholder",
+  "example",
+  "dummy",
+  "test-key",
+  "fake-key"
+]
+
+# Custom rules for project-specific secret patterns
+[[rules]]
+id = "google-maps-api-key"
+description = "Google Maps API Key"
+regex = '''AIza[0-9A-Za-z\-_]{35}'''
+tags = ["key", "Google"]
+
+[[rules]]
+id = "openai-api-key"
+description = "OpenAI API Key"
+regex = '''sk-[a-zA-Z0-9]{48}'''
+tags = ["key", "OpenAI"]
+
+[[rules]]
+id = "digitalocean-token"
+description = "DigitalOcean Personal Access Token"
+regex = '''dop_v1_[a-f0-9]{64}'''
+tags = ["key", "DigitalOcean"]
+
+[[rules]]
+id = "supabase-secret"
+description = "Supabase Secret Key"
+regex = '''sb_secret_[A-Za-z0-9_-]{27,}'''
+tags = ["key", "Supabase"]
+
+[[rules]]
+id = "generic-secret"
+description = "Generic Secret Pattern"
+regex = '''(secret|token|password|apikey|api_key)[\s:=]["']?[^\s"']{10,}'''
+tags = ["generic", "secret"]
+entropy = 3.5  # Require higher entropy to reduce false positives
+
+[[rules]]
+id = "jwt-token"
+description = "JWT Token"
+regex = '''eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.?[A-Za-z0-9_-]*'''
+tags = ["token", "JWT"]

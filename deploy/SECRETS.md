@@ -114,10 +114,86 @@ git push --force-with-lease
 git log -p -S 'secret_pattern_here'
 ```
 
+## Automated Secret Detection
+
+**Protection**: Pre-commit hooks automatically scan for secrets before commits are created.
+
+### How It Works
+1. **Pre-commit hook**: Scans staged files for secret patterns
+2. **Pre-push hook**: Final safety check before code reaches remote
+3. **GitHub Actions**: CI/CD scanning on all PRs and main branch
+
+### Setup
+Hooks are automatically installed when you run `npm install`:
+```bash
+# Manual installation/update
+npm run install-hooks
+
+# Manual secret check
+npm run check-secrets
+```
+
+### When Commits Are Blocked
+If a secret is detected:
+
+```
+❌ SECRET DETECTED - Commit blocked!
+
+File: deploy/do-app-spec.yaml
+Line: 37
+Pattern: Google Maps API key
+
+    35:   - key: GOOGLE_MAPS_API_KEY
+    36:     scope: RUN_TIME
+    37:     value: AIzaSyC9Sxd4Kyr5te9WWKzuWEio3An_iD1Vg2Q
+    38:     scope: RUN_TIME
+
+✋ NEVER commit secrets to git!
+
+Fix:
+  Use environment variable GOOGLE_MAPS_API_KEY or GOOGLE_MAPS_BROWSER_KEY
+```
+
+**To fix**: Remove the hardcoded value and use SECRET type instead:
+```yaml
+- key: GOOGLE_MAPS_API_KEY
+  type: SECRET  # ← Configure value in DO dashboard
+  scope: RUN_TIME
+```
+
+### Bypassing Checks (NOT Recommended)
+Only bypass for legitimate cases (updating templates, documentation):
+```bash
+git commit --no-verify -m "docs: Update .env.example template"
+```
+
+**Note**: Pre-push hook will still run as a final safety net.
+
 ## Template Files
 
 For local development, use template files with example values:
 - `.env.example` - Copy to `.env` and fill in your secrets
+- `deploy/do-app-spec.template.yaml` - Example app spec with SECRET type usage
 - `bundle.env.example` - Template for gradient agents
 
 **Never commit real secrets to these files!**
+
+## Deployment Spec Best Practices
+
+### ❌ WRONG - Hardcoded Secrets
+```yaml
+envs:
+  - key: SUPABASE_SERVICE_ROLE_KEY
+    value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...  # NEVER DO THIS!
+    scope: RUN_TIME
+```
+
+### ✅ CORRECT - SECRET Type Reference
+```yaml
+envs:
+  - key: SUPABASE_SERVICE_ROLE_KEY
+    type: SECRET  # Configure actual value in DO dashboard
+    scope: RUN_TIME
+```
+
+See `deploy/do-app-spec.template.yaml` for a complete example.
