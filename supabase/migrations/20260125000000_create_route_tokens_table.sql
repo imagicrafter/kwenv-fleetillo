@@ -5,12 +5,12 @@
 -- Create route_tokens table in all schemas
 DO $$
 DECLARE
-    schema_name TEXT;
+    s_name TEXT;
     schemas TEXT[] := ARRAY['fleetillo', 'routeiq', 'optiroute'];
 BEGIN
-    FOREACH schema_name IN ARRAY schemas LOOP
+    FOREACH s_name IN ARRAY schemas LOOP
         -- Check if schema exists
-        IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = schema_name) THEN
+        IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = s_name) THEN
             EXECUTE format('
                 CREATE TABLE IF NOT EXISTS %I.route_tokens (
                     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -60,12 +60,12 @@ BEGIN
 
                 RAISE NOTICE ''Created route_tokens table in schema: %'', %L;
             ',
-            schema_name, schema_name,
-            schema_name, schema_name,
-            schema_name, schema_name, schema_name, schema_name,
-            schema_name, schema_name, schema_name,
-            schema_name, schema_name,
-            schema_name);
+            s_name, s_name,
+            s_name, s_name,
+            s_name, s_name, s_name, s_name,
+            s_name, s_name, s_name,
+            s_name, s_name,
+            s_name);
         END IF;
     END LOOP;
 END $$;
