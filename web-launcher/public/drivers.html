@@ -1860,7 +1860,7 @@
 
                 try {
                     // Fetch fresh driver data
-                    const driver = await window.apiClient.drivers.getById({ id: driverId });
+                    const driver = await window.apiClient.drivers.getById(driverId);
 
                     if (driver && (driver.telegramChatId || driver.telegram_chat_id)) {
                         // Connected!
