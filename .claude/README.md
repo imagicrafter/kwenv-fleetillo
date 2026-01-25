@@ -63,12 +63,44 @@ This ensures:
 - No settings drift between projects
 - Hooks that don't exist in a project are silently skipped
 
+### Hybrid Rules Architecture
+
+Rules follow a **global defaults + project overrides** pattern:
+
+| Location | Purpose | Auto-Syncs To |
+|----------|---------|---------------|
+| `~/.claude/rules/` | Global defaults (all repos) | `~/.windsurf/global_rules.md` |
+| `.claude/rules/` | Project customizations | `.windsurf/rules/` |
+
+**How it works:**
+1. Global rules provide baseline guidelines (security, coding-style, testing)
+2. Projects can override/customize by editing `.claude/rules/*.md`
+3. PostToolUse hooks auto-sync changes to Windsurf format
+4. Both Claude Code and Windsurf/Antigravity get consistent rules
+
+### Windsurf/Antigravity Support
+
+This project supports both Claude Code and Windsurf:
+
+| Directory | Purpose |
+|-----------|---------|
+| `.claude/rules/` | Claude Code rules (source of truth) |
+| `.windsurf/rules/` | Windsurf rules (auto-synced with frontmatter) |
+
+Rules are automatically synced when you edit `.claude/rules/*.md` files. To manually sync:
+
+```bash
+~/.claude/scripts/sync-rules-to-windsurf.sh .claude/rules .windsurf/rules
+```
+
 ### Required Files
 
 | File | Purpose | Source |
 |------|---------|--------|
+| `.claude/rules/*` | Project rules (can override global) | Created by `/repo-setup` |
 | `.claude/hooks/*` | Project-specific hook scripts | Created by `/repo-setup` |
 | `.claude/commands/*.md` | Project-specific commands only | Manual (if needed) |
+| `.windsurf/rules/*` | Windsurf rules (auto-synced) | Auto-generated |
 | `.githooks/pre-commit` | Block direct commits to main | See below |
 | `.env` | Environment variables (gitignored) | Project-specific |
 
@@ -182,6 +214,13 @@ Create these labels in GitHub:
 ├── README.md    -> ../.claude/README.md
 ├── skills/      -> ../.claude/skills
 └── workflows/   -> ../.claude/commands
+
+.windsurf/                       # Windsurf/Antigravity rules (auto-synced)
+└── rules/                       # Synced from .claude/rules/
+    ├── security.md              # With Windsurf frontmatter
+    ├── coding-style.md
+    ├── testing.md
+    └── agents.md
 ```
 
 ---
