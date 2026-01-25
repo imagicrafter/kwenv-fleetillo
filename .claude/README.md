@@ -82,15 +82,22 @@ Rules follow a **global defaults + project overrides** pattern:
 
 This project supports both Claude Code and Windsurf:
 
-| Directory | Purpose |
-|-----------|---------|
-| `.claude/rules/` | Claude Code rules (source of truth) |
-| `.windsurf/rules/` | Windsurf rules (auto-synced with frontmatter) |
+| Feature | Claude Code | Windsurf |
+|---------|-------------|----------|
+| Project Rules | `.claude/rules/` | `.windsurf/rules/` (auto-synced) |
+| Global Commands | `~/.claude/commands/` | `~/.gemini/antigravity/global_workflows/` |
+| Slash Commands | `/execute`, `/verify`, etc. | Same commands work |
 
-Rules are automatically synced when you edit `.claude/rules/*.md` files. To manually sync:
+**Rules sync** automatically when you edit `.claude/rules/*.md` files. Manual sync:
 
 ```bash
 ~/.claude/scripts/sync-rules-to-windsurf.sh .claude/rules .windsurf/rules
+```
+
+**Commands sync** globally (not per-project). Manual sync:
+
+```bash
+~/.claude/scripts/sync-commands-to-windsurf.sh
 ```
 
 ### Required Files
