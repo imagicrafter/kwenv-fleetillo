@@ -32,6 +32,14 @@ services:
   - key: SESSION_SECRET
     value: ***REMOVED_SESSION_SECRET***
     scope: RUN_TIME
+  # Route token authentication (must match dispatch service DISPATCH_API_KEYS)
+  - key: DISPATCH_API_KEYS
+    type: SECRET
+    scope: RUN_TIME
+  # Base URL for constructing tokenized route links
+  - key: BASE_URL
+    value: https://routemap.fleetillo.com
+    scope: RUN_TIME
 
 # Dispatch Service - Route assignment notifications via Telegram and Email
 - name: dispatch
