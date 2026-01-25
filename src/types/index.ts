@@ -29,6 +29,9 @@ export * from './maintenanceSchedule';
 // Re-export route types
 export * from './route';
 
+// Re-export route token types
+export * from './route-token';
+
 // Re-export Google Maps types
 export * from './googlemaps';
 

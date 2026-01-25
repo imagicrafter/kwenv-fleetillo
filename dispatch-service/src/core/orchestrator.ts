@@ -20,7 +20,7 @@
 
 import { logger } from '../utils/logger.js';
 import { ChannelRouter, DispatchRequest as RouterDispatchRequest } from './router.js';
-import { TemplateEngine, buildTemplateContext } from './templates.js';
+import { TemplateEngine, buildTemplateContext, fetchTokenizedRouteUrl } from './templates.js';
 import { ChannelAdapter, DispatchContext } from '../adapters/interface.js';
 import {
   createDispatch,
@@ -494,10 +494,30 @@ export class DispatchOrchestrator implements IDispatchOrchestrator {
       };
     }
 
+    // Fetch tokenized route URL for public access (non-blocking on failure)
+    let tokenizedUrl: string | null = null;
+    try {
+      tokenizedUrl = await fetchTokenizedRouteUrl(route.id);
+    } catch (error) {
+      logger.warn('Failed to fetch tokenized route URL, using fallback', {
+        dispatchId: dispatch.id,
+        routeId: route.id,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+
     // Render template for this channel
     let template: string;
     try {
-      const templateContext = buildTemplateContext(route, driver, vehicle, bookings, startLocation);
+      const templateContext = buildTemplateContext(
+        route,
+        driver,
+        vehicle,
+        bookings,
+        startLocation,
+        undefined,
+        tokenizedUrl ?? undefined
+      );
       template = this.templateEngine.renderForChannel(channel, templateContext);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Template rendering failed';

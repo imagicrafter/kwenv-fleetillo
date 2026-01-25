@@ -42,6 +42,8 @@ export interface AppConfig {
   port: number;
   logLevel: string;
   debug: boolean;
+  baseUrl: string;
+  dispatchApiKeys: string;
   database: {
     url: string | undefined;
   };
@@ -102,6 +104,8 @@ function createConfig(): AppConfig {
     port: getIntEnv('PORT', 3000),
     logLevel: getOptionalEnv('LOG_LEVEL', 'info'),
     debug: getBooleanEnv('DEBUG', false),
+    baseUrl: getOptionalEnv('BASE_URL', 'https://fleetillo.com'),
+    dispatchApiKeys: getOptionalEnv('DISPATCH_API_KEYS', ''),
     database: {
       url: process.env.DATABASE_URL,
     },

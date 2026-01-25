@@ -331,10 +331,69 @@ export class TemplateEngine {
 }
 
 /**
+ * Fetch a tokenized route URL from the main app
+ *
+ * Calls the main app's route-tokens API to generate a time-limited
+ * public access token for the route map view.
+ *
+ * @param routeId - The route ID to generate a token for
+ * @returns The tokenized URL or null if token generation fails
+ */
+export async function fetchTokenizedRouteUrl(routeId: string): Promise<string | null> {
+  const appBaseUrl = process.env.APP_BASE_URL || 'https://fleetillo.com';
+  const apiKey = process.env.DISPATCH_API_KEYS?.split(',')[0]?.trim();
+
+  if (!apiKey) {
+    logger.warn('No DISPATCH_API_KEYS configured for token generation');
+    return null;
+  }
+
+  try {
+    const response = await fetch(`${appBaseUrl}/api/v1/route-tokens`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': apiKey,
+      },
+      body: JSON.stringify({ route_id: routeId }),
+    });
+
+    if (!response.ok) {
+      logger.warn('Failed to generate route token', {
+        status: response.status,
+        routeId,
+      });
+      return null;
+    }
+
+    const data = await response.json() as { success?: boolean; data?: { url?: string } };
+    if (data.success && data.data?.url) {
+      return data.data.url;
+    }
+
+    return null;
+  } catch (error) {
+    logger.error('Error fetching route token', {
+      routeId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  }
+}
+
+/**
  * Build a TemplateContext from entity data
  *
  * Helper function to construct a TemplateContext from raw entity objects
  * Requirement 7.2: Provide access to route, driver, vehicle, and bookings data
+ *
+ * @param route - Route entity
+ * @param driver - Driver entity
+ * @param vehicle - Vehicle entity (or null)
+ * @param bookings - Array of booking entities
+ * @param _startLocation - Deprecated, kept for backwards compatibility
+ * @param dispatchedAt - Dispatch timestamp
+ * @param routeMapsUrlOverride - Optional pre-generated tokenized URL
  */
 export function buildTemplateContext(
   route: Route,
@@ -342,13 +401,13 @@ export function buildTemplateContext(
   vehicle: Vehicle | null,
   bookings: Booking[],
   _startLocation?: { latitude: number; longitude: number } | null,
-  dispatchedAt?: Date
+  dispatchedAt?: Date,
+  routeMapsUrlOverride?: string
 ): TemplateContext {
-  // Generate route map URL pointing to the app's route view
-  // This shows all stops correctly, unlike Google Maps which has waypoint limits
-  // Note: _startLocation parameter kept for backwards compatibility but no longer used
+  // Use provided URL or fall back to direct route link
+  // The tokenized URL should be fetched separately for async operations
   const appBaseUrl = process.env.APP_BASE_URL || 'https://routemap.fleetillo.com';
-  const routeMapsUrl = `${appBaseUrl}/routes.html?routeId=${route.id}`;
+  const routeMapsUrl = routeMapsUrlOverride || `${appBaseUrl}/routes.html?routeId=${route.id}`;
 
   return {
     route: {
