@@ -18,7 +18,7 @@ class DispatchClient {
         };
 
         try {
-            const response = await fetch(url, { ...options, headers });
+            const response = await fetch(url, { ...options, headers, credentials: 'same-origin' });
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
@@ -193,7 +193,7 @@ class DispatchClient {
         };
 
         try {
-            const response = await fetch(url, { ...options, headers });
+            const response = await fetch(url, { ...options, headers, credentials: 'same-origin' });
 
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
