@@ -341,56 +341,14 @@ export function buildTemplateContext(
   driver: Driver,
   vehicle: Vehicle | null,
   bookings: Booking[],
-  startLocation?: { latitude: number; longitude: number } | null,
+  _startLocation?: { latitude: number; longitude: number } | null,
   dispatchedAt?: Date
 ): TemplateContext {
-  // Calculate route maps URL
-  let routeMapsUrl = '';
-  // properties are optional in Booking type, so we need to filter and cast or access safely
-  const stopsWithCoords = bookings.filter((b): b is Booking & { latitude: number; longitude: number } =>
-    b.latitude !== undefined && b.longitude !== undefined
-  );
-
-  if (startLocation) {
-    const origin = `${startLocation.latitude},${startLocation.longitude}`;
-
-    // If we have stops, last one is destination
-    if (stopsWithCoords.length > 0) {
-      const end = stopsWithCoords[stopsWithCoords.length - 1]!;
-      const destination = `${end.latitude},${end.longitude}`;
-
-      // All stops except the last one are waypoints (stops[0] is now a waypoint, not origin)
-      const waypoints = stopsWithCoords.slice(0, -1)
-        .map(b => `${b.latitude},${b.longitude}`)
-        .join('|');
-
-      routeMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`;
-      if (waypoints) {
-        routeMapsUrl += `&waypoints=${waypoints}`;
-      }
-    } else {
-      // Just start location? Probably not useful but valid
-      routeMapsUrl = `https://www.google.com/maps/search/?api=1&query=${origin}`;
-    }
-  } else if (stopsWithCoords.length > 0) {
-    // Fallback to original logic (origin = first stop)
-    const start = stopsWithCoords[0]!;
-    const end = stopsWithCoords[stopsWithCoords.length - 1]!;
-
-    // We validated these exist in the filter
-    const origin = `${start.latitude},${start.longitude}`;
-    const destination = `${end.latitude},${end.longitude}`;
-
-    // Intermediate waypoints (exclude start and end)
-    const waypoints = stopsWithCoords.slice(1, -1)
-      .map(b => `${b.latitude},${b.longitude}`)
-      .join('|');
-
-    routeMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`;
-    if (waypoints) {
-      routeMapsUrl += `&waypoints=${waypoints}`;
-    }
-  }
+  // Generate route map URL pointing to the app's route view
+  // This shows all stops correctly, unlike Google Maps which has waypoint limits
+  // Note: _startLocation parameter kept for backwards compatibility but no longer used
+  const appBaseUrl = process.env.APP_BASE_URL || 'https://fleetillo.com';
+  const routeMapsUrl = `${appBaseUrl}/routes.html?routeId=${route.id}`;
 
   return {
     route: {

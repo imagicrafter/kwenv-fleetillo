@@ -85,6 +85,10 @@ services:
   - key: NODE_ENV
     value: production
     scope: RUN_TIME
+  # Application base URL for links in dispatch messages
+  - key: APP_BASE_URL
+    value: https://fleetillo.com
+    scope: RUN_TIME
   health_check:
     http_path: /api/v1/health
     initial_delay_seconds: 10
