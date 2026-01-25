@@ -97,9 +97,10 @@ export async function getRouteMapData(
     const stops: StopCoordinate[] = [];
 
     if (stopSequence.length > 0) {
+      // Query bookings with locations relationship to get coordinates
       const { data: bookings, error: bookingsError } = await supabase
         .from('bookings')
-        .select('id, location_latitude, location_longitude, service_latitude, service_longitude')
+        .select('id, locations(latitude, longitude)')
         .in('id', stopSequence);
 
       if (bookingsError) {
@@ -120,12 +121,12 @@ export async function getRouteMapData(
 
         stopSequence.forEach((stopId, index) => {
           const booking = bookingMap.get(stopId);
-          if (booking) {
-            // Use location coords, fall back to service coords
-            const lat = parseFloat(booking.location_latitude ?? booking.service_latitude);
-            const lng = parseFloat(booking.location_longitude ?? booking.service_longitude);
+          if (booking?.locations) {
+            const loc = booking.locations as { latitude?: number; longitude?: number };
+            const lat = loc.latitude;
+            const lng = loc.longitude;
 
-            if (!isNaN(lat) && !isNaN(lng)) {
+            if (lat !== undefined && lng !== undefined) {
               stops.push({
                 sequence: index + 1,
                 lat,
