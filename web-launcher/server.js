@@ -914,6 +914,32 @@ app.get('/api/v1/public/maps-key', (req, res) => {
     res.json({ success: true, data: { key: apiKey } });
 });
 
+// GET /api/v1/public/route-test/:routeId - TEST ENDPOINT (bypasses token auth)
+// TODO: Remove this endpoint after testing is complete
+app.get('/api/v1/public/route-test/:routeId', async (req, res) => {
+    try {
+        const { routeId } = req.params;
+        console.log(`[API TEST] Fetching route data directly for: ${routeId}`);
+
+        const routeResult = await publicRouteService.getRouteMapData(routeId);
+
+        if (!routeResult.success) {
+            return res.status(404).json({
+                success: false,
+                error: { code: 'NOT_FOUND', message: 'Route not found' }
+            });
+        }
+
+        res.json({ success: true, data: routeResult.data });
+    } catch (err) {
+        console.error('[API TEST] Error fetching route:', err);
+        res.status(500).json({
+            success: false,
+            error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch route data' }
+        });
+    }
+});
+
 // Serve index.html for root
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
