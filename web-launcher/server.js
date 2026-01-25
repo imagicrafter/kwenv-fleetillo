@@ -108,6 +108,13 @@ const requireAuth = (req, res, next) => {
         return next();
     }
 
+    // Allow public driver route map (tokenized access, no login required)
+    // This includes the HTML page and the public API endpoints it uses
+    if (req.path.startsWith('/ui/driver/') || req.path.startsWith('/api/v1/public/')) {
+        console.log(`[Auth] Allowing public driver route access: ${req.path}`);
+        return next();
+    }
+
     // Dispatch Service Auth & Proxy
     if (req.path.startsWith('/dispatch')) {
         // If authenticated via web session, allow internal access to dispatch service
