@@ -2,7 +2,7 @@
  * Route-related type definitions for RouteIQ application
  */
 
-import type { ID, Timestamps } from './index';
+import type { ID, Timestamps } from './common';
 
 /**
  * Route status options

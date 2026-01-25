@@ -2,7 +2,7 @@
  * Maintenance Schedule-related type definitions for RouteIQ application
  */
 
-import type { ID, Timestamps } from './index';
+import type { ID, Timestamps } from './common';
 
 /**
  * Maintenance schedule status options

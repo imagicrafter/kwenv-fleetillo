@@ -5,7 +5,7 @@
  * without requiring authentication. Used for driver dispatch links.
  */
 
-import type { ID, Timestamps } from './index';
+import type { ID, Timestamps } from './common';
 
 /**
  * Route token entity

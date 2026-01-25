@@ -2,7 +2,7 @@
  * Activity Log type definitions for RouteIQ application
  */
 
-import type { ID } from './index';
+import type { ID } from './common';
 
 /**
  * Entity types that can generate activities

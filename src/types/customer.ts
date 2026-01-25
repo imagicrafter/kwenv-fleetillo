@@ -2,7 +2,7 @@
  * Customer-related type definitions for Fleetillo application
  */
 
-import type { ID, Timestamps } from './index';
+import type { ID, Timestamps } from './common';
 
 /**
  * Customer status options
