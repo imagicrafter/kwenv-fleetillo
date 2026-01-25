@@ -40,6 +40,10 @@ services:
   - key: BASE_URL
     value: https://routemap.fleetillo.com
     scope: RUN_TIME
+  # App base URL for embedded dispatch service to call route-tokens API
+  - key: APP_BASE_URL
+    value: https://routemap.fleetillo.com
+    scope: RUN_TIME
 
 # Dispatch Service - Route assignment notifications via Telegram and Email
 - name: dispatch
