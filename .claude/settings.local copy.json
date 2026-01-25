@@ -50,10 +50,42 @@
       "WebFetch(domain:github.com)",
       "Skill(execute)",
       "Skill(spawn-cmd)",
-      "Skill(open-issue)"
+      "Bash(~/.bun/bin/bun run:*)"
     ]
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.bun/bin/bun run ~/.claude/hooks/damage-control/bash-tool-damage-control.ts",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.bun/bin/bun run ~/.claude/hooks/damage-control/edit-tool-damage-control.ts",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.bun/bin/bun run ~/.claude/hooks/damage-control/write-tool-damage-control.ts",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "matcher": "*",
