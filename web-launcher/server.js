@@ -110,7 +110,8 @@ const requireAuth = (req, res, next) => {
 
     // Allow public driver route map (tokenized access, no login required)
     // This includes the HTML page and the public API endpoints it uses
-    if (req.path.startsWith('/ui/driver/') || req.path.startsWith('/api/v1/public/')) {
+    // Note: Static files served at root by web-launcher, not under /ui
+    if (req.path.startsWith('/driver/') || req.path.startsWith('/api/v1/public/')) {
         console.log(`[Auth] Allowing public driver route access: ${req.path}`);
         return next();
     }

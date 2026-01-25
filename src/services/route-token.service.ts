@@ -134,8 +134,8 @@ export async function createToken(
 
     const routeToken = rowToRouteToken(data as RouteTokenRow);
 
-    // Construct the full URL (static files served under /ui prefix)
-    const url = `${baseUrl}/ui/driver/route.html?token=${token}`;
+    // Construct the full URL (web-launcher serves static files at root)
+    const url = `${baseUrl}/driver/route.html?token=${token}`;
 
     logger.info('Route token created', {
       tokenId: routeToken.id,
