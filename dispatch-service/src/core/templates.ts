@@ -347,7 +347,7 @@ export function buildTemplateContext(
   // Generate route map URL pointing to the app's route view
   // This shows all stops correctly, unlike Google Maps which has waypoint limits
   // Note: _startLocation parameter kept for backwards compatibility but no longer used
-  const appBaseUrl = process.env.APP_BASE_URL || 'https://fleetillo.com';
+  const appBaseUrl = process.env.APP_BASE_URL || 'https://routemap.fleetillo.com';
   const routeMapsUrl = `${appBaseUrl}/routes.html?routeId=${route.id}`;
 
   return {

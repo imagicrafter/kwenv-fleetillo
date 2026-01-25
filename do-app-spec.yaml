@@ -87,7 +87,7 @@ services:
     scope: RUN_TIME
   # Application base URL for links in dispatch messages
   - key: APP_BASE_URL
-    value: https://fleetillo.com
+    value: https://routemap.fleetillo.com
     scope: RUN_TIME
   health_check:
     http_path: /api/v1/health
