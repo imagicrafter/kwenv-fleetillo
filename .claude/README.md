@@ -19,13 +19,32 @@ gh api repos/OWNER/REPO --jq '.delete_branch_on_merge'
 # Should return: true
 ```
 
+### Command Inheritance
+
+**Commands are inherited from global config (`~/.claude/commands/`).**
+
+Do NOT copy commands into project `.claude/commands/` unless they are project-specific overrides. This ensures:
+- Single source of truth for standard workflows
+- Automatic updates when global config improves
+- No stale/divergent command copies
+
+| Location | Purpose |
+|----------|---------|
+| `~/.claude/commands/` | Global commands (authoritative) |
+| `.claude/commands/` | Project-specific overrides only |
+
+**Current project-specific commands:**
+- `prime.md` - Fleetillo context loading
+- `test-data-policy.md` - Test data handling rules
+
+All other commands (execute, verify, plan-check, etc.) inherit from global.
+
 ### Required Files
 
-| File | Purpose | Template |
-|------|---------|----------|
-| `.claude/commands/execute.md` | Main execution orchestrator | Copy from this repo |
-| `.claude/commands/prime.md` | Context loading | Copy from this repo |
-| `.claude/skills/*` | All skill definitions | Copy from this repo |
+| File | Purpose | Source |
+|------|---------|--------|
+| `.claude/settings.local.json` | Hooks and permissions | Created by `/repo-setup` |
+| `.claude/commands/*.md` | Project-specific commands only | Manual (if needed) |
 | `.githooks/pre-commit` | Block direct commits to main | See below |
 | `.env` | Environment variables (gitignored) | Project-specific |
 
