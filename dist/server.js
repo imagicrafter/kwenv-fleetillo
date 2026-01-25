@@ -21,6 +21,11 @@ const startServer = async () => {
         // Test database connection
         logger_1.logger.info('Testing database connection...');
         try {
+            // Initialize Supabase client
+            const initResult = (0, supabase_1.initializeSupabase)();
+            if (!initResult.success) {
+                throw initResult.error;
+            }
             const supabase = (0, supabase_1.getSupabaseClient)();
             const { error } = await supabase.from('customers').select('count').limit(0);
             if (error) {

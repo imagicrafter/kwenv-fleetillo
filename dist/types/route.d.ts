@@ -1,7 +1,7 @@
 /**
  * Route-related type definitions for RouteIQ application
  */
-import type { ID, Timestamps } from './index';
+import type { ID, Timestamps } from './common';
 /**
  * Route status options
  */
@@ -214,10 +214,16 @@ export interface RoutePaginationOptions {
 export declare function rowToRoute(row: RouteRow): Route;
 /**
  * Converts a CreateRouteInput to a database row format
+ *
+ * Important: Only includes fields that are explicitly defined in the input.
+ * This prevents undefined fields from overwriting existing values during updates.
  */
 export declare function routeInputToRow(input: CreateRouteInput): Partial<RouteRow>;
 /**
  * Converts an UpdateRouteInput to a database row format
+ *
+ * Important: Only includes fields that are explicitly defined in the input.
+ * This prevents undefined fields from overwriting existing values during updates.
  */
 export declare function updateRouteInputToRow(input: UpdateRouteInput): Partial<RouteRow>;
 //# sourceMappingURL=route.d.ts.map

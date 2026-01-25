@@ -1,7 +1,7 @@
 /**
  * Driver-related type definitions for Fleetillo application
  */
-import type { ID, Timestamps } from './index';
+import type { ID, Timestamps } from './common';
 /**
  * Driver status options
  */
@@ -105,6 +105,11 @@ export declare function rowToDriver(row: DriverRow): Driver;
  * Converts a CreateDriverInput to a database row format
  * Note: assigned_vehicle_id is NOT included here - vehicle assignments are managed
  * via the vehicles table's assigned_driver_id column using assignDriverToVehicle()
+ *
+ * Important: Only includes fields that are explicitly defined in the input.
+ * This prevents undefined fields from overwriting existing values during updates.
+ * For example, telegram_chat_id should only be updated by the Telegram registration flow,
+ * not cleared when updating other driver fields.
  */
 export declare function driverInputToRow(input: CreateDriverInput): Partial<DriverRow>;
 //# sourceMappingURL=driver.d.ts.map

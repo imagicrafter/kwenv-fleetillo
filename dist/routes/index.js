@@ -11,6 +11,8 @@ const vehicle_routes_1 = __importDefault(require("./vehicle.routes"));
 const route_routes_1 = __importDefault(require("./route.routes"));
 const dispatch_job_routes_1 = __importDefault(require("./dispatch-job.routes"));
 const driver_routes_1 = __importDefault(require("./driver.routes"));
+const public_routes_1 = __importDefault(require("./public.routes"));
+const route_token_routes_1 = __importDefault(require("./route-token.routes"));
 const router = (0, express_1.Router)();
 /**
  * API Routes
@@ -30,6 +32,10 @@ router.use('/routes', route_routes_1.default);
 router.use('/dispatch-jobs', dispatch_job_routes_1.default);
 // Driver routes
 router.use('/drivers', driver_routes_1.default);
+// Public routes (no auth required)
+router.use('/public', public_routes_1.default);
+// Route token routes (API key auth required)
+router.use('/route-tokens', route_token_routes_1.default);
 // Root API endpoint
 router.get('/', (_req, res) => {
     res.json({

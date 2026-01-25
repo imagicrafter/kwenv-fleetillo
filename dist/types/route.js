@@ -58,54 +58,109 @@ function rowToRoute(row) {
 }
 /**
  * Converts a CreateRouteInput to a database row format
+ *
+ * Important: Only includes fields that are explicitly defined in the input.
+ * This prevents undefined fields from overwriting existing values during updates.
  */
 function routeInputToRow(input) {
-    return {
-        route_name: input.routeName,
-        route_code: input.routeCode ?? null,
-        vehicle_id: input.vehicleId ?? null,
-        route_date: input.routeDate.toISOString().split('T')[0],
-        planned_start_time: input.plannedStartTime ?? null,
-        planned_end_time: input.plannedEndTime ?? null,
-        total_distance_km: input.totalDistanceKm ?? null,
-        total_duration_minutes: input.totalDurationMinutes ?? null,
-        total_service_time_minutes: input.totalServiceTimeMinutes ?? null,
-        total_travel_time_minutes: input.totalTravelTimeMinutes ?? null,
-        total_stops: input.totalStops ?? 0,
-        optimization_type: input.optimizationType ?? 'balanced',
-        optimization_score: input.optimizationScore ?? null,
-        algorithm_version: input.algorithmVersion ?? null,
-        status: input.status ?? 'draft',
-        planned_capacity_weight: input.plannedCapacityWeight ?? null,
-        planned_capacity_volume: input.plannedCapacityVolume ?? null,
-        estimated_cost: input.estimatedCost ?? null,
-        cost_currency: input.costCurrency ?? 'USD',
-        max_duration_minutes: input.maxDurationMinutes ?? null,
-        max_distance_km: input.maxDistanceKm ?? null,
-        required_skills: input.requiredSkills ?? null,
-        geo_fence_data: input.geoFenceData ?? null,
-        stop_sequence: input.stopSequence ?? null,
-        route_geometry: input.routeGeometry ?? null,
-        optimization_metadata: input.optimizationMetadata ?? null,
-        notes: input.notes ?? null,
-        tags: input.tags ?? null,
-        created_by: input.createdBy ?? null,
-        assigned_to: input.assignedTo ?? null,
-    };
+    const row = {};
+    // Required fields
+    if (input.routeName !== undefined)
+        row.route_name = input.routeName;
+    if (input.routeDate !== undefined)
+        row.route_date = input.routeDate.toISOString().split('T')[0];
+    // Route identification
+    if (input.routeCode !== undefined)
+        row.route_code = input.routeCode ?? null;
+    if (input.vehicleId !== undefined)
+        row.vehicle_id = input.vehicleId ?? null;
+    // Timing
+    if (input.plannedStartTime !== undefined)
+        row.planned_start_time = input.plannedStartTime ?? null;
+    if (input.plannedEndTime !== undefined)
+        row.planned_end_time = input.plannedEndTime ?? null;
+    // Metrics
+    if (input.totalDistanceKm !== undefined)
+        row.total_distance_km = input.totalDistanceKm ?? null;
+    if (input.totalDurationMinutes !== undefined)
+        row.total_duration_minutes = input.totalDurationMinutes ?? null;
+    if (input.totalServiceTimeMinutes !== undefined)
+        row.total_service_time_minutes = input.totalServiceTimeMinutes ?? null;
+    if (input.totalTravelTimeMinutes !== undefined)
+        row.total_travel_time_minutes = input.totalTravelTimeMinutes ?? null;
+    if (input.totalStops !== undefined)
+        row.total_stops = input.totalStops;
+    // Optimization
+    if (input.optimizationType !== undefined)
+        row.optimization_type = input.optimizationType;
+    if (input.optimizationScore !== undefined)
+        row.optimization_score = input.optimizationScore ?? null;
+    if (input.algorithmVersion !== undefined)
+        row.algorithm_version = input.algorithmVersion ?? null;
+    if (input.optimizationMetadata !== undefined)
+        row.optimization_metadata = input.optimizationMetadata ?? null;
+    // Status
+    if (input.status !== undefined)
+        row.status = input.status;
+    // Capacity
+    if (input.plannedCapacityWeight !== undefined)
+        row.planned_capacity_weight = input.plannedCapacityWeight ?? null;
+    if (input.plannedCapacityVolume !== undefined)
+        row.planned_capacity_volume = input.plannedCapacityVolume ?? null;
+    // Cost
+    if (input.estimatedCost !== undefined)
+        row.estimated_cost = input.estimatedCost ?? null;
+    if (input.costCurrency !== undefined)
+        row.cost_currency = input.costCurrency;
+    // Constraints
+    if (input.maxDurationMinutes !== undefined)
+        row.max_duration_minutes = input.maxDurationMinutes ?? null;
+    if (input.maxDistanceKm !== undefined)
+        row.max_distance_km = input.maxDistanceKm ?? null;
+    if (input.requiredSkills !== undefined)
+        row.required_skills = input.requiredSkills ?? null;
+    // Geographic data
+    if (input.geoFenceData !== undefined)
+        row.geo_fence_data = input.geoFenceData ?? null;
+    if (input.stopSequence !== undefined)
+        row.stop_sequence = input.stopSequence ?? null;
+    if (input.routeGeometry !== undefined)
+        row.route_geometry = input.routeGeometry ?? null;
+    // Metadata
+    if (input.notes !== undefined)
+        row.notes = input.notes ?? null;
+    if (input.tags !== undefined)
+        row.tags = input.tags ?? null;
+    if (input.createdBy !== undefined)
+        row.created_by = input.createdBy ?? null;
+    if (input.assignedTo !== undefined)
+        row.assigned_to = input.assignedTo ?? null;
+    return row;
 }
 /**
  * Converts an UpdateRouteInput to a database row format
+ *
+ * Important: Only includes fields that are explicitly defined in the input.
+ * This prevents undefined fields from overwriting existing values during updates.
  */
 function updateRouteInputToRow(input) {
-    const baseRow = routeInputToRow(input);
-    return {
-        ...baseRow,
-        actual_start_time: input.actualStartTime?.toISOString() ?? undefined,
-        actual_end_time: input.actualEndTime?.toISOString() ?? undefined,
-        actual_capacity_weight: input.actualCapacityWeight ?? undefined,
-        actual_capacity_volume: input.actualCapacityVolume ?? undefined,
-        actual_cost: input.actualCost ?? undefined,
-        needs_recalculation: input.needsRecalculation ?? undefined,
-    };
+    // Start with base fields
+    const row = routeInputToRow(input);
+    // Add update-specific fields (only if defined)
+    if (input.actualStartTime !== undefined) {
+        row.actual_start_time = input.actualStartTime?.toISOString() ?? null;
+    }
+    if (input.actualEndTime !== undefined) {
+        row.actual_end_time = input.actualEndTime?.toISOString() ?? null;
+    }
+    if (input.actualCapacityWeight !== undefined)
+        row.actual_capacity_weight = input.actualCapacityWeight ?? null;
+    if (input.actualCapacityVolume !== undefined)
+        row.actual_capacity_volume = input.actualCapacityVolume ?? null;
+    if (input.actualCost !== undefined)
+        row.actual_cost = input.actualCost ?? null;
+    if (input.needsRecalculation !== undefined)
+        row.needs_recalculation = input.needsRecalculation;
+    return row;
 }
 //# sourceMappingURL=route.js.map

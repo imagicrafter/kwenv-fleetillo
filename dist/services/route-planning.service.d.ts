@@ -53,6 +53,7 @@ export interface PlanRoutesInput {
 export interface VehicleAllocation {
     vehicleId: string;
     bookingCount: number;
+    bookingIds?: string[];
     startLocationId?: string;
     endLocationId?: string;
 }

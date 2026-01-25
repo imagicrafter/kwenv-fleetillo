@@ -26,6 +26,7 @@ const supabase_1 = require("./supabase");
 const settings_service_2 = require("./settings.service");
 const google_routes_service_1 = require("./google-routes.service");
 const google_routes_1 = require("../types/google-routes");
+const clustering_service_1 = require("./clustering.service");
 /**
  * Logger instance for route planning operations
  */
@@ -128,11 +129,11 @@ function estimateTravelTimeMinutes(lat1, lon1, lat2, lon2, avgSpeedKmph, traffic
  * Returns reordered bookings (to match allocation) and the allocation counts.
  *
  * Algorithm:
- * 1. Initialize all vehicles with empty routes
- * 2. Unassigned bookings pool
+ * 1. If clustering enabled: Assign bookings to nearest depot (vehicle home location)
+ * 2. Initialize all vehicles with empty routes
  * 3. While unassigned bookings exist:
  *    - For each vehicle:
- *      - Find nearest unassigned booking to vehicle's last location
+ *      - Find nearest unassigned booking from its depot cluster (or entire pool if no clustering)
  *      - Check if adding it violates max daily time (default 9 hours = 540 mins)
  *      - If fits, assign and update vehicle state
  */
@@ -145,6 +146,81 @@ async function createTimeAwareAllocation(bookings, vehicles, locationMap, servic
     const params = await (0, settings_service_2.getRoutePlanningParams)();
     const MAX_DAILY_MINUTES = params.maxDailyMinutes;
     const warnings = [];
+    // ===== CLUSTERING PRE-PROCESSING =====
+    // If clustering is enabled, assign bookings to depots first
+    let vehicleAllowedBookings = null;
+    const clusteringUnassigned = [];
+    if (await (0, clustering_service_1.isClusteringEnabledAsync)()) {
+        logger.info('City clustering enabled, pre-assigning bookings to depots');
+        // Build depot locations map with city info
+        // We need to fetch full location data to get city
+        const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
+        const homeLocationIds = vehicles.map(v => v.homeLocationId).filter((id) => !!id);
+        const depotLocations = new Map();
+        if (homeLocationIds.length > 0) {
+            const { data: locationsData } = await supabase
+                .from('locations')
+                .select('id, name, city, latitude, longitude')
+                .in('id', homeLocationIds)
+                .is('deleted_at', null);
+            for (const loc of locationsData || []) {
+                if (loc.latitude && loc.longitude) {
+                    depotLocations.set(loc.id, {
+                        name: loc.name,
+                        city: loc.city || '',
+                        coordinates: { latitude: loc.latitude, longitude: loc.longitude },
+                    });
+                }
+            }
+        }
+        // Convert bookings to BookingWithCoordinates format
+        const bookingsWithCoords = [];
+        for (const booking of bookings) {
+            const coords = getBookingCoordinates(booking);
+            if (coords) {
+                bookingsWithCoords.push({
+                    booking,
+                    coordinates: coords,
+                    locationName: booking.locationName || '',
+                    locationCity: booking.serviceCity || '',
+                });
+            }
+            else {
+                // Bookings without coordinates go to unassigned
+                clusteringUnassigned.push(booking);
+                warnings.push(`Booking ${booking.bookingNumber || booking.id} has no coordinates`);
+            }
+        }
+        // Run clustering with settings from database
+        const clusterConfig = await (0, clustering_service_1.getClusteringConfigAsync)(Math.ceil(MAX_DAILY_MINUTES / 30) // Estimate max stops based on 30 min average
+        );
+        const clusterResult = (0, clustering_service_1.clusterBookingsByDepot)(bookingsWithCoords, vehicles, depotLocations, clusterConfig);
+        // Build vehicle -> allowed booking IDs map
+        vehicleAllowedBookings = new Map();
+        for (const [depotId, assignments] of clusterResult.depotClusters) {
+            // Find vehicles at this depot
+            for (const vehicle of vehicles) {
+                if (vehicle.homeLocationId === depotId) {
+                    const allowedIds = vehicleAllowedBookings.get(vehicle.id) || new Set();
+                    for (const assignment of assignments) {
+                        allowedIds.add(assignment.booking.id);
+                    }
+                    vehicleAllowedBookings.set(vehicle.id, allowedIds);
+                }
+            }
+        }
+        // Track bookings that couldn't be assigned to any depot
+        for (const unassigned of clusterResult.unassigned) {
+            clusteringUnassigned.push(unassigned.booking);
+            warnings.push(`Booking ${unassigned.booking.bookingNumber || unassigned.booking.id}: ${unassigned.reason}` +
+                (unassigned.details ? ` - ${unassigned.details}` : ''));
+        }
+        logger.info('Clustering complete', {
+            assignedToDepots: clusterResult.stats.assignedBookings,
+            unassigned: clusterResult.stats.unassignedBookings,
+            depotCount: clusterResult.stats.depotCount,
+        });
+    }
     // State for each vehicle
     const vehicleStates = vehicles.map(v => {
         // Determine start location
@@ -168,11 +244,28 @@ async function createTimeAwareAllocation(bookings, vehicles, locationMap, servic
         };
     });
     // Work with a copy of bookings to track assignment
-    const unassigned = [...bookings];
+    // If clustering is enabled, exclude bookings that couldn't be assigned to any depot
+    const clusteringUnassignedIds = new Set(clusteringUnassigned.map(b => b.id));
+    const unassigned = bookings.filter(b => !clusteringUnassignedIds.has(b.id));
     // Helper to get booking duration
     const getServiceDuration = (b) => {
-        // Use estimatedDuration if overridden on booking, else service average, else default 30
-        return b.estimatedDurationMinutes || servicesMap.get(b.serviceId || b.serviceIds?.[0] || '') || 30;
+        if (b.estimatedDurationMinutes)
+            return b.estimatedDurationMinutes;
+        // Priority 1: Sum duration of service items
+        if (b.serviceItems && b.serviceItems.length > 0) {
+            const sum = b.serviceItems.reduce((acc, item) => acc + (item.duration || 0), 0);
+            if (sum > 0)
+                return sum;
+        }
+        // Priority 2: Sum average duration of service IDs (backfilled/legacy)
+        const ids = b.serviceIds && b.serviceIds.length > 0 ? b.serviceIds : b.serviceId ? [b.serviceId] : [];
+        if (ids.length > 0) {
+            const sum = ids.reduce((acc, id) => acc + (servicesMap.get(id) || 0), 0);
+            if (sum > 0)
+                return sum;
+        }
+        // Default fallback
+        return 30;
     };
     // Greedy allocation loop
     // In each round, each vehicle tries to pick its nearest neighbor
@@ -191,12 +284,31 @@ async function createTimeAwareAllocation(bookings, vehicles, locationMap, servic
             let nearestCoords = null;
             for (let i = 0; i < unassigned.length; i++) {
                 const booking = unassigned[i];
+                // If clustering is enabled, only consider bookings assigned to this vehicle's depot
+                if (vehicleAllowedBookings) {
+                    const allowedForVehicle = vehicleAllowedBookings.get(state.vehicle.id);
+                    if (!allowedForVehicle || !allowedForVehicle.has(booking.id)) {
+                        continue; // This booking is not in this vehicle's cluster
+                    }
+                }
                 // Check service compatibility first
                 const vehicleServiceSet = new Set(state.vehicle.serviceTypes || []);
-                // If vehicle has no service types, assume it can do anything? Or nothing?
-                // Using existing logic: if set exists, must contain serviceId
+                // If vehicle has specific service types, it must support ALL services in the booking
                 if (state.vehicle.serviceTypes && state.vehicle.serviceTypes.length > 0) {
-                    if (!vehicleServiceSet.has(booking.serviceId || booking.serviceIds?.[0] || ''))
+                    const requiredServiceIds = [];
+                    if (booking.serviceItems && booking.serviceItems.length > 0) {
+                        requiredServiceIds.push(...booking.serviceItems.map(i => i.serviceId));
+                    }
+                    else if (booking.serviceIds && booking.serviceIds.length > 0) {
+                        requiredServiceIds.push(...booking.serviceIds);
+                    }
+                    else if (booking.serviceId) {
+                        requiredServiceIds.push(booking.serviceId);
+                    }
+                    if (requiredServiceIds.length === 0)
+                        continue; // No service info, assume incompatible
+                    const isCompatible = requiredServiceIds.every(id => vehicleServiceSet.has(id));
+                    if (!isCompatible)
                         continue;
                 }
                 const coords = getBookingCoordinates(booking);
@@ -253,11 +365,12 @@ async function createTimeAwareAllocation(bookings, vehicles, locationMap, servic
             allocations.push({
                 vehicleId: state.vehicle.id,
                 bookingCount: state.assignedBookings.length,
-                startLocationId: state.vehicle.homeLocationId // preserve home loc preference
+                bookingIds: state.assignedBookings.map(b => b.id),
+                startLocationId: state.vehicle.homeLocationId, // preserve home loc preference
             });
         }
     }
-    // Add any remaining bookings that fit nowhere to unassigned list in caller? 
+    // Add any remaining bookings that fit nowhere to unassigned list in caller?
     // The caller (planRoutes) expects 'allocations' to sum up to compatibleBookings used.
     // We implicitly dropped bookings that didn't fit time.
     // To handle this, we should append them to specific list or just return what fits.
@@ -270,7 +383,7 @@ async function createTimeAwareAllocation(bookings, vehicles, locationMap, servic
     return {
         allocations,
         orderedBookings, // This MUST replace the 'compatibleBookings' list in usage
-        warnings
+        warnings,
     };
 }
 /**
@@ -398,7 +511,7 @@ async function optimizeBatch(bookings, options) {
         return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     };
     const durationMatch = optimalRoute.duration?.match(/^(\d+)s$/);
-    const totalDurationSeconds = durationMatch && durationMatch[1] ? parseInt(durationMatch[1], 10) : 0;
+    const totalDurationSeconds = durationMatch?.[1] ? parseInt(durationMatch[1], 10) : 0;
     let plannedStartTime;
     let plannedEndTime;
     // Reconstruct visit sequence
@@ -438,11 +551,11 @@ async function optimizeBatch(bookings, options) {
         // Determine First Visit for Start Time calculation
         if (options.departureLocation) {
             // Origin is depot. Route starts by traveling to firstVisitedBooking.
-            if (firstVisitedBooking && firstVisitedBooking.scheduledStartTime) {
+            if (firstVisitedBooking?.scheduledStartTime) {
                 const firstStartSeconds = timeToSeconds(firstVisitedBooking.scheduledStartTime);
                 // Leg 0 is Origin -> First Visited Booking
                 const firstLeg = optimalRoute.legs ? optimalRoute.legs[0] : undefined;
-                const travelToFirstSeconds = firstLeg && firstLeg.duration
+                const travelToFirstSeconds = firstLeg?.duration
                     ? parseInt(firstLeg.duration.replace('s', ''), 10)
                     : 0;
                 plannedStartTime = secondsToTime(firstStartSeconds - travelToFirstSeconds);
@@ -452,7 +565,7 @@ async function optimizeBatch(bookings, options) {
             // Origin is a booking (bookings[0]).
             // Start time is that booking's scheduled start time.
             const originBooking = bookings[0];
-            if (originBooking && originBooking.scheduledStartTime) {
+            if (originBooking?.scheduledStartTime) {
                 plannedStartTime = originBooking.scheduledStartTime;
             }
         }
@@ -474,7 +587,7 @@ async function optimizeBatch(bookings, options) {
         // Last booking is the destination
         referenceBookingForEnd = bookings[bookings.length - 1];
     }
-    if (referenceBookingForEnd && referenceBookingForEnd.scheduledStartTime) {
+    if (referenceBookingForEnd?.scheduledStartTime) {
         const lastStartSeconds = timeToSeconds(referenceBookingForEnd.scheduledStartTime);
         const serviceDurationSeconds = (referenceBookingForEnd.estimatedDurationMinutes || 30) * 60;
         let travelFromLastSeconds = 0;
@@ -482,8 +595,10 @@ async function optimizeBatch(bookings, options) {
         // If reference is destination (normal flow), travel is 0.
         // If reference is last intermediate (returnToStart/customDest), travel is last leg.
         if (options.destinationLocation || options.returnToStart) {
-            const lastLeg = optimalRoute.legs ? optimalRoute.legs[optimalRoute.legs.length - 1] : undefined;
-            travelFromLastSeconds = lastLeg && lastLeg.duration
+            const lastLeg = optimalRoute.legs
+                ? optimalRoute.legs[optimalRoute.legs.length - 1]
+                : undefined;
+            travelFromLastSeconds = lastLeg?.duration
                 ? parseInt(lastLeg.duration.replace('s', ''), 10)
                 : 0;
         }
@@ -616,9 +731,7 @@ async function previewRoutePlan(input) {
         serviceId: input.serviceId,
     });
     // Parse date
-    const routeDate = typeof input.routeDate === 'string'
-        ? new Date(input.routeDate)
-        : input.routeDate;
+    const routeDate = typeof input.routeDate === 'string' ? new Date(input.routeDate) : input.routeDate;
     const warnings = [];
     // Build booking filters
     const bookingFilters = {
@@ -646,7 +759,7 @@ async function previewRoutePlan(input) {
         warnings.push(`${invalidBookings.length} booking(s) missing coordinates`);
     }
     // Find compatible vehicle-booking pairs
-    const { compatibleBookings, incompatibleBookings, vehicles, warnings: compatWarnings } = await findCompatibleVehicleBookings(unscheduledBookings, input.serviceId);
+    const { compatibleBookings, incompatibleBookings, vehicles, warnings: compatWarnings, } = await findCompatibleVehicleBookings(unscheduledBookings, input.serviceId);
     warnings.push(...compatWarnings);
     // Fetch all depot/home type locations as available base locations
     // Import getAllLocations from location service if needed - using admin supabase directly
@@ -675,13 +788,13 @@ async function previewRoutePlan(input) {
                 locationCoordsMap.set(locId, {
                     latitude: loc.latitude,
                     longitude: loc.longitude,
-                    name: loc.name
+                    name: loc.name,
                 });
             }
         }
     }
     // Create time-aware allocation
-    const { allocations, orderedBookings, warnings: allocWarnings } = await createTimeAwareAllocation(compatibleBookings, vehicles, locationCoordsMap, servicesMap);
+    const { allocations, orderedBookings, warnings: allocWarnings, } = await createTimeAwareAllocation(compatibleBookings, vehicles, locationCoordsMap, servicesMap);
     warnings.push(...allocWarnings);
     // Identify which bookings from compat list were NOT allocated (due to constraints)
     // We need to move them to unassignable
@@ -697,7 +810,8 @@ async function previewRoutePlan(input) {
             // simple mock as we only need simple info here
             locationMap.set(vehicle.homeLocationId, {
                 name: locationCoordsMap.get(vehicle.homeLocationId).name,
-                city: "", state: ""
+                city: '',
+                state: '',
             });
         }
         const supabase = (0, supabase_1.getAdminSupabaseClient)() || (0, supabase_1.getSupabaseClient)();
@@ -724,9 +838,12 @@ async function previewRoutePlan(input) {
             vehicleId: alloc.vehicleId,
             vehicleName: vehicle.name,
             bookingCount: alloc.bookingCount,
+            bookingIds: alloc.bookingIds, // Include specific booking IDs from clustering
             homeLocationId: vehicle.homeLocationId,
-            homeLocationName: vehicle.homeLocationId ? locationCoordsMap.get(vehicle.homeLocationId)?.name : undefined,
-            availableLocations: finalLocations
+            homeLocationName: vehicle.homeLocationId
+                ? locationCoordsMap.get(vehicle.homeLocationId)?.name
+                : undefined,
+            availableLocations: finalLocations,
         };
     }));
     return {
@@ -753,16 +870,16 @@ async function previewRoutePlan(input) {
 async function planRoutes(input) {
     // Fetch route settings to get configured day start time
     const settingsResult = await (0, settings_service_1.getRouteSettings)();
-    const dayStartTime = settingsResult.success && settingsResult.data ? settingsResult.data.schedule.dayStartTime : '08:00';
+    const dayStartTime = settingsResult.success && settingsResult.data
+        ? settingsResult.data.schedule.dayStartTime
+        : '08:00';
     logger.info('Starting route planning', {
         routeDate: input.routeDate,
         serviceId: input.serviceId,
         maxStopsPerRoute: input.maxStopsPerRoute,
     });
     // Parse date
-    const routeDate = typeof input.routeDate === 'string'
-        ? new Date(input.routeDate)
-        : input.routeDate;
+    const routeDate = typeof input.routeDate === 'string' ? new Date(input.routeDate) : input.routeDate;
     const maxStops = input.maxStopsPerRoute ?? DEFAULT_MAX_STOPS_PER_ROUTE;
     // Build booking filters
     const bookingFilters = {
@@ -802,12 +919,12 @@ async function planRoutes(input) {
     }
     // Filter bookings with valid coordinates
     const validBookings = allBookings.filter(hasValidCoordinates);
-    const invalidBookings = allBookings.filter((b) => !hasValidCoordinates(b));
+    const invalidBookings = allBookings.filter(b => !hasValidCoordinates(b));
     if (invalidBookings.length > 0) {
         logger.warn('Bookings missing coordinates', { count: invalidBookings.length });
     }
     // Filter bookings that don't already have a route assigned (unscheduled)
-    const unscheduledBookings = validBookings.filter((b) => !b.routeId); // Use routeId instead of vehicleId
+    const unscheduledBookings = validBookings.filter(b => !b.routeId); // Use routeId instead of vehicleId
     if (unscheduledBookings.length === 0) {
         return {
             success: true,
@@ -831,7 +948,7 @@ async function planRoutes(input) {
     }
     // ===== NEW VEHICLE-AGNOSTIC APPROACH =====
     // Instead of grouping by service, find all bookings that any available vehicle can service
-    const { compatibleBookings, incompatibleBookings, vehicles, warnings: compatWarnings } = await findCompatibleVehicleBookings(unscheduledBookings, input.serviceId);
+    const { compatibleBookings, incompatibleBookings, vehicles, warnings: compatWarnings, } = await findCompatibleVehicleBookings(unscheduledBookings, input.serviceId);
     const warnings = [...compatWarnings];
     const unassignedBookings = [...invalidBookings, ...incompatibleBookings];
     if (compatibleBookings.length === 0) {
@@ -846,10 +963,7 @@ async function planRoutes(input) {
                     routesCreated: 0,
                     vehiclesUsed: 0,
                 },
-                warnings: [
-                    ...warnings,
-                    'No bookings could be matched to available vehicles',
-                ],
+                warnings: [...warnings, 'No bookings could be matched to available vehicles'],
             },
         };
     }
@@ -893,7 +1007,7 @@ async function planRoutes(input) {
                     locationCoordsMap.set(locId, {
                         latitude: loc.latitude,
                         longitude: loc.longitude,
-                        name: loc.name
+                        name: loc.name,
                     });
                 }
             }
@@ -911,8 +1025,8 @@ async function planRoutes(input) {
         unassignedBookings.push(...droppedBookings);
     }
     else {
-        // If user provided manual allocation, we trust their counts but we don't have the order guarantees 
-        // that our allocator provides. This is tricky. Manual allocation usually implies 
+        // If user provided manual allocation, we trust their counts but we don't have the order guarantees
+        // that our allocator provides. This is tricky. Manual allocation usually implies
         // "Give Vehicle 1 X bookings from the pool".
         // For now, we keep the existing behavior for manual overrides (greedy take from pool)
         // but arguably we should respect time there too.
@@ -936,9 +1050,23 @@ async function planRoutes(input) {
             warnings.push(`Vehicle ${allocation.vehicleId} not found or not available`);
             continue;
         }
-        // Get the bookings for this allocation from our ORDERED list
-        const bookingsForVehicle = orderedBookings.slice(bookingOffset, bookingOffset + allocation.bookingCount);
-        bookingOffset += allocation.bookingCount;
+        // Get the bookings for this allocation
+        // If bookingIds are provided (from clustering), use those specific bookings
+        // Otherwise fall back to slicing from the ordered list
+        let bookingsForVehicle;
+        if (allocation.bookingIds && allocation.bookingIds.length > 0) {
+            const bookingIdSet = new Set(allocation.bookingIds);
+            bookingsForVehicle = orderedBookings.filter(b => bookingIdSet.has(b.id));
+            logger.debug('Using clustered booking IDs for vehicle', {
+                vehicleId: allocation.vehicleId,
+                requestedIds: allocation.bookingIds.length,
+                foundBookings: bookingsForVehicle.length,
+            });
+        }
+        else {
+            bookingsForVehicle = orderedBookings.slice(bookingOffset, bookingOffset + allocation.bookingCount);
+            bookingOffset += allocation.bookingCount;
+        }
         if (bookingsForVehicle.length === 0)
             continue;
         // Cluster bookings simply by chunking since we already did smart allocation
@@ -958,7 +1086,7 @@ async function planRoutes(input) {
                     startLocationIdToUse = primaryLocResult.data.locationId;
                     logger.debug('Using primary location for vehicle', {
                         vehicleId: vehicle.id,
-                        locationId: startLocationIdToUse
+                        locationId: startLocationIdToUse,
                     });
                 }
             }
@@ -978,7 +1106,7 @@ async function planRoutes(input) {
                         logger.debug('Set departure location', {
                             lat: startLoc.latitude,
                             lng: startLoc.longitude,
-                            locationName: startLoc.name
+                            locationName: startLoc.name,
                         });
                     }
                 }
@@ -1011,7 +1139,7 @@ async function planRoutes(input) {
                 unassignedBookings.push(...batch);
                 continue;
             }
-            const { route: googleRoute, optimizedOrder, plannedStartTime, plannedEndTime } = optimizeResult.data;
+            const { route: googleRoute, optimizedOrder, plannedStartTime, plannedEndTime, } = optimizeResult.data;
             // Build ordered bookings from optimized route
             // Note: optimizedOrder contains indices into the INTERMEDIATES array, not the batch array
             // We need to account for which bookings were used as origin/destination vs intermediates
@@ -1077,7 +1205,7 @@ async function planRoutes(input) {
                     if (leg) {
                         const durationStr = leg.duration;
                         const match = durationStr ? durationStr.match(/^(\d+)s$/) : null;
-                        travelTimeSeconds = (match && match[1]) ? parseInt(match[1], 10) : 0;
+                        travelTimeSeconds = match?.[1] ? parseInt(match[1], 10) : 0;
                         legIndex++;
                     }
                 }
@@ -1100,7 +1228,8 @@ async function planRoutes(input) {
                 if (booking.serviceItems && booking.serviceItems.length > 0) {
                     serviceDurationMinutes = booking.serviceItems.reduce((total, item) => total + (item.duration || 0), 0);
                 }
-                else {
+                // If no service items or calculated duration is 0, use the average duration
+                if (serviceDurationMinutes === 0) {
                     serviceDurationMinutes = booking.serviceAverageDurationMinutes || 30; // Default 30 mins
                 }
                 calculatedTotalServiceMinutes += serviceDurationMinutes;
@@ -1117,13 +1246,15 @@ async function planRoutes(input) {
                 bookingUpdates.push({
                     id: booking.id,
                     start: scheduledStartTime,
-                    end: scheduledEndTime
+                    end: scheduledEndTime,
                 });
             }
             // Calculate route metrics
             const totalDistanceMeters = googleRoute.distanceMeters || 0;
             const durationMatch = googleRoute.duration?.match(/^(\d+)s$/) || null;
-            const totalTravelSeconds = durationMatch && durationMatch[1] ? parseInt(durationMatch[1], 10) : (calculatedTotalTravelMinutes * 60);
+            const totalTravelSeconds = durationMatch?.[1]
+                ? parseInt(durationMatch[1], 10)
+                : calculatedTotalTravelMinutes * 60;
             const finalTotalTravelMinutes = Math.ceil(totalTravelSeconds / 60);
             // Create route input
             const routeInput = {
@@ -1132,17 +1263,18 @@ async function planRoutes(input) {
                 vehicleId: vehicle.id,
                 routeDate,
                 plannedStartTime: plannedStartTime || '08:00:00',
-                plannedEndTime: plannedEndTime || (() => {
-                    const startBase = plannedStartTime || '08:00:00';
-                    const [h, m, s] = startBase.split(':').map(Number);
-                    const startSeconds = (h || 0) * 3600 + (m || 0) * 60 + (s || 0);
-                    const totalSeconds = startSeconds + ((finalTotalTravelMinutes + calculatedTotalServiceMinutes) * 60);
-                    const endH = Math.floor(totalSeconds / 3600) % 24;
-                    const remSeconds = totalSeconds % 3600;
-                    const endM = Math.floor(remSeconds / 60);
-                    const endS = remSeconds % 60;
-                    return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}:${String(endS).padStart(2, '0')}`;
-                })(),
+                plannedEndTime: plannedEndTime ||
+                    (() => {
+                        const startBase = plannedStartTime || '08:00:00';
+                        const [h, m, s] = startBase.split(':').map(Number);
+                        const startSeconds = (h || 0) * 3600 + (m || 0) * 60 + (s || 0);
+                        const totalSeconds = startSeconds + (finalTotalTravelMinutes + calculatedTotalServiceMinutes) * 60;
+                        const endH = Math.floor(totalSeconds / 3600) % 24;
+                        const remSeconds = totalSeconds % 3600;
+                        const endM = Math.floor(remSeconds / 60);
+                        const endS = remSeconds % 60;
+                        return `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}:${String(endS).padStart(2, '0')}`;
+                    })(),
                 totalDistanceKm: totalDistanceMeters / 1000,
                 // Total duration = Travel (from Google) + Service (Calculated)
                 totalDurationMinutes: finalTotalTravelMinutes + calculatedTotalServiceMinutes,
@@ -1152,7 +1284,7 @@ async function planRoutes(input) {
                 optimizationType: 'balanced',
                 optimizationScore: 85,
                 status: 'planned',
-                stopSequence: orderedBookings.map((b) => b.id),
+                stopSequence: orderedBookings.map(b => b.id),
                 costCurrency: 'USD',
                 routeGeometry: {
                     encodedPolyline: googleRoute.polyline?.encodedPolyline || null,
@@ -1166,7 +1298,9 @@ async function planRoutes(input) {
             // Create the route
             const createRouteResult = await (0, route_service_1.createRoute)(routeInput);
             if (!createRouteResult.success) {
-                logger.error('Failed to create route', { error: JSON.stringify(createRouteResult.error, Object.getOwnPropertyNames(createRouteResult.error)) });
+                logger.error('Failed to create route', {
+                    error: JSON.stringify(createRouteResult.error, Object.getOwnPropertyNames(createRouteResult.error)),
+                });
                 unassignedBookings.push(...orderedBookings);
                 continue;
             }
@@ -1183,7 +1317,7 @@ async function planRoutes(input) {
                     stopOrder: stopOrderIdx,
                     status: 'scheduled',
                     scheduledStartTime: update.start,
-                    scheduledEndTime: update.end
+                    scheduledEndTime: update.end,
                 });
                 if (!updateResult.success) {
                     warnings.push(`Failed to update booking ${update.id}: ${updateResult.error?.message}`);

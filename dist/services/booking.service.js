@@ -391,7 +391,7 @@ async function updateBooking(input) {
     const existing = existingResult.data;
     const validationInput = {
         customerId: input.customerId ?? existing.customerId,
-        serviceId: input.serviceId, // Deprecated, but keep if provided
+        serviceId: input.serviceId ?? existing.serviceId, // Deprecated, but keep if provided
         serviceItems: input.serviceItems ?? existing.serviceItems,
         bookingType: input.bookingType ?? existing.bookingType,
         scheduledDate: input.scheduledDate ?? existing.scheduledDate,

@@ -17,6 +17,8 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+// Re-export common base types (must be first to avoid circular deps)
+__exportStar(require("./common"), exports);
 // Re-export logger types
 __exportStar(require("./logger"), exports);
 // Re-export error types
@@ -35,8 +37,12 @@ __exportStar(require("./booking"), exports);
 __exportStar(require("./maintenanceSchedule"), exports);
 // Re-export route types
 __exportStar(require("./route"), exports);
+// Re-export route token types
+__exportStar(require("./route-token"), exports);
 // Re-export Google Maps types
 __exportStar(require("./googlemaps"), exports);
 // Re-export Address Validation types
 __exportStar(require("./address-validation"), exports);
+// Note: Google Routes types are available via direct import from './google-routes'
+// to avoid naming conflicts with existing Route and TravelMode types
 //# sourceMappingURL=index.js.map

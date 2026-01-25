@@ -10,6 +10,8 @@ const helmet_1 = __importDefault(require("helmet"));
 const path_1 = __importDefault(require("path"));
 require("express-async-errors");
 const index_1 = require("./config/index");
+// Import RPC routes
+const rpc_routes_1 = __importDefault(require("./routes/rpc.routes"));
 const error_handler_1 = require("./middleware/error-handler");
 const request_logger_1 = require("./middleware/request-logger");
 const validation_1 = require("./middleware/validation");
@@ -26,7 +28,8 @@ const createApp = () => {
         contentSecurityPolicy: {
             directives: {
                 defaultSrc: ["'self'"],
-                styleSrc: ["'self'", "'unsafe-inline'"],
+                styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+                fontSrc: ["'self'", "https://fonts.gstatic.com"],
                 scriptSrc: ["'self'", "'unsafe-inline'"],
                 imgSrc: ["'self'", 'data:', 'https:'],
             },
@@ -81,6 +84,8 @@ const createApp = () => {
     }
     // API routes with prefix
     app.use(`${index_1.config.api.prefix}/${index_1.config.api.version}`, index_2.default);
+    // RPC endpoint (mounted at /api to match frontend expectation of /api/rpc)
+    app.use('/api', rpc_routes_1.default);
     // 404 handler
     app.use(error_handler_1.notFoundHandler);
     // Global error handler (must be last)

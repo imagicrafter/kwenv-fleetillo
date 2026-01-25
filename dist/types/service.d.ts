@@ -1,7 +1,7 @@
 /**
  * Service-related type definitions for RouteIQ application
  */
-import type { ID, Timestamps } from './index';
+import type { ID, Timestamps } from './common';
 /**
  * Service status options
  */
@@ -107,6 +107,9 @@ export interface ServiceFilters {
 export declare function rowToService(row: ServiceRow): Service;
 /**
  * Converts a CreateServiceInput to a database row format
+ *
+ * Important: Only includes fields that are explicitly defined in the input.
+ * This prevents undefined fields from overwriting existing values during updates.
  */
 export declare function serviceInputToRow(input: CreateServiceInput): Partial<ServiceRow>;
 //# sourceMappingURL=service.d.ts.map

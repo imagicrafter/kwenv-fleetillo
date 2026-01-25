@@ -49,7 +49,8 @@
       "WebFetch(domain:docs.anthropic.com)",
       "WebFetch(domain:github.com)",
       "Skill(execute)",
-      "Skill(spawn-cmd)"
+      "Skill(spawn-cmd)",
+      "Skill(open-issue)"
     ]
   },
   "hooks": {

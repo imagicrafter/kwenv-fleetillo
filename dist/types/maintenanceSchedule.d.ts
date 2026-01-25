@@ -1,7 +1,7 @@
 /**
  * Maintenance Schedule-related type definitions for RouteIQ application
  */
-import type { ID, Timestamps } from './index';
+import type { ID, Timestamps } from './common';
 /**
  * Maintenance schedule status options
  */
@@ -104,6 +104,9 @@ export interface MaintenanceScheduleFilters {
 export declare function rowToMaintenanceSchedule(row: MaintenanceScheduleRow): MaintenanceSchedule;
 /**
  * Converts a CreateMaintenanceScheduleInput to a database row format
+ *
+ * Important: Only includes fields that are explicitly defined in the input.
+ * This prevents undefined fields from overwriting existing values during updates.
  */
 export declare function maintenanceScheduleInputToRow(input: CreateMaintenanceScheduleInput): Partial<MaintenanceScheduleRow>;
 /**

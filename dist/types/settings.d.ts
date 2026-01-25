@@ -9,6 +9,8 @@ export declare const SettingKeys: {
     readonly ROUTING_AVG_TRAVEL_SPEED: "routing.avgTravelSpeed";
     readonly ROUTING_TRAFFIC_BUFFER_PERCENT: "routing.trafficBufferPercent";
     readonly ROUTING_DEFAULT_SERVICE_DURATION: "routing.defaultServiceDurationMinutes";
+    readonly ROUTING_ENABLE_CITY_CLUSTERING: "routing.enableCityClustering";
+    readonly FLEET_DEFAULT_SERVICE_RADIUS: "fleet.defaultServiceRadiusMiles";
     readonly COSTS_LABOR_RATE_PER_HOUR: "costs.laborRatePerHour";
     readonly COSTS_GASOLINE_PRICE_PER_GALLON: "costs.gasolinePricePerGallon";
     readonly COSTS_DIESEL_PRICE_PER_GALLON: "costs.dieselPricePerGallon";
@@ -50,6 +52,10 @@ export interface RouteSettings {
         avgTravelSpeed: number;
         trafficBufferPercent: number;
         defaultServiceDurationMinutes: number;
+        enableCityClustering: boolean;
+    };
+    fleet: {
+        defaultServiceRadiusMiles: number;
     };
     dashboard: {
         showChatbot: boolean;

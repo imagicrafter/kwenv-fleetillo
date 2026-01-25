@@ -17,7 +17,12 @@ function rowToBooking(row) {
         // Foreign key references
         customerId: row.customer_id,
         serviceId: row.service_id ?? undefined, // DEPRECATED
-        serviceIds: row.service_ids ?? (row.service_id ? [row.service_id] : []),
+        serviceIds: row.service_ids ??
+            (row.service_items && row.service_items.length > 0
+                ? row.service_items.map(i => i.serviceId)
+                : row.service_id
+                    ? [row.service_id]
+                    : []),
         serviceItems: row.service_items ??
             (row.service_id && serviceName
                 ? [
@@ -113,7 +118,8 @@ function bookingInputToRow(input) {
         customer_id: input.customerId,
         service_id: input.serviceId ?? null, // DEPRECATED: Make nullable
         service_items: input.serviceItems ?? null,
-        service_ids: input.serviceIds ?? null,
+        // Auto-populate service_ids from serviceItems if not provided explicitly
+        service_ids: input.serviceIds ?? (input.serviceItems ? input.serviceItems.map(i => i.serviceId) : null),
         location_id: input.locationId ?? null,
         booking_number: input.bookingNumber ?? null,
         booking_type: input.bookingType,
@@ -157,10 +163,16 @@ function updateBookingInputToRow(input) {
         row.customer_id = input.customerId;
     if (input.serviceId !== undefined)
         row.service_id = input.serviceId; // DEPRECATED
-    if (input.serviceItems !== undefined)
+    if (input.serviceItems !== undefined) {
         row.service_items = input.serviceItems ?? null;
-    if (input.serviceIds !== undefined)
+    }
+    if (input.serviceIds !== undefined) {
         row.service_ids = input.serviceIds ?? null;
+    }
+    else if (input.serviceItems !== undefined) {
+        // Backfill service_ids if serviceItems is being updated but serviceIds isn't
+        row.service_ids = input.serviceItems ? input.serviceItems.map(i => i.serviceId) : null;
+    }
     if (input.routeId !== undefined)
         row.route_id = input.routeId ?? null;
     if (input.stopOrder !== undefined)

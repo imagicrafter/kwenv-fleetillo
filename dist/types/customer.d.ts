@@ -1,7 +1,7 @@
 /**
  * Customer-related type definitions for Fleetillo application
  */
-import type { ID, Timestamps } from './index';
+import type { ID, Timestamps } from './common';
 /**
  * Customer status options
  */
@@ -142,6 +142,9 @@ export interface CustomerFilters {
 export declare function rowToCustomer(row: CustomerRow): Customer;
 /**
  * Converts a CreateCustomerInput to a database row format
+ *
+ * Important: Only includes fields that are explicitly defined in the input.
+ * This prevents undefined fields from overwriting existing values during updates.
  */
 export declare function customerInputToRow(input: CreateCustomerInput): Partial<CustomerRow>;
 //# sourceMappingURL=customer.d.ts.map

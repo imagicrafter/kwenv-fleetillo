@@ -64,6 +64,8 @@ function createConfig() {
         port: getIntEnv('PORT', 3000),
         logLevel: getOptionalEnv('LOG_LEVEL', 'info'),
         debug: getBooleanEnv('DEBUG', false),
+        baseUrl: getOptionalEnv('BASE_URL', 'https://fleetillo.com'),
+        dispatchApiKeys: getOptionalEnv('DISPATCH_API_KEYS', ''),
         database: {
             url: process.env.DATABASE_URL,
         },
@@ -71,10 +73,14 @@ function createConfig() {
             url: getRequiredEnv('SUPABASE_URL'),
             anonKey: getRequiredEnv('SUPABASE_KEY'),
             serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-            schema: getOptionalEnv('SUPABASE_SCHEMA', 'optiroute'),
+            schema: getOptionalEnv('SUPABASE_SCHEMA', 'fleetillo'),
         },
         googleMaps: {
             apiKey: process.env.GOOGLE_MAPS_API_KEY,
+        },
+        routePlanning: {
+            enableClusteringV2: getBooleanEnv('ENABLE_CLUSTERING_V2', true),
+            maxClusterRadiusMiles: getIntEnv('MAX_CLUSTER_RADIUS_MILES', 50),
         },
         api: {
             prefix: getOptionalEnv('API_PREFIX', '/api'),

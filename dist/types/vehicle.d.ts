@@ -1,7 +1,7 @@
 /**
  * Vehicle-related type definitions for RouteIQ application
  */
-import type { ID, Timestamps } from './index';
+import type { ID, Timestamps } from './common';
 /**
  * Vehicle status options
  */
@@ -169,6 +169,9 @@ export interface VehicleFilters {
 export declare function rowToVehicle(row: VehicleRow): Vehicle;
 /**
  * Converts a CreateVehicleInput to a database row format
+ *
+ * Important: Only includes fields that are explicitly defined in the input.
+ * This prevents undefined fields from overwriting existing values during updates.
  */
 export declare function vehicleInputToRow(input: CreateVehicleInput): Partial<VehicleRow>;
 //# sourceMappingURL=vehicle.d.ts.map

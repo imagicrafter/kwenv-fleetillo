@@ -14,6 +14,13 @@ export interface GoogleMapsConfig {
     apiKey?: string;
 }
 /**
+ * Route planning configuration
+ */
+export interface RoutePlanningConfig {
+    enableClusteringV2: boolean;
+    maxClusterRadiusMiles: number;
+}
+/**
  * Application configuration
  * Centralized configuration management for the RouteIQ application
  */
@@ -22,11 +29,14 @@ export interface AppConfig {
     port: number;
     logLevel: string;
     debug: boolean;
+    baseUrl: string;
+    dispatchApiKeys: string;
     database: {
         url: string | undefined;
     };
     supabase: SupabaseConfig;
     googleMaps: GoogleMapsConfig;
+    routePlanning: RoutePlanningConfig;
     api: {
         prefix: string;
         version: string;

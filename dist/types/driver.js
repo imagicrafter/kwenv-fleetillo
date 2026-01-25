@@ -53,26 +53,56 @@ function formatDateForDb(date) {
  * Converts a CreateDriverInput to a database row format
  * Note: assigned_vehicle_id is NOT included here - vehicle assignments are managed
  * via the vehicles table's assigned_driver_id column using assignDriverToVehicle()
+ *
+ * Important: Only includes fields that are explicitly defined in the input.
+ * This prevents undefined fields from overwriting existing values during updates.
+ * For example, telegram_chat_id should only be updated by the Telegram registration flow,
+ * not cleared when updating other driver fields.
  */
 function driverInputToRow(input) {
-    return {
-        first_name: input.firstName,
-        last_name: input.lastName,
-        phone_number: input.phoneNumber ?? null,
-        email: input.email ?? null,
-        telegram_chat_id: input.telegramChatId ?? null,
-        preferred_channel: input.preferredChannel ?? 'telegram',
-        fallback_enabled: input.fallbackEnabled ?? true,
-        license_number: input.licenseNumber ?? null,
-        license_expiry: formatDateForDb(input.licenseExpiry),
-        license_class: input.licenseClass ?? null,
-        status: input.status ?? 'active',
-        hire_date: formatDateForDb(input.hireDate),
-        emergency_contact_name: input.emergencyContactName ?? null,
-        emergency_contact_phone: input.emergencyContactPhone ?? null,
-        notes: input.notes ?? null,
-        profile_image_url: input.profileImageUrl ?? null,
-        tags: input.tags ?? [],
-    };
+    const row = {};
+    // Required fields - always include
+    if (input.firstName !== undefined)
+        row.first_name = input.firstName;
+    if (input.lastName !== undefined)
+        row.last_name = input.lastName;
+    // Optional fields - only include if explicitly provided
+    if (input.phoneNumber !== undefined)
+        row.phone_number = input.phoneNumber ?? null;
+    if (input.email !== undefined)
+        row.email = input.email ?? null;
+    // Telegram chat ID - only update if explicitly provided (managed by Telegram registration)
+    if (input.telegramChatId !== undefined)
+        row.telegram_chat_id = input.telegramChatId ?? null;
+    // Dispatch preferences
+    if (input.preferredChannel !== undefined)
+        row.preferred_channel = input.preferredChannel;
+    if (input.fallbackEnabled !== undefined)
+        row.fallback_enabled = input.fallbackEnabled;
+    // License info
+    if (input.licenseNumber !== undefined)
+        row.license_number = input.licenseNumber ?? null;
+    if (input.licenseExpiry !== undefined)
+        row.license_expiry = formatDateForDb(input.licenseExpiry);
+    if (input.licenseClass !== undefined)
+        row.license_class = input.licenseClass ?? null;
+    // Employment info
+    if (input.status !== undefined)
+        row.status = input.status;
+    if (input.hireDate !== undefined)
+        row.hire_date = formatDateForDb(input.hireDate);
+    // Emergency contact
+    if (input.emergencyContactName !== undefined)
+        row.emergency_contact_name = input.emergencyContactName ?? null;
+    if (input.emergencyContactPhone !== undefined)
+        row.emergency_contact_phone = input.emergencyContactPhone ?? null;
+    // Other
+    if (input.notes !== undefined)
+        row.notes = input.notes ?? null;
+    if (input.profileImageUrl !== undefined)
+        row.profile_image_url = input.profileImageUrl ?? null;
+    if (input.tags !== undefined)
+        row.tags = input.tags ?? [];
+    return row;
 }
 //# sourceMappingURL=driver.js.map

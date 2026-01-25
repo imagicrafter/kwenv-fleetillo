@@ -1,7 +1,7 @@
 /**
  * Vehicle Location types - junction table for vehicle-location relationships
  */
-import type { ID } from './index';
+import type { ID } from './common';
 /**
  * Vehicle Location entity - links a vehicle to a location
  */

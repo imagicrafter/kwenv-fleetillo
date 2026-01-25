@@ -91,6 +91,12 @@ async function getRouteSettings() {
             avgTravelSpeed: raw[settings_1.SettingKeys.ROUTING_AVG_TRAVEL_SPEED] || settings_1.DEFAULT_SETTINGS.routing.avgTravelSpeed,
             trafficBufferPercent: raw[settings_1.SettingKeys.ROUTING_TRAFFIC_BUFFER_PERCENT] || settings_1.DEFAULT_SETTINGS.routing.trafficBufferPercent,
             defaultServiceDurationMinutes: raw[settings_1.SettingKeys.ROUTING_DEFAULT_SERVICE_DURATION] || settings_1.DEFAULT_SETTINGS.routing.defaultServiceDurationMinutes,
+            enableCityClustering: raw[settings_1.SettingKeys.ROUTING_ENABLE_CITY_CLUSTERING] !== undefined
+                ? Boolean(raw[settings_1.SettingKeys.ROUTING_ENABLE_CITY_CLUSTERING])
+                : settings_1.DEFAULT_SETTINGS.routing.enableCityClustering,
+        },
+        fleet: {
+            defaultServiceRadiusMiles: raw[settings_1.SettingKeys.FLEET_DEFAULT_SERVICE_RADIUS] || settings_1.DEFAULT_SETTINGS.fleet.defaultServiceRadiusMiles,
         },
         dashboard: {
             showChatbot: raw[settings_1.SettingKeys.DASHBOARD_SHOW_CHATBOT] !== undefined
