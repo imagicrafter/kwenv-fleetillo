@@ -127,3 +127,5 @@ ingress:
 domains:
 - domain: fleetillo.com
   type: PRIMARY
+- domain: routemap.fleetillo.com
+  type: ALIAS
