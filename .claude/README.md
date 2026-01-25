@@ -39,14 +39,40 @@ Do NOT copy commands into project `.claude/commands/` unless they are project-sp
 
 All other commands (execute, verify, plan-check, etc.) inherit from global.
 
+### Settings Architecture
+
+**Settings are managed globally** via `~/.claude/settings.local.json`. Projects do NOT have their own `settings.local.json`.
+
+The global settings use `$CLAUDE_PROJECT_DIR` to reference project-specific hooks:
+```json
+{
+  "hooks": {
+    "PostToolUse": [{
+      "matcher": "Edit",
+      "hooks": [{
+        "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/quality-feedback/auto-format.sh"
+      }]
+    }]
+  }
+}
+```
+
+This ensures:
+- Single source of truth for hook configuration
+- Project hooks are still executed (via `$CLAUDE_PROJECT_DIR`)
+- No settings drift between projects
+- Hooks that don't exist in a project are silently skipped
+
 ### Required Files
 
 | File | Purpose | Source |
 |------|---------|--------|
-| `.claude/settings.local.json` | Hooks and permissions | Created by `/repo-setup` |
+| `.claude/hooks/*` | Project-specific hook scripts | Created by `/repo-setup` |
 | `.claude/commands/*.md` | Project-specific commands only | Manual (if needed) |
 | `.githooks/pre-commit` | Block direct commits to main | See below |
 | `.env` | Environment variables (gitignored) | Project-specific |
+
+**Note:** Do NOT create `.claude/settings.local.json` in projects. Settings override (not merge), so a project settings file would disable all global hooks.
 
 ### Pre-commit Hook (Block Direct Main Commits)
 
@@ -101,7 +127,6 @@ Create these labels in GitHub:
 ```
 .claude/
 ├── README.md                    # This file
-├── settings.local.json          # Local settings and permissions
 ├── agents/                      # Specialized AI agents
 │   ├── planner.md               # Implementation planning with risk assessment
 │   ├── architect.md             # System design decisions
