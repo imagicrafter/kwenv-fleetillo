@@ -218,7 +218,7 @@ supabaseService.initializeSupabase({
     url: process.env.SUPABASE_URL,
     anonKey: process.env.SUPABASE_KEY,
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-    schema: process.env.SUPABASE_SCHEMA || 'optiroute'
+    schema: process.env.SUPABASE_SCHEMA || 'fleetillo'
 });
 
 // RPC Dispatcher

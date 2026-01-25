@@ -24,7 +24,7 @@ services:
     value: ***REMOVED_GOOGLE_MAPS_KEY***
     scope: RUN_TIME
   - key: SUPABASE_SCHEMA
-    value: routeiq
+    value: fleetillo
     scope: RUN_TIME
   - key: DEMO_PASSWORD
     value: demo123
@@ -54,7 +54,7 @@ services:
     value: ***REMOVED_SUPABASE_SECRET***
     scope: RUN_TIME
   - key: SUPABASE_SCHEMA
-    value: routeiq
+    value: fleetillo
     scope: RUN_TIME
   # Dispatch service port
   - key: PORT

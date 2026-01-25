@@ -40,7 +40,7 @@ function getConfig(): SupabaseConfig {
   const url = process.env.SUPABASE_URL;
   // Prefer service role key for full RLS bypass, fallback to anon key
   const anonKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_KEY;
-  const schema = process.env.SUPABASE_SCHEMA || 'routeiq';
+  const schema = process.env.SUPABASE_SCHEMA || 'fleetillo';
 
   if (!url) {
     throw new Error('SUPABASE_URL environment variable is required');
