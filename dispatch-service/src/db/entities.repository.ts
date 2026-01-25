@@ -80,7 +80,7 @@ interface BookingRow {
   service_postal_code: string | null;
   special_instructions: string | null;
   deleted_at: string | null;
-  clients: {
+  customers: {
     name: string;
   } | { name: string }[] | null;
   services: {
@@ -255,9 +255,9 @@ function rowToBooking(row: BookingRow, stopNumber: number): Booking {
   }
 
   // Handle Supabase's joined table format (can be object or array)
-  const clientName = Array.isArray(row.clients)
-    ? row.clients[0]?.name ?? 'Unknown Client'
-    : row.clients?.name ?? 'Unknown Client';
+  const clientName = Array.isArray(row.customers)
+    ? row.customers[0]?.name ?? 'Unknown Client'
+    : row.customers?.name ?? 'Unknown Client';
 
   const serviceName = Array.isArray(row.services)
     ? row.services[0]?.name
@@ -537,7 +537,7 @@ export async function getBookingsForRoute(routeId: string): Promise<Booking[]> {
       service_postal_code,
       special_instructions,
       deleted_at,
-      clients (
+      customers (
         name
       ),
       services (
