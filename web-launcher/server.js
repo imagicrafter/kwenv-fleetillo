@@ -951,40 +951,54 @@ app.get('/api/v1/public/route-debug/:routeId', async (req, res) => {
         console.log(`[DEBUG] Querying routes table for: ${routeId}`);
         console.log(`[DEBUG] Schema configured: ${process.env.SUPABASE_SCHEMA || 'fleetillo'}`);
 
-        // Query specific route
+        // Query specific route with stop_sequence
         const { data: route, error: routeError } = await admin
             .from('routes')
-            .select('id, route_name, route_code, deleted_at')
+            .select('id, route_name, route_code, deleted_at, stop_sequence, route_geometry')
             .eq('id', routeId)
             .single();
 
         console.log(`[DEBUG] Query result:`, { route, routeError });
+
+        // Check if admin client is available
+        const hasAdminClient = admin !== null;
+        console.log(`[DEBUG] Admin client available: ${hasAdminClient}`);
+
+        // Try to query bookings if stop_sequence exists
+        let bookingsResult = null;
+        let bookingsError = null;
+        const stopSequence = route?.stop_sequence || [];
+
+        if (stopSequence.length > 0) {
+            const { data: bookings, error: bError } = await admin
+                .from('bookings')
+                .select('id, location_latitude, location_longitude, service_latitude, service_longitude')
+                .in('id', stopSequence);
+
+            bookingsResult = bookings;
+            bookingsError = bError?.message;
+            console.log(`[DEBUG] Bookings query result:`, { count: bookings?.length, error: bError });
+        }
 
         // Also get count of all routes
         const { count, error: countError } = await admin
             .from('routes')
             .select('*', { count: 'exact', head: true });
 
-        console.log(`[DEBUG] Total routes count:`, count);
-
-        // Get recent routes
-        const { data: recentRoutes, error: recentError } = await admin
-            .from('routes')
-            .select('id, route_name, route_code, deleted_at')
-            .order('created_at', { ascending: false })
-            .limit(5);
-
         res.json({
             success: true,
             debug: {
                 requestedRouteId: routeId,
                 schemaConfigured: process.env.SUPABASE_SCHEMA || 'fleetillo',
-                routeFound: route,
+                hasAdminClient: hasAdminClient,
+                routeFound: route ? { id: route.id, name: route.route_name, code: route.route_code, deleted_at: route.deleted_at } : null,
+                stopSequenceCount: stopSequence.length,
+                stopSequenceIds: stopSequence.slice(0, 3), // Show first 3
                 routeError: routeError?.message,
+                bookingsFound: bookingsResult?.length || 0,
+                bookingsError: bookingsError,
                 totalRoutesCount: count,
-                countError: countError?.message,
-                recentRoutes: recentRoutes,
-                recentError: recentError?.message
+                countError: countError?.message
             }
         });
     } catch (err) {
