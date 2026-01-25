@@ -36,11 +36,7 @@ services:
   - key: DISPATCH_API_KEYS
     type: SECRET
     scope: RUN_TIME
-  # Base URL for constructing tokenized route links
-  - key: BASE_URL
-    value: https://routemap.fleetillo.com
-    scope: RUN_TIME
-  # App base URL for embedded dispatch service to call route-tokens API
+  # App base URL for route token API calls and generated links
   - key: APP_BASE_URL
     value: https://routemap.fleetillo.com
     scope: RUN_TIME

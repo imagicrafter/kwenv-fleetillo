@@ -829,7 +829,7 @@ app.post('/api/v1/route-tokens', validateApiKey, async (req, res) => {
             });
         }
 
-        const baseUrl = process.env.BASE_URL || 'https://fleetillo.com';
+        const baseUrl = process.env.APP_BASE_URL || 'https://routemap.fleetillo.com';
         const result = await routeTokenService.createToken(
             { routeId: route_id, expirationHours: expiration_hours },
             baseUrl
