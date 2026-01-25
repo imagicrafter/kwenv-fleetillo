@@ -166,14 +166,11 @@
         }
 
         /**
-         * Get token or routeId from URL
+         * Get token from URL
          */
-        function getUrlParams() {
+        function getToken() {
             const params = new URLSearchParams(window.location.search);
-            return {
-                token: params.get('token'),
-                routeId: params.get('routeId')  // For testing without token auth
-            };
+            return params.get('token');
         }
 
         /**
@@ -186,20 +183,6 @@
             if (response.status === 410) {
                 throw new Error('expired');
             }
-
-            if (!response.ok || !data.success) {
-                throw new Error('invalid');
-            }
-
-            return data.data;
-        }
-
-        /**
-         * Fetch route data directly by routeId (TEST MODE - bypasses token auth)
-         */
-        async function fetchRouteDataDirect(routeId) {
-            const response = await fetch(`${API_BASE}/public/route-test/${routeId}`);
-            const data = await response.json();
 
             if (!response.ok || !data.success) {
                 throw new Error('invalid');
@@ -384,10 +367,10 @@
          */
         async function init() {
             try {
-                // Get token or routeId from URL
-                const { token, routeId } = getUrlParams();
+                // Get token from URL
+                const token = getToken();
 
-                if (!token && !routeId) {
+                if (!token) {
                     showError('Invalid route link');
                     return;
                 }
@@ -395,14 +378,7 @@
                 // Fetch route data first (fail fast if invalid)
                 let routeData;
                 try {
-                    if (routeId) {
-                        // TEST MODE: Direct routeId access (bypasses token auth)
-                        console.log('[TEST MODE] Fetching route directly by routeId:', routeId);
-                        routeData = await fetchRouteDataDirect(routeId);
-                    } else {
-                        // Normal mode: token-based access
-                        routeData = await fetchRouteData(token);
-                    }
+                    routeData = await fetchRouteData(token);
                 } catch (e) {
                     if (e.message === 'expired') {
                         showError('This route link has expired');
