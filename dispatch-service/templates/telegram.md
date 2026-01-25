@@ -10,7 +10,7 @@ You have been assigned a new route:
 📍 **Total Stops:** {{route.totalStops}}
 
 {{#if routeMapsUrl}}
-🗺️ [Open Route in Google Maps]({{routeMapsUrl}})
+🗺️ [View Route Map]({{routeMapsUrl}})
 {{/if}}
 
 {{#if vehicle}}
