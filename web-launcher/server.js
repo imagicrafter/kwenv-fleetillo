@@ -924,9 +924,10 @@ app.get('/api/v1/public/route-test/:routeId', async (req, res) => {
         const routeResult = await publicRouteService.getRouteMapData(routeId);
 
         if (!routeResult.success) {
+            console.log(`[API TEST] Route not found. Error:`, routeResult.error);
             return res.status(404).json({
                 success: false,
-                error: { code: 'NOT_FOUND', message: 'Route not found' }
+                error: { code: 'NOT_FOUND', message: 'Route not found', debug: routeResult.error?.message }
             });
         }
 
@@ -936,6 +937,61 @@ app.get('/api/v1/public/route-test/:routeId', async (req, res) => {
         res.status(500).json({
             success: false,
             error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch route data' }
+        });
+    }
+});
+
+// GET /api/v1/public/route-debug/:routeId - DEBUG ENDPOINT (direct DB query)
+// TODO: Remove this endpoint after testing is complete
+app.get('/api/v1/public/route-debug/:routeId', async (req, res) => {
+    try {
+        const { routeId } = req.params;
+        const admin = supabaseService.getAdminSupabaseClient();
+
+        console.log(`[DEBUG] Querying routes table for: ${routeId}`);
+        console.log(`[DEBUG] Schema configured: ${process.env.SUPABASE_SCHEMA || 'fleetillo'}`);
+
+        // Query specific route
+        const { data: route, error: routeError } = await admin
+            .from('routes')
+            .select('id, route_name, route_code, deleted_at')
+            .eq('id', routeId)
+            .single();
+
+        console.log(`[DEBUG] Query result:`, { route, routeError });
+
+        // Also get count of all routes
+        const { count, error: countError } = await admin
+            .from('routes')
+            .select('*', { count: 'exact', head: true });
+
+        console.log(`[DEBUG] Total routes count:`, count);
+
+        // Get recent routes
+        const { data: recentRoutes, error: recentError } = await admin
+            .from('routes')
+            .select('id, route_name, route_code, deleted_at')
+            .order('created_at', { ascending: false })
+            .limit(5);
+
+        res.json({
+            success: true,
+            debug: {
+                requestedRouteId: routeId,
+                schemaConfigured: process.env.SUPABASE_SCHEMA || 'fleetillo',
+                routeFound: route,
+                routeError: routeError?.message,
+                totalRoutesCount: count,
+                countError: countError?.message,
+                recentRoutes: recentRoutes,
+                recentError: recentError?.message
+            }
+        });
+    } catch (err) {
+        console.error('[DEBUG] Error:', err);
+        res.status(500).json({
+            success: false,
+            error: { message: err.message, stack: err.stack }
         });
     }
 });
