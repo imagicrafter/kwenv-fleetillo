@@ -6,6 +6,8 @@ import vehicleRoutes from './vehicle.routes';
 import routeRoutes from './route.routes';
 import dispatchJobRoutes from './dispatch-job.routes';
 import driverRoutes from './driver.routes';
+import publicRoutes from './public.routes';
+import routeTokenRoutes from './route-token.routes';
 
 const router = Router();
 
@@ -34,6 +36,12 @@ router.use('/dispatch-jobs', dispatchJobRoutes);
 
 // Driver routes
 router.use('/drivers', driverRoutes);
+
+// Public routes (no auth required)
+router.use('/public', publicRoutes);
+
+// Route token routes (API key auth required)
+router.use('/route-tokens', routeTokenRoutes);
 
 // Root API endpoint
 router.get('/', (_req, res) => {

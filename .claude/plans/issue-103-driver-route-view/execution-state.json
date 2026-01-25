@@ -1,0 +1,10 @@
+{
+  "issue": {
+    "number": 103,
+    "title": "Driver route map link requires login and has poor mobile UX",
+    "branch": "issue/103-driver-route-view"
+  },
+  "created_at": "2026-01-25T05:00:00Z",
+  "updated_at": "2026-01-25T05:00:00Z",
+  "tasks": []
+}
