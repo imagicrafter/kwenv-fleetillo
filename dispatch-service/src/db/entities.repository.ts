@@ -68,7 +68,7 @@ interface VehicleRow {
  */
 interface BookingRow {
   id: string;
-  client_id: string;
+  customer_id: string;
   service_id: string;
   location_id: string | null;
   scheduled_date: string;
@@ -525,7 +525,7 @@ export async function getBookingsForRoute(routeId: string): Promise<Booking[]> {
     .select(
       `
       id,
-      client_id,
+      customer_id,
       service_id,
       location_id,
       scheduled_date,
