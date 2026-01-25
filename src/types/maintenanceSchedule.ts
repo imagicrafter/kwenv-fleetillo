@@ -172,27 +172,43 @@ export function rowToMaintenanceSchedule(row: MaintenanceScheduleRow): Maintenan
 
 /**
  * Converts a CreateMaintenanceScheduleInput to a database row format
+ *
+ * Important: Only includes fields that are explicitly defined in the input.
+ * This prevents undefined fields from overwriting existing values during updates.
  */
 export function maintenanceScheduleInputToRow(
   input: CreateMaintenanceScheduleInput
 ): Partial<MaintenanceScheduleRow> {
-  return {
-    vehicle_id: input.vehicleId,
-    maintenance_type: input.maintenanceType,
-    description: input.description ?? null,
-    scheduled_date: input.scheduledDate.toISOString().split('T')[0],
-    due_date: input.dueDate?.toISOString().split('T')[0] ?? null,
-    completed_date: input.completedDate?.toISOString().split('T')[0] ?? null,
-    status: input.status ?? 'scheduled',
-    odometer_at_maintenance: input.odometerAtMaintenance ?? null,
-    next_maintenance_odometer: input.nextMaintenanceOdometer ?? null,
-    cost: input.cost ?? null,
-    currency: input.currency ?? 'USD',
-    performed_by: input.performedBy ?? null,
-    service_provider: input.serviceProvider ?? null,
-    notes: input.notes ?? null,
-    attachments: input.attachments ?? null,
-  };
+  const row: Partial<MaintenanceScheduleRow> = {};
+
+  // Required fields
+  if (input.vehicleId !== undefined) row.vehicle_id = input.vehicleId;
+  if (input.maintenanceType !== undefined) row.maintenance_type = input.maintenanceType;
+  if (input.scheduledDate !== undefined) row.scheduled_date = input.scheduledDate.toISOString().split('T')[0];
+
+  // Optional fields
+  if (input.description !== undefined) row.description = input.description ?? null;
+  if (input.dueDate !== undefined) row.due_date = input.dueDate?.toISOString().split('T')[0] ?? null;
+  if (input.completedDate !== undefined) row.completed_date = input.completedDate?.toISOString().split('T')[0] ?? null;
+  if (input.status !== undefined) row.status = input.status;
+
+  // Odometer tracking
+  if (input.odometerAtMaintenance !== undefined) row.odometer_at_maintenance = input.odometerAtMaintenance ?? null;
+  if (input.nextMaintenanceOdometer !== undefined) row.next_maintenance_odometer = input.nextMaintenanceOdometer ?? null;
+
+  // Cost
+  if (input.cost !== undefined) row.cost = input.cost ?? null;
+  if (input.currency !== undefined) row.currency = input.currency;
+
+  // Service details
+  if (input.performedBy !== undefined) row.performed_by = input.performedBy ?? null;
+  if (input.serviceProvider !== undefined) row.service_provider = input.serviceProvider ?? null;
+
+  // Metadata
+  if (input.notes !== undefined) row.notes = input.notes ?? null;
+  if (input.attachments !== undefined) row.attachments = input.attachments ?? null;
+
+  return row;
 }
 
 /**

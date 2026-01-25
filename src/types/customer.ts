@@ -195,30 +195,48 @@ export function rowToCustomer(row: CustomerRow): Customer {
 
 /**
  * Converts a CreateCustomerInput to a database row format
+ *
+ * Important: Only includes fields that are explicitly defined in the input.
+ * This prevents undefined fields from overwriting existing values during updates.
  */
 export function customerInputToRow(input: CreateCustomerInput): Partial<CustomerRow> {
-  return {
-    name: input.name,
-    company_name: input.companyName ?? null,
-    email: input.email ?? null,
-    phone: input.phone ?? null,
-    mobile_phone: input.mobilePhone ?? null,
-    address_line1: input.addressLine1 ?? null,
-    address_line2: input.addressLine2 ?? null,
-    city: input.city ?? null,
-    state: input.state ?? null,
-    postal_code: input.postalCode ?? null,
-    country: input.country ?? null,
-    service_address_line1: input.serviceAddressLine1 ?? null,
-    service_address_line2: input.serviceAddressLine2 ?? null,
-    service_city: input.serviceCity ?? null,
-    service_state: input.serviceState ?? null,
-    service_postal_code: input.servicePostalCode ?? null,
-    service_country: input.serviceCountry ?? null,
-    latitude: input.latitude ?? null,
-    longitude: input.longitude ?? null,
-    status: input.status ?? 'active',
-    notes: input.notes ?? null,
-    tags: input.tags ?? null,
-  };
+  const row: Partial<CustomerRow> = {};
+
+  // Required field
+  if (input.name !== undefined) row.name = input.name;
+
+  // Company info
+  if (input.companyName !== undefined) row.company_name = input.companyName ?? null;
+
+  // Contact info
+  if (input.email !== undefined) row.email = input.email ?? null;
+  if (input.phone !== undefined) row.phone = input.phone ?? null;
+  if (input.mobilePhone !== undefined) row.mobile_phone = input.mobilePhone ?? null;
+
+  // Primary address
+  if (input.addressLine1 !== undefined) row.address_line1 = input.addressLine1 ?? null;
+  if (input.addressLine2 !== undefined) row.address_line2 = input.addressLine2 ?? null;
+  if (input.city !== undefined) row.city = input.city ?? null;
+  if (input.state !== undefined) row.state = input.state ?? null;
+  if (input.postalCode !== undefined) row.postal_code = input.postalCode ?? null;
+  if (input.country !== undefined) row.country = input.country ?? null;
+
+  // Service address
+  if (input.serviceAddressLine1 !== undefined) row.service_address_line1 = input.serviceAddressLine1 ?? null;
+  if (input.serviceAddressLine2 !== undefined) row.service_address_line2 = input.serviceAddressLine2 ?? null;
+  if (input.serviceCity !== undefined) row.service_city = input.serviceCity ?? null;
+  if (input.serviceState !== undefined) row.service_state = input.serviceState ?? null;
+  if (input.servicePostalCode !== undefined) row.service_postal_code = input.servicePostalCode ?? null;
+  if (input.serviceCountry !== undefined) row.service_country = input.serviceCountry ?? null;
+
+  // Geolocation
+  if (input.latitude !== undefined) row.latitude = input.latitude ?? null;
+  if (input.longitude !== undefined) row.longitude = input.longitude ?? null;
+
+  // Status and metadata
+  if (input.status !== undefined) row.status = input.status;
+  if (input.notes !== undefined) row.notes = input.notes ?? null;
+  if (input.tags !== undefined) row.tags = input.tags ?? null;
+
+  return row;
 }

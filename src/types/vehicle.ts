@@ -239,34 +239,62 @@ export function rowToVehicle(row: VehicleRow): Vehicle {
 
 /**
  * Converts a CreateVehicleInput to a database row format
+ *
+ * Important: Only includes fields that are explicitly defined in the input.
+ * This prevents undefined fields from overwriting existing values during updates.
  */
 export function vehicleInputToRow(input: CreateVehicleInput): Partial<VehicleRow> {
-  return {
-    name: input.name,
-    description: input.description ?? null,
-    license_plate: input.licensePlate ?? null,
-    vin: input.vin ?? null,
-    make: input.make ?? null,
-    model: input.model ?? null,
-    year: input.year ?? null,
-    color: input.color ?? null,
-    max_capacity_weight: input.maxCapacityWeight ?? null,
-    max_capacity_volume: input.maxCapacityVolume ?? null,
-    max_passengers: input.maxPassengers ?? null,
-    service_types: input.serviceTypes ?? [],
-    status: input.status ?? 'available',
-    current_latitude: input.currentLatitude ?? null,
-    current_longitude: input.currentLongitude ?? null,
-    fuel_type: input.fuelType ?? null,
-    fuel_capacity: input.fuelCapacity ?? null,
-    current_fuel_level: input.currentFuelLevel ?? null,
-    fuel_efficiency_mpg: input.fuelEfficiencyMpg ?? null,
-    last_maintenance_date: input.lastMaintenanceDate?.toISOString().split('T')[0] ?? null,
-    next_maintenance_date: input.nextMaintenanceDate?.toISOString().split('T')[0] ?? null,
-    odometer_reading: input.odometerReading ?? null,
-    assigned_driver_id: input.assignedDriverId ?? null,
-    home_location_id: input.homeLocationId ?? null,
-    notes: input.notes ?? null,
-    tags: input.tags ?? null,
-  };
+  const row: Partial<VehicleRow> = {};
+
+  // Required field
+  if (input.name !== undefined) row.name = input.name;
+
+  // Basic info
+  if (input.description !== undefined) row.description = input.description ?? null;
+  if (input.licensePlate !== undefined) row.license_plate = input.licensePlate ?? null;
+  if (input.vin !== undefined) row.vin = input.vin ?? null;
+  if (input.make !== undefined) row.make = input.make ?? null;
+  if (input.model !== undefined) row.model = input.model ?? null;
+  if (input.year !== undefined) row.year = input.year ?? null;
+  if (input.color !== undefined) row.color = input.color ?? null;
+
+  // Capacity
+  if (input.maxCapacityWeight !== undefined) row.max_capacity_weight = input.maxCapacityWeight ?? null;
+  if (input.maxCapacityVolume !== undefined) row.max_capacity_volume = input.maxCapacityVolume ?? null;
+  if (input.maxPassengers !== undefined) row.max_passengers = input.maxPassengers ?? null;
+
+  // Service types
+  if (input.serviceTypes !== undefined) row.service_types = input.serviceTypes ?? [];
+
+  // Status
+  if (input.status !== undefined) row.status = input.status;
+
+  // Current location
+  if (input.currentLatitude !== undefined) row.current_latitude = input.currentLatitude ?? null;
+  if (input.currentLongitude !== undefined) row.current_longitude = input.currentLongitude ?? null;
+
+  // Fuel info
+  if (input.fuelType !== undefined) row.fuel_type = input.fuelType ?? null;
+  if (input.fuelCapacity !== undefined) row.fuel_capacity = input.fuelCapacity ?? null;
+  if (input.currentFuelLevel !== undefined) row.current_fuel_level = input.currentFuelLevel ?? null;
+  if (input.fuelEfficiencyMpg !== undefined) row.fuel_efficiency_mpg = input.fuelEfficiencyMpg ?? null;
+
+  // Maintenance
+  if (input.lastMaintenanceDate !== undefined) {
+    row.last_maintenance_date = input.lastMaintenanceDate?.toISOString().split('T')[0] ?? null;
+  }
+  if (input.nextMaintenanceDate !== undefined) {
+    row.next_maintenance_date = input.nextMaintenanceDate?.toISOString().split('T')[0] ?? null;
+  }
+  if (input.odometerReading !== undefined) row.odometer_reading = input.odometerReading ?? null;
+
+  // Assignments
+  if (input.assignedDriverId !== undefined) row.assigned_driver_id = input.assignedDriverId ?? null;
+  if (input.homeLocationId !== undefined) row.home_location_id = input.homeLocationId ?? null;
+
+  // Metadata
+  if (input.notes !== undefined) row.notes = input.notes ?? null;
+  if (input.tags !== undefined) row.tags = input.tags ?? null;
+
+  return row;
 }
