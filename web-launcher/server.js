@@ -220,6 +220,8 @@ const settingsService = require(`${SERVICE_PATH}/settings.service.js`);
 const supabaseService = require(`${SERVICE_PATH}/supabase.js`);
 const csvService = require(`${SERVICE_PATH}/csv.service.js`);
 const dispatchJobService = require(`${SERVICE_PATH}/dispatch-job.service.js`);
+const routeTokenService = require(`${SERVICE_PATH}/route-token.service.js`);
+const publicRouteService = require(`${SERVICE_PATH}/public-route.service.js`);
 
 // Initialize Supabase
 supabaseService.initializeSupabase({
@@ -794,6 +796,122 @@ app.post('/api/rpc', async (req, res) => {
             method: mth
         });
     }
+});
+
+// =============================================================================
+// Route Token API (for driver route map tokenized access)
+// =============================================================================
+
+// API Key validation middleware for route token creation
+const validateApiKey = (req, res, next) => {
+    const apiKey = req.headers['x-api-key'];
+    const configuredKeys = (process.env.DISPATCH_API_KEYS || '').split(',').map(k => k.trim()).filter(k => k);
+
+    if (!apiKey || configuredKeys.length === 0 || !configuredKeys.includes(apiKey)) {
+        console.log('[API] Route token request rejected - invalid API key');
+        return res.status(401).json({
+            success: false,
+            error: { code: 'UNAUTHORIZED', message: 'Invalid API key' }
+        });
+    }
+    next();
+};
+
+// POST /api/v1/route-tokens - Create a new route access token
+app.post('/api/v1/route-tokens', validateApiKey, async (req, res) => {
+    try {
+        const { route_id, expiration_hours } = req.body;
+
+        if (!route_id) {
+            return res.status(400).json({
+                success: false,
+                error: { code: 'BAD_REQUEST', message: 'route_id is required' }
+            });
+        }
+
+        const baseUrl = process.env.BASE_URL || 'https://fleetillo.com';
+        const result = await routeTokenService.createToken(
+            { routeId: route_id, expirationHours: expiration_hours },
+            baseUrl
+        );
+
+        if (!result.success) {
+            const statusCode = result.error?.code === 'ROUTE_NOT_FOUND' ? 404 : 400;
+            return res.status(statusCode).json({
+                success: false,
+                error: { code: result.error?.code, message: result.error?.message }
+            });
+        }
+
+        console.log(`[API] Route token created for route ${route_id}`);
+        res.status(201).json({
+            success: true,
+            data: {
+                token: result.data.token,
+                expires_at: result.data.expiresAt.toISOString(),
+                url: result.data.url
+            }
+        });
+    } catch (err) {
+        console.error('[API] Error creating route token:', err);
+        res.status(500).json({
+            success: false,
+            error: { code: 'INTERNAL_ERROR', message: 'Failed to create route token' }
+        });
+    }
+});
+
+// GET /api/v1/public/route/:token - Get public route map data
+app.get('/api/v1/public/route/:token', async (req, res) => {
+    try {
+        const { token } = req.params;
+
+        // Validate token
+        const tokenResult = await routeTokenService.validateToken(token);
+
+        if (!tokenResult.success) {
+            const isExpired = tokenResult.error?.code === 'ROUTE_TOKEN_EXPIRED';
+            return res.status(isExpired ? 410 : 404).json({
+                success: false,
+                error: {
+                    code: isExpired ? 'GONE' : 'NOT_FOUND',
+                    message: isExpired ? 'This route link has expired' : 'Invalid route link'
+                }
+            });
+        }
+
+        // Get route map data
+        const routeResult = await publicRouteService.getRouteMapData(tokenResult.data.routeId);
+
+        if (!routeResult.success) {
+            return res.status(404).json({
+                success: false,
+                error: { code: 'NOT_FOUND', message: 'Route not found' }
+            });
+        }
+
+        res.json({ success: true, data: routeResult.data });
+    } catch (err) {
+        console.error('[API] Error fetching public route:', err);
+        res.status(500).json({
+            success: false,
+            error: { code: 'INTERNAL_ERROR', message: 'Failed to fetch route data' }
+        });
+    }
+});
+
+// GET /api/v1/public/maps-key - Get Google Maps API key for public views
+app.get('/api/v1/public/maps-key', (req, res) => {
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY || '';
+
+    if (!apiKey) {
+        return res.status(503).json({
+            success: false,
+            error: { code: 'SERVICE_UNAVAILABLE', message: 'Maps service not configured' }
+        });
+    }
+
+    res.json({ success: true, data: { key: apiKey } });
 });
 
 // Serve index.html for root
