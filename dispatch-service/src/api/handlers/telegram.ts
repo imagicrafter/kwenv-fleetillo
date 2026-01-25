@@ -588,6 +588,14 @@ export function createSendRegistrationEmailHandler() {
     const htmlContent = buildRegistrationEmailHtml(driverFirstName, registrationLink, qrCodeUrl, customMessage);
     const textContent = buildRegistrationEmailText(driverFirstName, registrationLink, customMessage);
 
+    // Log the email request details for debugging
+    console.log('[Email] Sending registration email:', {
+      provider: emailProvider,
+      from: `${fromName} <${fromAddress}>`,
+      to: driverEmail,
+      driverId,
+    });
+
     try {
       if (emailProvider === 'resend') {
         // Send via Resend
@@ -606,9 +614,23 @@ export function createSendRegistrationEmailHandler() {
           }),
         });
 
+        // Read response body for logging
+        const responseText = await response.text();
+        console.log('[Email] Resend API response:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: responseText,
+        });
+
         if (!response.ok) {
-          const errorData = await response.json() as { message?: string };
-          throw new Error(`Resend API error: ${errorData.message || response.statusText}`);
+          let errorMessage = `Resend API error (${response.status})`;
+          try {
+            const errorData = JSON.parse(responseText) as { message?: string; name?: string };
+            errorMessage = errorData.message || errorData.name || response.statusText;
+          } catch {
+            errorMessage = responseText || response.statusText;
+          }
+          throw new Error(errorMessage);
         }
       } else {
         // Send via SendGrid (default)
@@ -629,11 +651,20 @@ export function createSendRegistrationEmailHandler() {
           }),
         });
 
+        // Log response for debugging
+        const responseText = await response.text();
+        console.log('[Email] SendGrid API response:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: responseText,
+        });
+
         if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`SendGrid API error: ${errorText}`);
+          throw new Error(`SendGrid API error (${response.status}): ${responseText}`);
         }
       }
+
+      console.log('[Email] Registration email sent successfully to:', driverEmail);
 
       logger.info('Registration email sent successfully', {
         driverId,
@@ -650,17 +681,27 @@ export function createSendRegistrationEmailHandler() {
       });
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+      console.error('[Email] FAILED to send registration email:', {
+        driverId,
+        email: driverEmail,
+        provider: emailProvider,
+        fromAddress,
+        error: errorMessage,
+      });
+
       logger.error('Failed to send registration email', {
         driverId,
         email: driverEmail,
         provider: emailProvider,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: errorMessage,
       });
 
       res.status(500).json({
         error: {
           code: 'EMAIL_SEND_FAILED',
-          message: 'Failed to send registration email',
+          message: `Failed to send registration email: ${errorMessage}`,
         },
         requestId: req.correlationId,
       });

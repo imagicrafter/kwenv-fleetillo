@@ -115,11 +115,12 @@ const requireAuth = (req, res, next) => {
             // Inject the API key trusted by the dispatch service
             // This allows the frontend to call /dispatch APIs without exposing the key
             const keys = (process.env.DISPATCH_API_KEYS || 'default-dev-key').split(',');
-            // console.log(`[Auth] Injecting API key for ${req.path}: ${keys[0].substring(0, 3)}...`);
+            console.log(`[Auth] Dispatch authenticated, injecting API key for: ${req.path}`);
             req.headers['x-api-key'] = keys[0];
             return next();
         } else {
             console.log(`[Auth] Dispatch request unauthenticated: ${req.path}`);
+            console.log(`[Auth] Session exists: ${!!req.session}, authenticated: ${req.session?.authenticated}, sessionID: ${req.sessionID?.substring(0, 8)}...`);
         }
     }
 
