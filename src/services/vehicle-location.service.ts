@@ -3,7 +3,7 @@
  * Manages the many-to-many relationship between vehicles and locations
  */
 
-import { getAdminSupabaseClient, getSupabaseClient } from './supabase';
+import { getAdminSupabaseClient, getSupabaseClient, type GenericSupabaseClient } from './supabase';
 import { createContextLogger } from '../utils/logger';
 import type { Result } from '../types/index';
 import type { VehicleLocation, VehicleLocationRow, SetVehicleLocationInput } from '../types/vehicle-location';
@@ -112,6 +112,16 @@ export async function setVehicleLocations(
         }
 
         const vehicleLocations = (data as VehicleLocationRow[]).map(rowToVehicleLocation);
+
+        // Sync home_location_id if a primary location was set
+        const primaryLoc = vehicleLocations.find(l => l.isPrimary);
+        if (primaryLoc) {
+            await syncVehicleHomeLocation(supabase, vehicleId, primaryLoc.locationId);
+        } else if (locations.length === 0) {
+            // If all locations cleared, clear home location
+            await syncVehicleHomeLocation(supabase, vehicleId, null);
+        }
+
         return { success: true, data: vehicleLocations };
     } catch (error) {
         logger.error('Unexpected error setting vehicle locations', { error });
@@ -153,7 +163,14 @@ export async function addVehicleLocation(
             return { success: false, error };
         }
 
-        return { success: true, data: rowToVehicleLocation(data as VehicleLocationRow) };
+        const vehicleLocation = rowToVehicleLocation(data as VehicleLocationRow);
+
+        // Sync home_location_id if this is primary
+        if (isPrimary) {
+            await syncVehicleHomeLocation(supabase, vehicleId, locationId);
+        }
+
+        return { success: true, data: vehicleLocation };
     } catch (error) {
         logger.error('Unexpected error adding vehicle location', { error });
         return { success: false, error: error as Error };
@@ -167,15 +184,25 @@ export async function removeVehicleLocation(vehicleId: string, locationId: strin
     const supabase = getAdminSupabaseClient() || getSupabaseClient();
 
     try {
-        const { error } = await supabase
+        const { data, error } = await supabase
             .from('vehicle_locations')
             .delete()
             .eq('vehicle_id', vehicleId)
-            .eq('location_id', locationId);
+            .eq('location_id', locationId)
+            .select();
 
         if (error) {
             logger.error('Failed to remove vehicle location', { error, vehicleId, locationId });
             return { success: false, error };
+        }
+
+        // If we removed the primary location, we need to clear home_location_id
+        // (data is array of deleted rows)
+        const deletedRows = data as VehicleLocationRow[];
+        const wasPrimary = deletedRows.some(row => row.is_primary);
+
+        if (wasPrimary) {
+            await syncVehicleHomeLocation(supabase, vehicleId, null);
         }
 
         return { success: true, data: undefined };
@@ -210,9 +237,31 @@ export async function setVehiclePrimaryLocation(vehicleId: string, locationId: s
             return { success: false, error };
         }
 
+        // Sync home_location_id in vehicles table
+        await syncVehicleHomeLocation(supabase, vehicleId, locationId);
+
         return { success: true, data: undefined };
     } catch (error) {
         logger.error('Unexpected error setting primary location', { error });
         return { success: false, error: error as Error };
+    }
+}
+
+/**
+ * Helper to sync vehicle's home_location_id with its primary location
+ */
+async function syncVehicleHomeLocation(
+    supabase: GenericSupabaseClient,
+    vehicleId: string,
+    primaryLocationId: string | null
+): Promise<void> {
+    try {
+        await supabase
+            .from('vehicles')
+            .update({ home_location_id: primaryLocationId })
+            .eq('id', vehicleId);
+    } catch (error) {
+        logger.error('Failed to sync vehicle home location', { error, vehicleId, primaryLocationId });
+        // Non-blocking error
     }
 }
