@@ -23,16 +23,46 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SERVICE_DIR="$(dirname "$SCRIPT_DIR")"
 
+# Function to parse .env file properly (handles comments, trailing comments, quoted values)
+load_env_file() {
+    local env_file="$1"
+    while IFS= read -r line || [ -n "$line" ]; do
+        # Skip empty lines and comments
+        [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+
+        # Extract variable name and value
+        if [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
+            local name="${BASH_REMATCH[1]}"
+            local value="${BASH_REMATCH[2]}"
+
+            # Remove trailing comments (but not if inside quotes)
+            # Handle quoted values
+            if [[ "$value" =~ ^\"(.*)\"$ ]]; then
+                value="${BASH_REMATCH[1]}"
+            elif [[ "$value" =~ ^\'(.*)\'$ ]]; then
+                value="${BASH_REMATCH[1]}"
+            else
+                # Remove trailing comment for unquoted values
+                value="${value%% #*}"
+                # Trim whitespace
+                value="${value%"${value##*[![:space:]]}"}"
+            fi
+
+            # Only set if we care about this variable
+            case "$name" in
+                TELEGRAM_BOT_TOKEN|TELEGRAM_WEBHOOK_SECRET|WEBHOOK_URL)
+                    export "$name=$value"
+                    ;;
+            esac
+        fi
+    done < "$env_file"
+}
+
 if [ -f "$SERVICE_DIR/.env" ]; then
-    # Export variables from .env file (ignore comments and empty lines)
-    set -a
-    source "$SERVICE_DIR/.env"
-    set +a
+    load_env_file "$SERVICE_DIR/.env"
     echo "Loaded environment from $SERVICE_DIR/.env"
 elif [ -f ".env" ]; then
-    set -a
-    source ".env"
-    set +a
+    load_env_file ".env"
     echo "Loaded environment from .env"
 fi
 
@@ -88,24 +118,25 @@ MASKED_SECRET="${WEBHOOK_SECRET:0:8}..."
 echo "Configuration:"
 echo "  Bot Token:      $MASKED_TOKEN"
 echo "  Webhook URL:    $WEBHOOK_URL"
-echo "  Secret Token:   ${WEBHOOK_SECRET:+$MASKED_SECRET}${WEBHOOK_SECRET:-NOT SET}"
+if [ -n "$WEBHOOK_SECRET" ]; then
+    echo "  Secret Token:   $MASKED_SECRET (${#WEBHOOK_SECRET} chars)"
+else
+    echo "  Secret Token:   NOT SET"
+fi
 echo ""
 
 # Build the API URL
 API_URL="https://api.telegram.org/bot${BOT_TOKEN}/setWebhook"
 
-# Build request data
-if [ -n "$WEBHOOK_SECRET" ]; then
-    REQUEST_DATA="url=${WEBHOOK_URL}&secret_token=${WEBHOOK_SECRET}"
-else
-    REQUEST_DATA="url=${WEBHOOK_URL}"
-fi
-
 echo "Registering webhook..."
 echo ""
 
-# Make the API call
-RESPONSE=$(curl -s -X POST "$API_URL" -d "$REQUEST_DATA")
+# Make the API call using multipart form data for reliable encoding
+if [ -n "$WEBHOOK_SECRET" ]; then
+    RESPONSE=$(curl -s -X POST "$API_URL" -F "url=$WEBHOOK_URL" -F "secret_token=$WEBHOOK_SECRET")
+else
+    RESPONSE=$(curl -s -X POST "$API_URL" -F "url=$WEBHOOK_URL")
+fi
 
 # Check if successful
 if echo "$RESPONSE" | grep -q '"ok":true'; then
