@@ -13,6 +13,7 @@ import 'dotenv/config';
 import 'express-async-errors';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import { logger } from './utils/logger.js';
 import { correlationMiddleware } from './middleware/correlation.js';
 import { requestLoggerMiddleware } from './middleware/request-logger.js';
@@ -33,21 +34,58 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 // Middleware Setup
 // =============================================================================
 
+// Security headers with helmet
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'"],
+        fontSrc: ["'self'"],
+        objectSrc: ["'none'"],
+        mediaSrc: ["'self'"],
+        frameSrc: ["'none'"],
+      },
+    },
+    crossOriginEmbedderPolicy: false, // Allow cross-origin resources
+  })
+);
+
 // Parse JSON request bodies
 app.use(express.json());
 
 // Parse URL-encoded request bodies
 app.use(express.urlencoded({ extended: true }));
 
-// Enable CORS
-app.use(
-  cors({
-    origin: process.env.CORS_ORIGIN || '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'X-Correlation-ID'],
-    exposedHeaders: ['X-Correlation-ID'],
-  })
-);
+// Configure CORS - parse comma-separated origins from environment
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)
+  : [];
+
+// In development with no CORS_ORIGIN set, allow all (but warn)
+const corsConfig = corsOrigins.length > 0
+  ? {
+      origin: corsOrigins.length === 1 ? corsOrigins[0] : corsOrigins,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'X-Correlation-ID'],
+      exposedHeaders: ['X-Correlation-ID', 'X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
+    }
+  : {
+      origin: NODE_ENV === 'development' ? '*' : false, // Disallow all in production if not configured
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'X-Correlation-ID'],
+      exposedHeaders: ['X-Correlation-ID', 'X-RateLimit-Limit', 'X-RateLimit-Remaining', 'X-RateLimit-Reset'],
+    };
+
+if (NODE_ENV !== 'development' && corsOrigins.length === 0) {
+  logger.warn('CORS_ORIGIN not configured in production - all cross-origin requests will be blocked');
+}
+
+// Enable CORS with hardened configuration
+app.use(cors(corsConfig));
 
 // Add correlation ID to all requests
 app.use(correlationMiddleware);
