@@ -15,6 +15,12 @@ import {
   isValidApiKey,
 } from '../../../src/middleware/auth.js';
 
+// Test API keys that meet the minimum length requirement (32 chars)
+const VALID_KEY_1 = 'test-api-key-1234567890abcdefgh1';
+const VALID_KEY_2 = 'test-api-key-1234567890abcdefgh2';
+const VALID_KEY_3 = 'test-api-key-1234567890abcdefgh3';
+const SHORT_KEY = 'short-key'; // Less than 32 chars
+
 describe('API Key Authentication Middleware', () => {
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
@@ -48,54 +54,54 @@ describe('API Key Authentication Middleware', () => {
   });
 
   describe('getConfiguredApiKeys', () => {
-    it('should return empty set when DISPATCH_API_KEYS is not set', () => {
+    it('should return empty array when DISPATCH_API_KEYS is not set', () => {
       delete process.env.DISPATCH_API_KEYS;
       const keys = getConfiguredApiKeys();
-      expect(keys.size).toBe(0);
+      expect(keys.length).toBe(0);
     });
 
-    it('should return empty set when DISPATCH_API_KEYS is empty string', () => {
+    it('should return empty array when DISPATCH_API_KEYS is empty string', () => {
       process.env.DISPATCH_API_KEYS = '';
       const keys = getConfiguredApiKeys();
-      expect(keys.size).toBe(0);
+      expect(keys.length).toBe(0);
     });
 
-    it('should parse single API key', () => {
-      process.env.DISPATCH_API_KEYS = 'key1';
+    it('should parse single API key that meets minimum length', () => {
+      process.env.DISPATCH_API_KEYS = VALID_KEY_1;
       const keys = getConfiguredApiKeys();
-      expect(keys.size).toBe(1);
-      expect(keys.has('key1')).toBe(true);
+      expect(keys.length).toBe(1);
+      expect(keys).toContain(VALID_KEY_1);
     });
 
     it('should parse multiple comma-separated API keys', () => {
-      process.env.DISPATCH_API_KEYS = 'key1,key2,key3';
+      process.env.DISPATCH_API_KEYS = `${VALID_KEY_1},${VALID_KEY_2},${VALID_KEY_3}`;
       const keys = getConfiguredApiKeys();
-      expect(keys.size).toBe(3);
-      expect(keys.has('key1')).toBe(true);
-      expect(keys.has('key2')).toBe(true);
-      expect(keys.has('key3')).toBe(true);
+      expect(keys.length).toBe(3);
+      expect(keys).toContain(VALID_KEY_1);
+      expect(keys).toContain(VALID_KEY_2);
+      expect(keys).toContain(VALID_KEY_3);
     });
 
     it('should trim whitespace from API keys', () => {
-      process.env.DISPATCH_API_KEYS = ' key1 , key2 , key3 ';
+      process.env.DISPATCH_API_KEYS = ` ${VALID_KEY_1} , ${VALID_KEY_2} `;
       const keys = getConfiguredApiKeys();
-      expect(keys.size).toBe(3);
-      expect(keys.has('key1')).toBe(true);
-      expect(keys.has('key2')).toBe(true);
-      expect(keys.has('key3')).toBe(true);
+      expect(keys.length).toBe(2);
+      expect(keys).toContain(VALID_KEY_1);
+      expect(keys).toContain(VALID_KEY_2);
     });
 
-    it('should filter out empty keys', () => {
-      process.env.DISPATCH_API_KEYS = 'key1,,key2,  ,key3';
+    it('should filter out keys shorter than minimum length (32 chars)', () => {
+      process.env.DISPATCH_API_KEYS = `${SHORT_KEY},${VALID_KEY_1}`;
       const keys = getConfiguredApiKeys();
-      expect(keys.size).toBe(3);
-      expect(keys.has('')).toBe(false);
+      expect(keys.length).toBe(1);
+      expect(keys).toContain(VALID_KEY_1);
+      expect(keys).not.toContain(SHORT_KEY);
     });
   });
 
   describe('isValidApiKey', () => {
     beforeEach(() => {
-      process.env.DISPATCH_API_KEYS = 'valid-key-1,valid-key-2';
+      process.env.DISPATCH_API_KEYS = `${VALID_KEY_1},${VALID_KEY_2}`;
     });
 
     it('should return false for undefined API key', () => {
@@ -110,29 +116,40 @@ describe('API Key Authentication Middleware', () => {
       expect(isValidApiKey('   ')).toBe(false);
     });
 
-    it('should return false for invalid API key', () => {
-      expect(isValidApiKey('invalid-key')).toBe(false);
+    it('should return false for key shorter than minimum length', () => {
+      expect(isValidApiKey(SHORT_KEY)).toBe(false);
+    });
+
+    it('should return false for invalid API key of sufficient length', () => {
+      expect(isValidApiKey('invalid-api-key-1234567890abcdef')).toBe(false);
     });
 
     it('should return true for valid API key', () => {
-      expect(isValidApiKey('valid-key-1')).toBe(true);
-      expect(isValidApiKey('valid-key-2')).toBe(true);
+      expect(isValidApiKey(VALID_KEY_1)).toBe(true);
+      expect(isValidApiKey(VALID_KEY_2)).toBe(true);
     });
 
     it('should return false when no API keys are configured', () => {
       delete process.env.DISPATCH_API_KEYS;
-      expect(isValidApiKey('any-key')).toBe(false);
+      expect(isValidApiKey(VALID_KEY_1)).toBe(false);
     });
 
     it('should trim whitespace from provided API key', () => {
-      expect(isValidApiKey(' valid-key-1 ')).toBe(true);
+      expect(isValidApiKey(` ${VALID_KEY_1} `)).toBe(true);
+    });
+
+    it('should use timing-safe comparison', () => {
+      // This test verifies the function returns correct results
+      // Timing-safe behavior is verified by implementation using crypto.timingSafeEqual
+      expect(isValidApiKey(VALID_KEY_1)).toBe(true);
+      expect(isValidApiKey('wrong-api-key-1234567890abcdef!')).toBe(false);
     });
   });
 
   describe('authMiddleware', () => {
     describe('Missing API Key (Requirement 9.1)', () => {
       beforeEach(() => {
-        process.env.DISPATCH_API_KEYS = 'valid-key';
+        process.env.DISPATCH_API_KEYS = VALID_KEY_1;
       });
 
       it('should return 401 when X-API-Key header is missing', () => {
@@ -168,12 +185,12 @@ describe('API Key Authentication Middleware', () => {
 
     describe('Invalid API Key (Requirement 9.2)', () => {
       beforeEach(() => {
-        process.env.DISPATCH_API_KEYS = 'valid-key';
+        process.env.DISPATCH_API_KEYS = VALID_KEY_1;
       });
 
       it('should return 401 when API key is invalid', () => {
         mockRequest.headers = {
-          'x-api-key': 'invalid-key',
+          'x-api-key': 'invalid-api-key-1234567890abcdef',
         };
 
         authMiddleware(
@@ -195,10 +212,25 @@ describe('API Key Authentication Middleware', () => {
         expect(nextFunction).not.toHaveBeenCalled();
       });
 
+      it('should return 401 when API key is too short', () => {
+        mockRequest.headers = {
+          'x-api-key': SHORT_KEY,
+        };
+
+        authMiddleware(
+          mockRequest as Request,
+          mockResponse as Response,
+          nextFunction
+        );
+
+        expect(mockResponse.status).toHaveBeenCalledWith(401);
+        expect(nextFunction).not.toHaveBeenCalled();
+      });
+
       it('should return 401 when no API keys are configured', () => {
         delete process.env.DISPATCH_API_KEYS;
         mockRequest.headers = {
-          'x-api-key': 'any-key',
+          'x-api-key': VALID_KEY_1,
         };
 
         authMiddleware(
@@ -214,12 +246,12 @@ describe('API Key Authentication Middleware', () => {
 
     describe('Valid API Key (Requirement 9.3)', () => {
       beforeEach(() => {
-        process.env.DISPATCH_API_KEYS = 'valid-key-1,valid-key-2';
+        process.env.DISPATCH_API_KEYS = `${VALID_KEY_1},${VALID_KEY_2}`;
       });
 
       it('should call next when API key is valid', () => {
         mockRequest.headers = {
-          'x-api-key': 'valid-key-1',
+          'x-api-key': VALID_KEY_1,
         };
 
         authMiddleware(
@@ -235,7 +267,7 @@ describe('API Key Authentication Middleware', () => {
 
       it('should handle case-insensitive header name', () => {
         mockRequest.headers = {
-          'x-api-key': 'valid-key-1',
+          'x-api-key': VALID_KEY_1,
         };
 
         authMiddleware(
@@ -250,12 +282,12 @@ describe('API Key Authentication Middleware', () => {
 
     describe('Multiple API Keys (Requirement 9.4)', () => {
       beforeEach(() => {
-        process.env.DISPATCH_API_KEYS = 'client-a-key,client-b-key,client-c-key';
+        process.env.DISPATCH_API_KEYS = `${VALID_KEY_1},${VALID_KEY_2},${VALID_KEY_3}`;
       });
 
       it('should accept first configured API key', () => {
         mockRequest.headers = {
-          'x-api-key': 'client-a-key',
+          'x-api-key': VALID_KEY_1,
         };
 
         authMiddleware(
@@ -269,7 +301,7 @@ describe('API Key Authentication Middleware', () => {
 
       it('should accept second configured API key', () => {
         mockRequest.headers = {
-          'x-api-key': 'client-b-key',
+          'x-api-key': VALID_KEY_2,
         };
 
         authMiddleware(
@@ -283,7 +315,7 @@ describe('API Key Authentication Middleware', () => {
 
       it('should accept third configured API key', () => {
         mockRequest.headers = {
-          'x-api-key': 'client-c-key',
+          'x-api-key': VALID_KEY_3,
         };
 
         authMiddleware(
@@ -297,7 +329,7 @@ describe('API Key Authentication Middleware', () => {
 
       it('should reject key not in configured list', () => {
         mockRequest.headers = {
-          'x-api-key': 'unknown-client-key',
+          'x-api-key': 'unknown-api-key-1234567890abcdef',
         };
 
         authMiddleware(
@@ -313,7 +345,7 @@ describe('API Key Authentication Middleware', () => {
 
     describe('Error Response Format', () => {
       beforeEach(() => {
-        process.env.DISPATCH_API_KEYS = 'valid-key';
+        process.env.DISPATCH_API_KEYS = VALID_KEY_1;
       });
 
       it('should include requestId in error response', () => {

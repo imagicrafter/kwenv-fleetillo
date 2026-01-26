@@ -4,6 +4,10 @@
  * Validates API key authentication for protected endpoints.
  * Supports multiple API keys from the DISPATCH_API_KEYS environment variable.
  *
+ * Security features:
+ * - Timing-safe comparison to prevent timing attacks
+ * - Minimum key length validation
+ *
  * @module middleware/auth
  * @requirements 9.1 - Return 401 Unauthorized for missing API key
  * @requirements 9.2 - Return 401 Unauthorized for invalid API key
@@ -12,31 +16,52 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import crypto from 'crypto';
 import { ApiError } from '../types/index.js';
 import { logger } from '../utils/logger.js';
 
 export const API_KEY_HEADER = 'X-API-Key';
 
 /**
- * Get configured API keys from environment variable.
- * API keys are stored as a comma-separated list in DISPATCH_API_KEYS.
- *
- * @returns Set of valid API keys
+ * Minimum required length for API keys (32 characters recommended for security)
  */
-export function getConfiguredApiKeys(): Set<string> {
-  const apiKeysEnv = process.env.DISPATCH_API_KEYS || '';
+const MIN_API_KEY_LENGTH = 32;
 
-  // Split by comma and filter out empty strings
-  const keys = apiKeysEnv
-    .split(',')
-    .map((key) => key.trim())
-    .filter((key) => key.length > 0);
+/**
+ * Perform timing-safe comparison of two strings
+ * Prevents timing attacks by always taking the same amount of time
+ */
+function timingSafeCompare(a: string, b: string): boolean {
+  // If lengths differ, still perform comparison to maintain constant time
+  if (a.length !== b.length) {
+    const dummy = Buffer.from(a);
+    crypto.timingSafeEqual(dummy, dummy);
+    return false;
+  }
 
-  return new Set(keys);
+  return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
 }
 
 /**
- * Validate an API key against configured keys.
+ * Get configured API keys from environment variable.
+ * API keys are stored as a comma-separated list in DISPATCH_API_KEYS.
+ *
+ * @returns Array of valid API keys
+ */
+export function getConfiguredApiKeys(): string[] {
+  const apiKeysEnv = process.env.DISPATCH_API_KEYS || '';
+
+  // Split by comma, trim, and filter out empty strings and short keys
+  const keys = apiKeysEnv
+    .split(',')
+    .map((key) => key.trim())
+    .filter((key) => key.length >= MIN_API_KEY_LENGTH);
+
+  return keys;
+}
+
+/**
+ * Validate an API key against configured keys using timing-safe comparison.
  *
  * @param apiKey - The API key to validate
  * @returns true if the key is valid, false otherwise
@@ -46,14 +71,30 @@ export function isValidApiKey(apiKey: string | undefined): boolean {
     return false;
   }
 
-  const configuredKeys = getConfiguredApiKeys();
+  const trimmedKey = apiKey.trim();
 
-  // If no keys are configured, reject all requests
-  if (configuredKeys.size === 0) {
+  // Reject keys that are too short
+  if (trimmedKey.length < MIN_API_KEY_LENGTH) {
     return false;
   }
 
-  return configuredKeys.has(apiKey.trim());
+  const configuredKeys = getConfiguredApiKeys();
+
+  // If no keys are configured, reject all requests
+  if (configuredKeys.length === 0) {
+    return false;
+  }
+
+  // Check against all configured keys using timing-safe comparison
+  // Note: We check all keys to maintain constant time regardless of which key matches
+  let isValid = false;
+  for (const configuredKey of configuredKeys) {
+    if (timingSafeCompare(trimmedKey, configuredKey)) {
+      isValid = true;
+    }
+  }
+
+  return isValid;
 }
 
 /**

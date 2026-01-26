@@ -22,8 +22,9 @@ import {
   EntityNotFoundError,
   DispatchRequest,
 } from '../../core/orchestrator.js';
-import type { ApiError, ChannelType, SingleDispatchBody, BatchDispatchBody, DispatchDetailResponse, DispatchStatus } from '../../types/index.js';
+import type { ApiError, SingleDispatchBody, BatchDispatchBody, DispatchDetailResponse } from '../../types/index.js';
 import { ListDispatchesFilters } from '../../db/dispatch.repository.js';
+import type { ListDispatchesQuery } from '../../validation/schemas.js';
 
 // =============================================================================
 // Constants
@@ -33,127 +34,6 @@ import { ListDispatchesFilters } from '../../db/dispatch.repository.js';
  * Maximum number of items allowed in a batch dispatch request
  */
 const MAX_BATCH_SIZE = 100;
-
-// =============================================================================
-// Validation
-// =============================================================================
-
-/**
- * Validation error details
- */
-interface ValidationError {
-  field: string;
-  message: string;
-}
-
-/**
- * Validate a UUID format
- */
-function isValidUUID(value: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(value);
-}
-
-/**
- * Validate channel type
- */
-function isValidChannelType(value: unknown): value is ChannelType {
-  return typeof value === 'string' && ['telegram', 'email', 'sms', 'push'].includes(value);
-}
-
-/**
- * Validate the dispatch request body
- *
- * @param body - The request body to validate
- * @returns Array of validation errors (empty if valid)
- */
-export function validateDispatchRequest(body: unknown): ValidationError[] {
-  const errors: ValidationError[] = [];
-
-  // Check if body is an object
-  if (!body || typeof body !== 'object') {
-    errors.push({
-      field: 'body',
-      message: 'Request body must be a JSON object',
-    });
-    return errors;
-  }
-
-  const data = body as Record<string, unknown>;
-
-  // Validate route_id (required)
-  if (!data.route_id) {
-    errors.push({
-      field: 'route_id',
-      message: 'route_id is required',
-    });
-  } else if (typeof data.route_id !== 'string') {
-    errors.push({
-      field: 'route_id',
-      message: 'route_id must be a string',
-    });
-  } else if (!isValidUUID(data.route_id)) {
-    errors.push({
-      field: 'route_id',
-      message: 'route_id must be a valid UUID',
-    });
-  }
-
-  // Validate driver_id (required)
-  if (!data.driver_id) {
-    errors.push({
-      field: 'driver_id',
-      message: 'driver_id is required',
-    });
-  } else if (typeof data.driver_id !== 'string') {
-    errors.push({
-      field: 'driver_id',
-      message: 'driver_id must be a string',
-    });
-  } else if (!isValidUUID(data.driver_id)) {
-    errors.push({
-      field: 'driver_id',
-      message: 'driver_id must be a valid UUID',
-    });
-  }
-
-  // Validate channels (optional)
-  if (data.channels !== undefined) {
-    if (!Array.isArray(data.channels)) {
-      errors.push({
-        field: 'channels',
-        message: 'channels must be an array',
-      });
-    } else {
-      for (let i = 0; i < data.channels.length; i++) {
-        if (!isValidChannelType(data.channels[i])) {
-          errors.push({
-            field: `channels[${i}]`,
-            message: `Invalid channel type: ${data.channels[i]}. Must be one of: telegram, email, sms, push`,
-          });
-        }
-      }
-    }
-  }
-
-  // Validate multi_channel (optional)
-  if (data.multi_channel !== undefined && typeof data.multi_channel !== 'boolean') {
-    errors.push({
-      field: 'multi_channel',
-      message: 'multi_channel must be a boolean',
-    });
-  }
-
-  // Validate metadata (optional)
-  if (data.metadata !== undefined && (typeof data.metadata !== 'object' || data.metadata === null || Array.isArray(data.metadata))) {
-    errors.push({
-      field: 'metadata',
-      message: 'metadata must be an object',
-    });
-  }
-
-  return errors;
-}
 
 /**
  * Convert snake_case request body to camelCase DispatchRequest
@@ -183,6 +63,7 @@ export function createDispatchHandler(orchestrator: DispatchOrchestrator) {
    * POST /api/v1/dispatch
    *
    * Create a new dispatch request to send route assignment to a driver.
+   * Note: Request body is validated by Zod middleware before this handler.
    *
    * @requirements 1.1 - Create dispatch record and initiate message delivery
    * @requirements 1.4 - Return dispatch_id and status immediately
@@ -197,36 +78,11 @@ export function createDispatchHandler(orchestrator: DispatchOrchestrator) {
       body: req.body,
     });
 
-    // Step 1: Validate request body
-    const validationErrors = validateDispatchRequest(req.body);
-
-    if (validationErrors.length > 0) {
-      logger.warn('Dispatch request validation failed', {
-        correlationId,
-        errors: validationErrors,
-      });
-
-      const firstError = validationErrors[0];
-      const error: ApiError = {
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: firstError?.message ?? 'Validation failed',
-          details: {
-            errors: validationErrors,
-          },
-        },
-        requestId: correlationId,
-      };
-
-      res.status(400).json(error);
-      return;
-    }
-
-    // Step 2: Convert to internal request format
+    // Convert to internal request format (body already validated by Zod middleware)
     const dispatchRequest = toDispatchRequest(req.body as SingleDispatchBody);
 
     try {
-      // Step 3: Call orchestrator to create dispatch
+      // Call orchestrator to create dispatch
       const result = await orchestrator.dispatch(dispatchRequest);
 
       logger.info('Dispatch created successfully', {
@@ -236,7 +92,7 @@ export function createDispatchHandler(orchestrator: DispatchOrchestrator) {
         requestedChannels: result.requestedChannels,
       });
 
-      // Step 4: Return 202 Accepted with dispatch info (snake_case)
+      // Return 202 Accepted with dispatch info (snake_case)
       res.status(202).json({
         dispatch_id: result.dispatchId,
         status: result.status,
@@ -278,14 +134,6 @@ export function createDispatchHandler(orchestrator: DispatchOrchestrator) {
 // =============================================================================
 
 /**
- * Validate a UUID format
- */
-function isValidDispatchId(value: string): boolean {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-  return uuidRegex.test(value);
-}
-
-/**
  * Create the get dispatch handler with the given orchestrator
  *
  * @param orchestrator - The dispatch orchestrator instance
@@ -296,6 +144,7 @@ export function createGetDispatchHandler(orchestrator: DispatchOrchestrator) {
    * GET /api/v1/dispatch/:id
    *
    * Retrieve a dispatch by ID with its channel dispatch details.
+   * Note: Params validated by Zod middleware before this handler.
    *
    * @requirements 3.1 - Return dispatch record with current status and channel delivery details
    * @requirements 3.2 - Include status for each channel_dispatch in the response
@@ -303,38 +152,15 @@ export function createGetDispatchHandler(orchestrator: DispatchOrchestrator) {
    */
   return async function getDispatchHandler(req: Request, res: Response): Promise<void> {
     const correlationId = req.correlationId;
-    const dispatchId = req.params.id as string | undefined;
+    const dispatchId = req.params.id as string;
 
     logger.debug('Processing get dispatch request', {
       correlationId,
       dispatchId,
     });
 
-    // Step 1: Validate dispatch_id is a valid UUID
-    if (!dispatchId || !isValidDispatchId(dispatchId)) {
-      logger.warn('Invalid dispatch_id format', {
-        correlationId,
-        dispatchId,
-      });
-
-      const error: ApiError = {
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'dispatch_id must be a valid UUID',
-          details: {
-            field: 'id',
-            value: dispatchId,
-          },
-        },
-        requestId: correlationId,
-      };
-
-      res.status(400).json(error);
-      return;
-    }
-
     try {
-      // Step 2: Fetch dispatch with channel dispatches
+      // Fetch dispatch with channel dispatches
       const result = await orchestrator.getDispatch(dispatchId);
 
       // Step 3: Return 404 if not found
@@ -399,98 +225,7 @@ export function createGetDispatchHandler(orchestrator: DispatchOrchestrator) {
 // Exports
 // =============================================================================
 
-export { ValidationError, BatchValidationError, MAX_BATCH_SIZE };
-
-// =============================================================================
-// Batch Dispatch Validation
-// =============================================================================
-
-/**
- * Batch validation error details
- */
-interface BatchValidationError {
-  field: string;
-  message: string;
-  index?: number;
-}
-
-/**
- * Validate the batch dispatch request body
- *
- * @param body - The request body to validate
- * @returns Object with isValid flag and errors array
- */
-export function validateBatchDispatchRequest(body: unknown): {
-  isValid: boolean;
-  errors: BatchValidationError[];
-  itemErrors?: Map<number, ValidationError[]>;
-} {
-  const errors: BatchValidationError[] = [];
-  const itemErrors = new Map<number, ValidationError[]>();
-
-  // Check if body is an object
-  if (!body || typeof body !== 'object') {
-    errors.push({
-      field: 'body',
-      message: 'Request body must be a JSON object',
-    });
-    return { isValid: false, errors };
-  }
-
-  const data = body as Record<string, unknown>;
-
-  // Check if dispatches array exists
-  if (!data.dispatches) {
-    errors.push({
-      field: 'dispatches',
-      message: 'dispatches array is required',
-    });
-    return { isValid: false, errors };
-  }
-
-  // Check if dispatches is an array
-  if (!Array.isArray(data.dispatches)) {
-    errors.push({
-      field: 'dispatches',
-      message: 'dispatches must be an array',
-    });
-    return { isValid: false, errors };
-  }
-
-  // Check if dispatches array is empty
-  if (data.dispatches.length === 0) {
-    errors.push({
-      field: 'dispatches',
-      message: 'dispatches array cannot be empty',
-    });
-    return { isValid: false, errors };
-  }
-
-  // Check batch size limit
-  if (data.dispatches.length > MAX_BATCH_SIZE) {
-    errors.push({
-      field: 'dispatches',
-      message: `Batch size exceeds maximum of ${MAX_BATCH_SIZE} items`,
-    });
-    return { isValid: false, errors };
-  }
-
-  // Validate each item in the batch
-  let hasItemErrors = false;
-  for (let i = 0; i < data.dispatches.length; i++) {
-    const itemValidationErrors = validateDispatchRequest(data.dispatches[i]);
-    if (itemValidationErrors.length > 0) {
-      hasItemErrors = true;
-      itemErrors.set(i, itemValidationErrors);
-    }
-  }
-
-  return {
-    isValid: !hasItemErrors && errors.length === 0,
-    errors,
-    itemErrors: hasItemErrors ? itemErrors : undefined,
-  };
-}
+export { MAX_BATCH_SIZE };
 
 // =============================================================================
 // Batch Handler Factory
@@ -507,6 +242,7 @@ export function createBatchDispatchHandler(orchestrator: DispatchOrchestrator) {
    * POST /api/v1/dispatch/batch
    *
    * Create multiple dispatch requests to send route assignments to drivers.
+   * Note: Request body is validated by Zod middleware before this handler.
    *
    * @requirements 2.1 - Process batch dispatch items and return results
    * @requirements 2.4 - Return array of results with dispatch_id and status
@@ -521,43 +257,12 @@ export function createBatchDispatchHandler(orchestrator: DispatchOrchestrator) {
       itemCount: Array.isArray(req.body?.dispatches) ? req.body.dispatches.length : 0,
     });
 
-    // Step 1: Validate request body
-    const validation = validateBatchDispatchRequest(req.body);
-
-    if (!validation.isValid) {
-      // Check for top-level errors first
-      if (validation.errors.length > 0) {
-        const firstError = validation.errors[0];
-        logger.warn('Batch dispatch request validation failed', {
-          correlationId,
-          errors: validation.errors,
-        });
-
-        const error: ApiError = {
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: firstError?.message ?? 'Validation failed',
-            details: {
-              errors: validation.errors,
-            },
-          },
-          requestId: correlationId,
-        };
-
-        res.status(400).json(error);
-        return;
-      }
-
-      // If we have item-level validation errors, we still process the batch
-      // but those items will fail with validation errors in the results
-    }
-
-    // Step 2: Convert to internal request format
+    // Convert to internal request format (body already validated by Zod middleware)
     const batchBody = req.body as BatchDispatchBody;
     const dispatchRequests = batchBody.dispatches.map((item) => toDispatchRequest(item));
 
     try {
-      // Step 3: Call orchestrator to process batch
+      // Call orchestrator to process batch
       const result = await orchestrator.dispatchBatch(dispatchRequests);
 
       logger.info('Batch dispatch processed', {
@@ -567,7 +272,7 @@ export function createBatchDispatchHandler(orchestrator: DispatchOrchestrator) {
         failed: result.summary.failed,
       });
 
-      // Step 4: Return 202 Accepted with results (snake_case)
+      // Return 202 Accepted with results (snake_case)
       res.status(202).json({
         results: result.results.map((r) => ({
           index: r.index,
@@ -595,52 +300,19 @@ export function createListDispatchesHandler(orchestrator: DispatchOrchestrator) 
    * GET /api/v1/dispatch
    *
    * Retrieve a list of dispatches with optional filters.
+   * Note: Query params validated by Zod middleware before this handler.
    */
   return async function listDispatchesHandler(req: Request, res: Response): Promise<void> {
     const correlationId = req.correlationId;
 
-    // Extract query parameters
-    const status = req.query.status as DispatchStatus | undefined;
-    const driverId = req.query.driver_id as string | undefined;
-    const routeId = req.query.route_id as string | undefined;
-    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
-    const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : 0;
+    // Use validated query from middleware (with type coercion applied)
+    const validatedQuery = (req as Request & { validatedQuery: ListDispatchesQuery }).validatedQuery;
+    const { status, driver_id: driverId, route_id: routeId, limit, offset } = validatedQuery;
 
     logger.debug('Processing list dispatches request', {
       correlationId,
       filters: { status, driverId, routeId, limit, offset },
     });
-
-    // Validate filters
-    // Valid statuses: pending, sending, sent, delivered, failed, partial, viewed, acknowledged
-    // Note: 'sent' might not be in the enum if I didn't add it.
-    // Let's check the enum in types/index.ts, but I can't see it right now.
-    // I'll trust standard statuses.
-
-    // Validate driverId/routeId format if present
-    if (driverId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(driverId)) {
-      const error: ApiError = {
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid driver_id UUID',
-        },
-        requestId: correlationId,
-      };
-      res.status(400).json(error);
-      return;
-    }
-
-    if (routeId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(routeId)) {
-      const error: ApiError = {
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid route_id UUID',
-        },
-        requestId: correlationId,
-      };
-      res.status(400).json(error);
-      return;
-    }
 
     const filters: ListDispatchesFilters = {
       status,

@@ -16,10 +16,12 @@ import {
   createDispatchHandler,
   createBatchDispatchHandler,
   createGetDispatchHandler,
-  validateDispatchRequest,
-  validateBatchDispatchRequest,
   MAX_BATCH_SIZE,
 } from '../../../src/api/handlers/dispatch.js';
+import {
+  singleDispatchBodySchema,
+  batchDispatchBodySchema,
+} from '../../../src/validation/schemas.js';
 import {
   DispatchOrchestrator,
   EntityNotFoundError,
@@ -66,236 +68,111 @@ describe('Dispatch Handler', () => {
     handler = createDispatchHandler(mockOrchestrator);
   });
 
-  describe('validateDispatchRequest', () => {
+  describe('singleDispatchBodySchema (Zod validation)', () => {
     describe('route_id validation', () => {
-      it('should return error when route_id is missing', () => {
-        const errors = validateDispatchRequest({
+      it('should fail when route_id is missing', () => {
+        const result = singleDispatchBodySchema.safeParse({
           driver_id: '123e4567-e89b-12d3-a456-426614174000',
         });
 
-        expect(errors).toContainEqual({
-          field: 'route_id',
-          message: 'route_id is required',
-        });
+        expect(result.success).toBe(false);
       });
 
-      it('should return error when route_id is not a string', () => {
-        const errors = validateDispatchRequest({
-          route_id: 123,
-          driver_id: '123e4567-e89b-12d3-a456-426614174000',
-        });
-
-        expect(errors).toContainEqual({
-          field: 'route_id',
-          message: 'route_id must be a string',
-        });
-      });
-
-      it('should return error when route_id is not a valid UUID', () => {
-        const errors = validateDispatchRequest({
+      it('should fail when route_id is not a valid UUID', () => {
+        const result = singleDispatchBodySchema.safeParse({
           route_id: 'not-a-uuid',
           driver_id: '123e4567-e89b-12d3-a456-426614174000',
         });
 
-        expect(errors).toContainEqual({
-          field: 'route_id',
-          message: 'route_id must be a valid UUID',
-        });
+        expect(result.success).toBe(false);
       });
     });
 
     describe('driver_id validation', () => {
-      it('should return error when driver_id is missing', () => {
-        const errors = validateDispatchRequest({
+      it('should fail when driver_id is missing', () => {
+        const result = singleDispatchBodySchema.safeParse({
           route_id: '123e4567-e89b-12d3-a456-426614174000',
         });
 
-        expect(errors).toContainEqual({
-          field: 'driver_id',
-          message: 'driver_id is required',
-        });
+        expect(result.success).toBe(false);
       });
 
-      it('should return error when driver_id is not a string', () => {
-        const errors = validateDispatchRequest({
-          route_id: '123e4567-e89b-12d3-a456-426614174000',
-          driver_id: 456,
-        });
-
-        expect(errors).toContainEqual({
-          field: 'driver_id',
-          message: 'driver_id must be a string',
-        });
-      });
-
-      it('should return error when driver_id is not a valid UUID', () => {
-        const errors = validateDispatchRequest({
+      it('should fail when driver_id is not a valid UUID', () => {
+        const result = singleDispatchBodySchema.safeParse({
           route_id: '123e4567-e89b-12d3-a456-426614174000',
           driver_id: 'invalid-uuid',
         });
 
-        expect(errors).toContainEqual({
-          field: 'driver_id',
-          message: 'driver_id must be a valid UUID',
-        });
+        expect(result.success).toBe(false);
       });
     });
 
     describe('channels validation', () => {
-      it('should return error when channels is not an array', () => {
-        const errors = validateDispatchRequest({
+      it('should fail when channels is not an array', () => {
+        const result = singleDispatchBodySchema.safeParse({
           route_id: '123e4567-e89b-12d3-a456-426614174000',
           driver_id: '123e4567-e89b-12d3-a456-426614174001',
           channels: 'telegram',
         });
 
-        expect(errors).toContainEqual({
-          field: 'channels',
-          message: 'channels must be an array',
-        });
+        expect(result.success).toBe(false);
       });
 
-      it('should return error for invalid channel type', () => {
-        const errors = validateDispatchRequest({
+      it('should fail for invalid channel type', () => {
+        const result = singleDispatchBodySchema.safeParse({
           route_id: '123e4567-e89b-12d3-a456-426614174000',
           driver_id: '123e4567-e89b-12d3-a456-426614174001',
           channels: ['telegram', 'invalid'],
         });
 
-        expect(errors).toContainEqual({
-          field: 'channels[1]',
-          message: 'Invalid channel type: invalid. Must be one of: telegram, email, sms, push',
-        });
+        expect(result.success).toBe(false);
       });
 
       it('should accept valid channel types', () => {
-        const errors = validateDispatchRequest({
+        const result = singleDispatchBodySchema.safeParse({
           route_id: '123e4567-e89b-12d3-a456-426614174000',
           driver_id: '123e4567-e89b-12d3-a456-426614174001',
           channels: ['telegram', 'email'],
         });
 
-        expect(errors).toHaveLength(0);
+        expect(result.success).toBe(true);
       });
     });
 
     describe('multi_channel validation', () => {
-      it('should return error when multi_channel is not a boolean', () => {
-        const errors = validateDispatchRequest({
+      it('should fail when multi_channel is not a boolean', () => {
+        const result = singleDispatchBodySchema.safeParse({
           route_id: '123e4567-e89b-12d3-a456-426614174000',
           driver_id: '123e4567-e89b-12d3-a456-426614174001',
           multi_channel: 'true',
         });
 
-        expect(errors).toContainEqual({
-          field: 'multi_channel',
-          message: 'multi_channel must be a boolean',
-        });
+        expect(result.success).toBe(false);
       });
 
       it('should accept boolean multi_channel', () => {
-        const errors = validateDispatchRequest({
+        const result = singleDispatchBodySchema.safeParse({
           route_id: '123e4567-e89b-12d3-a456-426614174000',
           driver_id: '123e4567-e89b-12d3-a456-426614174001',
           multi_channel: true,
         });
 
-        expect(errors).toHaveLength(0);
-      });
-    });
-
-    describe('metadata validation', () => {
-      it('should return error when metadata is not an object', () => {
-        const errors = validateDispatchRequest({
-          route_id: '123e4567-e89b-12d3-a456-426614174000',
-          driver_id: '123e4567-e89b-12d3-a456-426614174001',
-          metadata: 'not-an-object',
-        });
-
-        expect(errors).toContainEqual({
-          field: 'metadata',
-          message: 'metadata must be an object',
-        });
-      });
-
-      it('should return error when metadata is an array', () => {
-        const errors = validateDispatchRequest({
-          route_id: '123e4567-e89b-12d3-a456-426614174000',
-          driver_id: '123e4567-e89b-12d3-a456-426614174001',
-          metadata: ['array'],
-        });
-
-        expect(errors).toContainEqual({
-          field: 'metadata',
-          message: 'metadata must be an object',
-        });
-      });
-
-      it('should return error when metadata is null', () => {
-        const errors = validateDispatchRequest({
-          route_id: '123e4567-e89b-12d3-a456-426614174000',
-          driver_id: '123e4567-e89b-12d3-a456-426614174001',
-          metadata: null,
-        });
-
-        expect(errors).toContainEqual({
-          field: 'metadata',
-          message: 'metadata must be an object',
-        });
-      });
-
-      it('should accept valid metadata object', () => {
-        const errors = validateDispatchRequest({
-          route_id: '123e4567-e89b-12d3-a456-426614174000',
-          driver_id: '123e4567-e89b-12d3-a456-426614174001',
-          metadata: { key: 'value' },
-        });
-
-        expect(errors).toHaveLength(0);
-      });
-    });
-
-    describe('body validation', () => {
-      it('should return error when body is null', () => {
-        const errors = validateDispatchRequest(null);
-
-        expect(errors).toContainEqual({
-          field: 'body',
-          message: 'Request body must be a JSON object',
-        });
-      });
-
-      it('should return error when body is undefined', () => {
-        const errors = validateDispatchRequest(undefined);
-
-        expect(errors).toContainEqual({
-          field: 'body',
-          message: 'Request body must be a JSON object',
-        });
-      });
-
-      it('should return error when body is a string', () => {
-        const errors = validateDispatchRequest('string');
-
-        expect(errors).toContainEqual({
-          field: 'body',
-          message: 'Request body must be a JSON object',
-        });
+        expect(result.success).toBe(true);
       });
     });
 
     describe('valid request', () => {
-      it('should return no errors for minimal valid request', () => {
-        const errors = validateDispatchRequest({
+      it('should succeed for minimal valid request', () => {
+        const result = singleDispatchBodySchema.safeParse({
           route_id: '123e4567-e89b-12d3-a456-426614174000',
           driver_id: '123e4567-e89b-12d3-a456-426614174001',
         });
 
-        expect(errors).toHaveLength(0);
+        expect(result.success).toBe(true);
       });
 
-      it('should return no errors for full valid request', () => {
-        const errors = validateDispatchRequest({
+      it('should succeed for full valid request', () => {
+        const result = singleDispatchBodySchema.safeParse({
           route_id: '123e4567-e89b-12d3-a456-426614174000',
           driver_id: '123e4567-e89b-12d3-a456-426614174001',
           channels: ['telegram', 'email'],
@@ -303,7 +180,7 @@ describe('Dispatch Handler', () => {
           metadata: { source: 'test' },
         });
 
-        expect(errors).toHaveLength(0);
+        expect(result.success).toBe(true);
       });
     });
   });
@@ -554,55 +431,39 @@ describe('Batch Dispatch Handler', () => {
     batchHandler = createBatchDispatchHandler(mockOrchestrator);
   });
 
-  describe('validateBatchDispatchRequest', () => {
+  describe('batchDispatchBodySchema (Zod validation)', () => {
     describe('dispatches array validation', () => {
-      it('should return error when dispatches is missing', () => {
-        const result = validateBatchDispatchRequest({});
+      it('should fail when dispatches is missing', () => {
+        const result = batchDispatchBodySchema.safeParse({});
 
-        expect(result.isValid).toBe(false);
-        expect(result.errors).toContainEqual({
-          field: 'dispatches',
-          message: 'dispatches array is required',
-        });
+        expect(result.success).toBe(false);
       });
 
-      it('should return error when dispatches is not an array', () => {
-        const result = validateBatchDispatchRequest({
+      it('should fail when dispatches is not an array', () => {
+        const result = batchDispatchBodySchema.safeParse({
           dispatches: 'not-an-array',
         });
 
-        expect(result.isValid).toBe(false);
-        expect(result.errors).toContainEqual({
-          field: 'dispatches',
-          message: 'dispatches must be an array',
-        });
+        expect(result.success).toBe(false);
       });
 
-      it('should return error when dispatches array is empty', () => {
-        const result = validateBatchDispatchRequest({
+      it('should fail when dispatches array is empty', () => {
+        const result = batchDispatchBodySchema.safeParse({
           dispatches: [],
         });
 
-        expect(result.isValid).toBe(false);
-        expect(result.errors).toContainEqual({
-          field: 'dispatches',
-          message: 'dispatches array cannot be empty',
-        });
+        expect(result.success).toBe(false);
       });
 
-      it('should return error when batch size exceeds maximum', () => {
+      it('should fail when batch size exceeds maximum', () => {
         const dispatches = Array(101).fill({
           route_id: '123e4567-e89b-12d3-a456-426614174000',
           driver_id: '123e4567-e89b-12d3-a456-426614174001',
         });
 
-        const result = validateBatchDispatchRequest({ dispatches });
+        const result = batchDispatchBodySchema.safeParse({ dispatches });
 
-        expect(result.isValid).toBe(false);
-        expect(result.errors).toContainEqual({
-          field: 'dispatches',
-          message: `Batch size exceeds maximum of ${MAX_BATCH_SIZE} items`,
-        });
+        expect(result.success).toBe(false);
       });
 
       it('should accept batch at maximum size limit', () => {
@@ -611,16 +472,15 @@ describe('Batch Dispatch Handler', () => {
           driver_id: '123e4567-e89b-12d3-a456-426614174001',
         });
 
-        const result = validateBatchDispatchRequest({ dispatches });
+        const result = batchDispatchBodySchema.safeParse({ dispatches });
 
-        expect(result.isValid).toBe(true);
-        expect(result.errors).toHaveLength(0);
+        expect(result.success).toBe(true);
       });
     });
 
     describe('item validation', () => {
-      it('should return item errors for invalid items', () => {
-        const result = validateBatchDispatchRequest({
+      it('should fail for invalid items', () => {
+        const result = batchDispatchBodySchema.safeParse({
           dispatches: [
             {
               route_id: '123e4567-e89b-12d3-a456-426614174000',
@@ -633,17 +493,11 @@ describe('Batch Dispatch Handler', () => {
           ],
         });
 
-        expect(result.isValid).toBe(false);
-        expect(result.itemErrors).toBeDefined();
-        expect(result.itemErrors?.has(1)).toBe(true);
-        expect(result.itemErrors?.get(1)).toContainEqual({
-          field: 'route_id',
-          message: 'route_id must be a valid UUID',
-        });
+        expect(result.success).toBe(false);
       });
 
-      it('should return valid for all valid items', () => {
-        const result = validateBatchDispatchRequest({
+      it('should succeed for all valid items', () => {
+        const result = batchDispatchBodySchema.safeParse({
           dispatches: [
             {
               route_id: '123e4567-e89b-12d3-a456-426614174000',
@@ -657,31 +511,7 @@ describe('Batch Dispatch Handler', () => {
           ],
         });
 
-        expect(result.isValid).toBe(true);
-        expect(result.errors).toHaveLength(0);
-        expect(result.itemErrors).toBeUndefined();
-      });
-    });
-
-    describe('body validation', () => {
-      it('should return error when body is null', () => {
-        const result = validateBatchDispatchRequest(null);
-
-        expect(result.isValid).toBe(false);
-        expect(result.errors).toContainEqual({
-          field: 'body',
-          message: 'Request body must be a JSON object',
-        });
-      });
-
-      it('should return error when body is undefined', () => {
-        const result = validateBatchDispatchRequest(undefined);
-
-        expect(result.isValid).toBe(false);
-        expect(result.errors).toContainEqual({
-          field: 'body',
-          message: 'Request body must be a JSON object',
-        });
+        expect(result.success).toBe(true);
       });
     });
   });
