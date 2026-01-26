@@ -19,6 +19,23 @@
 
 set -e
 
+# Load .env file if it exists (from script directory or current directory)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SERVICE_DIR="$(dirname "$SCRIPT_DIR")"
+
+if [ -f "$SERVICE_DIR/.env" ]; then
+    # Export variables from .env file (ignore comments and empty lines)
+    set -a
+    source "$SERVICE_DIR/.env"
+    set +a
+    echo "Loaded environment from $SERVICE_DIR/.env"
+elif [ -f ".env" ]; then
+    set -a
+    source ".env"
+    set +a
+    echo "Loaded environment from .env"
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
