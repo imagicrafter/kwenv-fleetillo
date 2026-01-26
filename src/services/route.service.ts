@@ -521,6 +521,7 @@ export async function deleteRoute(id: string): Promise<Result<void>> {
         .from('bookings')
         .update({
           vehicle_id: null,
+          route_id: null,
           status: 'confirmed'
         })
         .in('id', route.stop_sequence);
@@ -548,6 +549,7 @@ export async function deleteRoute(id: string): Promise<Result<void>> {
         .from('bookings')
         .update({
           vehicle_id: null,
+          route_id: null,
           status: 'confirmed'
         })
         .eq('vehicle_id', route.vehicle_id)
