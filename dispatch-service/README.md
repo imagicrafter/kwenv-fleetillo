@@ -249,6 +249,37 @@ Check individual component status:
 - `telegram: unhealthy` - Check bot token is valid
 - `email: unhealthy` - Check email provider API key
 
+## Startup Validation
+
+In **standalone mode**, the service validates required environment variables at startup and fails fast with clear error messages if any are missing:
+
+```
+============================================================
+ENVIRONMENT VALIDATION FAILED
+============================================================
+
+The following required environment variables are missing or invalid:
+
+  ❌ Missing required environment variable: DISPATCH_API_KEYS
+  ❌ DISPATCH_API_KEYS contains 1 key(s) shorter than 32 characters.
+
+Please set these variables in your .env file or environment.
+See README.md for configuration details.
+============================================================
+```
+
+### Required Variables (all modes)
+- `SUPABASE_URL`
+- `DISPATCH_API_KEYS` (each key must be 32+ characters)
+- `TELEGRAM_BOT_TOKEN`
+
+### Required in Production
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+### Recommended in Production (warnings)
+- `TELEGRAM_WEBHOOK_SECRET` - Webhook requests will not be authenticated
+- `CORS_ORIGIN` - CORS will block all cross-origin requests
+
 ## Development
 
 ### Build

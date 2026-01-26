@@ -15,6 +15,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { logger } from './utils/logger.js';
+import { validateEnvOrExit } from './utils/validate-env.js';
 import { correlationMiddleware } from './middleware/correlation.js';
 import { requestLoggerMiddleware } from './middleware/request-logger.js';
 import { ApiError } from './types/index.js';
@@ -22,6 +23,11 @@ import { createApiRouter } from './api/routes.js';
 import { createDispatchOrchestrator } from './core/orchestrator.js';
 import { telegramAdapter } from './adapters/telegram.js';
 import { emailAdapter } from './adapters/email.js';
+
+// =============================================================================
+// Environment Validation (fail fast if required vars missing)
+// =============================================================================
+validateEnvOrExit();
 
 // Create Express application
 const app = express();
