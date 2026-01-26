@@ -78,36 +78,49 @@ APP_BASE_URL=https://your-main-app-domain.com
 
 The Telegram bot requires a webhook to receive messages (like `/start` commands from driver registration). **This must be configured after deployment.**
 
-### Setting the Webhook (with Secret Token - Recommended)
+### Automated Setup (Recommended)
 
-For production, always use a secret token to authenticate webhook requests from Telegram.
+Use the included setup script to register the webhook with Telegram:
 
-**Step 1: Generate a secret token**
+**Step 1: Configure your `.env` file**
 ```bash
-SECRET=$(openssl rand -hex 32)
-echo "Your secret: $SECRET"
+TELEGRAM_BOT_TOKEN=your-bot-token-from-botfather
+TELEGRAM_WEBHOOK_SECRET=your-64-character-hex-secret
+WEBHOOK_URL=https://your-domain.com/dispatch/api/v1/telegram/webhook
 ```
 
-**Step 2: Set the webhook with the secret token**
+To generate a secret token:
+```bash
+openssl rand -hex 32
+```
+
+**Step 2: Run the setup script**
+```bash
+npm run setup:webhook
+```
+
+The script will:
+- Load configuration from your `.env` file
+- Register the webhook URL with Telegram
+- Configure the secret token for authentication
+- Verify the registration was successful
+
+**Alternative: Pass arguments directly**
+```bash
+./scripts/setup-telegram-webhook.sh <bot_token> <webhook_url> <webhook_secret>
+```
+
+### Manual Setup (Alternative)
+
+If you prefer to set up the webhook manually:
+
 ```bash
 curl -X POST "https://api.telegram.org/botYOUR_BOT_TOKEN/setWebhook" \
-  -d "url=YOUR_APP_URL/dispatch/api/v1/telegram/webhook" \
-  -d "secret_token=$SECRET"
+  -F "url=YOUR_APP_URL/dispatch/api/v1/telegram/webhook" \
+  -F "secret_token=YOUR_WEBHOOK_SECRET"
 ```
 
-**Step 3: Add the secret to your environment**
-```bash
-TELEGRAM_WEBHOOK_SECRET=<your-generated-secret>
-```
-
-**Example:**
-```bash
-curl -X POST "https://api.telegram.org/bot123456:ABC-DEF/setWebhook" \
-  -d "url=https://optiroute-web-tulrl.ondigitalocean.app/dispatch/api/v1/telegram/webhook" \
-  -d "secret_token=your-64-character-hex-secret"
-```
-
-### Setting the Webhook (without Secret - Development Only)
+### Development Mode (No Secret)
 
 For local development, you can omit the secret token:
 
@@ -140,7 +153,8 @@ curl "https://api.telegram.org/botYOUR_BOT_TOKEN/getWebhookInfo" | jq .
 
 | Issue | Solution |
 |-------|----------|
-| `url` is empty | Webhook not set. Run the setWebhook command. |
+| `url` is empty | Webhook not set. Run `npm run setup:webhook` |
+| `last_error_message: "401 Unauthorized"` | Secret mismatch. Ensure `TELEGRAM_WEBHOOK_SECRET` in your environment matches what was registered with Telegram. Re-run `npm run setup:webhook` |
 | `last_error_message: "404 Not Found"` | Wrong URL or dispatch service not running |
 | `last_error_message: "Failed to resolve host"` | Domain DNS not configured |
 | `pending_update_count` increasing | Webhook endpoint not responding correctly |
