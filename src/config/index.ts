@@ -35,7 +35,7 @@ export interface RoutePlanningConfig {
 
 /**
  * Application configuration
- * Centralized configuration management for the RouteIQ application
+ * Centralized configuration management for the Fleetillo application
  */
 export interface AppConfig {
   env: string;

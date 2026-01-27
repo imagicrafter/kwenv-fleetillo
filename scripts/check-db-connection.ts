@@ -2,7 +2,7 @@
 /**
  * Database Connection Health Check Script
  *
- * Validates connectivity to the Supabase database and routeiq schema.
+ * Validates connectivity to the Supabase database and fleetillo schema.
  * This script should be run before executing tests or deploying the application
  * to ensure the database is accessible and properly configured.
  *

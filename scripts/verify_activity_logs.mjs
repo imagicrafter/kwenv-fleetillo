@@ -20,7 +20,7 @@ async function main() {
     }
 
     const supabase = createClient(url, key, {
-        db: { schema: 'routeiq' }
+        db: { schema: 'fleetillo' }
     });
 
     log(`Connected to Supabase at: ${url}`);

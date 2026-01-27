@@ -4,9 +4,9 @@ import requests
 import json
 from dotenv import load_dotenv
 
-load_dotenv("gradient-agents/optiroute-support-agent/.env")
+load_dotenv("gradient-agents/fleetillo-support-agent/.env")
 
-url = "https://agents.do-ai.run/e7b58fd7-d32f-4d4c-bee0-adf3a7d0d8db/optiroute-support/run"
+url = "https://agents.do-ai.run/e7b58fd7-d32f-4d4c-bee0-adf3a7d0d8db/fleetillo-support/run"
 token = os.environ.get("DIGITALOCEAN_API_TOKEN")
 
 if not token:

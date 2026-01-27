@@ -7,7 +7,7 @@ const supabaseUrl = process.env.SUPABASE_URL || '';
 const supabaseKey = process.env.SUPABASE_KEY || '';
 
 const supabase = createClient(supabaseUrl, supabaseKey, {
-    db: { schema: 'optiroute' }
+    db: { schema: 'fleetillo' }
 });
 
 async function verifySchema() {
@@ -17,7 +17,7 @@ async function verifySchema() {
     const { data, error } = await supabase
         .from('information_schema.columns')
         .select('column_name, data_type, is_nullable')
-        .eq('table_schema', 'optiroute')
+        .eq('table_schema', 'fleetillo')
         .eq('table_name', 'bookings')
         .in('column_name', ['service_id', 'service_ids', 'service_items'])
         .order('column_name');

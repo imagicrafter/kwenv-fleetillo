@@ -1,6 +1,6 @@
 # Dispatch Service
 
-The OptiRoute Dispatch Service handles driver notifications via Telegram and Email, including driver registration and route dispatch.
+The Fleetillo Dispatch Service handles driver notifications via Telegram and Email, including driver registration and route dispatch.
 
 ## Quick Start
 
@@ -27,7 +27,7 @@ TELEGRAM_BOT_TOKEN=your-telegram-bot-token
 RESEND_API_KEY=your-resend-api-key
 EMAIL_PROVIDER=resend
 EMAIL_FROM_ADDRESS=dispatch@yourdomain.com
-EMAIL_FROM_NAME="OptiRoute Dispatch"
+EMAIL_FROM_NAME="Fleetillo Dispatch"
 ```
 
 **Routes are mounted at:** `/dispatch/api/v1/...`
@@ -48,7 +48,7 @@ TELEGRAM_BOT_TOKEN=your-telegram-bot-token
 EMAIL_PROVIDER=resend
 RESEND_API_KEY=your-resend-api-key
 EMAIL_FROM_ADDRESS=dispatch@yourdomain.com
-EMAIL_FROM_NAME=OptiRoute Dispatch
+EMAIL_FROM_NAME=Fleetillo Dispatch
 ```
 
 ## Environment Variables
@@ -60,7 +60,7 @@ EMAIL_FROM_NAME=OptiRoute Dispatch
 | `RESEND_API_KEY` | If using Resend | API key from [Resend](https://resend.com) |
 | `SENDGRID_API_KEY` | If using SendGrid | API key from [SendGrid](https://sendgrid.com) |
 | `EMAIL_FROM_ADDRESS` | Yes | Verified sender email address |
-| `EMAIL_FROM_NAME` | No | Display name for emails (default: "OptiRoute Dispatch") |
+| `EMAIL_FROM_NAME` | No | Display name for emails (default: "Fleetillo Dispatch") |
 | `DISPATCH_API_KEYS` | Yes | Comma-separated API keys for authentication |
 | `SUPABASE_URL` | Yes | Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key |
@@ -79,7 +79,7 @@ curl "https://api.telegram.org/botYOUR_BOT_TOKEN/setWebhook?url=YOUR_APP_URL/dis
 
 **Example:**
 ```bash
-curl "https://api.telegram.org/bot123456:ABC-DEF/setWebhook?url=https://optiroute-web-tulrl.ondigitalocean.app/dispatch/api/v1/telegram/webhook"
+curl "https://api.telegram.org/bot123456:ABC-DEF/setWebhook?url=https://fleetillo-web-tulrl.ondigitalocean.app/dispatch/api/v1/telegram/webhook"
 ```
 
 ### Verifying the Webhook
