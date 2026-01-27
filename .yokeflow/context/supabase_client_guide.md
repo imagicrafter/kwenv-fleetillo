@@ -1,11 +1,11 @@
-# OptiRoute Supabase Client Guide
+# Fleetillo Supabase Client Guide
 
-This guide explains how to initialize and use the Supabase client in the OptiRoute application.
+This guide explains how to initialize and use the Supabase client in the Fleetillo application.
 
 ## Overview
 
-OptiRoute uses Supabase as its backend, providing:
-- PostgreSQL database with a custom `optiroute` schema
+Fleetillo uses Supabase as its backend, providing:
+- PostgreSQL database with a custom `fleetillo` schema
 - Row Level Security (RLS) support
 - Real-time subscriptions (optional)
 
@@ -68,7 +68,7 @@ let currentOptions: SupabaseClientOptions | null = null;
  * initializeSupabase({
  *   url: 'https://test.supabase.co',
  *   anonKey: 'test-key',
- *   schema: 'optiroute'
+ *   schema: 'fleetillo'
  * });
  */
 export function initializeSupabase(
@@ -103,7 +103,7 @@ export function initializeSupabase(
       },
       global: {
         headers: {
-          'x-application-name': 'optiroute',
+          'x-application-name': 'fleetillo',
         },
       },
     });
@@ -121,7 +121,7 @@ export function initializeSupabase(
         },
         global: {
           headers: {
-            'x-application-name': 'optiroute-admin',
+            'x-application-name': 'fleetillo-admin',
           },
         },
       });
@@ -367,17 +367,17 @@ const { data, error } = await supabase
 
 ## Schema Configuration
 
-The `optiroute` schema is specified in the client options:
+The `fleetillo` schema is specified in the client options:
 
 ```typescript
 supabaseClient = createClient(url, key, {
   db: {
-    schema: 'optiroute',  // All queries use this schema
+    schema: 'fleetillo',  // All queries use this schema
   },
 });
 ```
 
-This means all `.from('tablename')` calls automatically use `optiroute.tablename`.
+This means all `.from('tablename')` calls automatically use `fleetillo.tablename`.
 
 ## Error Handling
 
@@ -434,7 +434,7 @@ beforeAll(() => {
   initializeSupabase({
     url: process.env.TEST_SUPABASE_URL,
     anonKey: process.env.TEST_SUPABASE_KEY,
-    schema: 'optiroute_test',
+    schema: 'fleetillo_test',
   });
 });
 

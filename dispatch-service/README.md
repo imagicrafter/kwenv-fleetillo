@@ -1,6 +1,6 @@
 # Dispatch Service
 
-The OptiRoute Dispatch Service handles driver notifications via Telegram and Email, including driver registration and route dispatch.
+The Fleetillo Dispatch Service handles driver notifications via Telegram and Email, including driver registration and route dispatch.
 
 ## Quick Start
 
@@ -28,7 +28,7 @@ TELEGRAM_WEBHOOK_SECRET=your-webhook-secret-token
 RESEND_API_KEY=your-resend-api-key
 EMAIL_PROVIDER=resend
 EMAIL_FROM_ADDRESS=dispatch@yourdomain.com
-EMAIL_FROM_NAME="OptiRoute Dispatch"
+EMAIL_FROM_NAME="Fleetillo Dispatch"
 CORS_ORIGIN=https://your-app-domain.com
 ```
 
@@ -51,7 +51,7 @@ TELEGRAM_WEBHOOK_SECRET=your-webhook-secret-token
 EMAIL_PROVIDER=resend
 RESEND_API_KEY=your-resend-api-key
 EMAIL_FROM_ADDRESS=dispatch@yourdomain.com
-EMAIL_FROM_NAME=OptiRoute Dispatch
+EMAIL_FROM_NAME=Fleetillo Dispatch
 CORS_ORIGIN=https://your-app-domain.com
 APP_BASE_URL=https://your-main-app-domain.com
 ```
@@ -66,7 +66,7 @@ APP_BASE_URL=https://your-main-app-domain.com
 | `RESEND_API_KEY` | If using Resend | API key from [Resend](https://resend.com) |
 | `SENDGRID_API_KEY` | If using SendGrid | API key from [SendGrid](https://sendgrid.com) |
 | `EMAIL_FROM_ADDRESS` | Yes | Verified sender email address |
-| `EMAIL_FROM_NAME` | No | Display name for emails (default: "OptiRoute Dispatch") |
+| `EMAIL_FROM_NAME` | No | Display name for emails (default: "Fleetillo Dispatch") |
 | `DISPATCH_API_KEYS` | Yes | Comma-separated API keys (**minimum 32 characters each**) |
 | `SUPABASE_URL` | Yes | Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key (required to bypass RLS) |
@@ -126,6 +126,11 @@ For local development, you can omit the secret token:
 
 ```bash
 curl "https://api.telegram.org/botYOUR_BOT_TOKEN/setWebhook?url=YOUR_APP_URL/dispatch/api/v1/telegram/webhook"
+```
+
+**Example:**
+```bash
+curl "https://api.telegram.org/bot123456:ABC-DEF/setWebhook?url=https://fleetillo-web-tulrl.ondigitalocean.app/dispatch/api/v1/telegram/webhook"
 ```
 
 **Note:** If `TELEGRAM_WEBHOOK_SECRET` is not set, the service will log a warning but allow requests through. This is acceptable for development but not recommended for production.

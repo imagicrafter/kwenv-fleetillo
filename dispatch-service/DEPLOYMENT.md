@@ -105,7 +105,7 @@ The following environment variables are configured in `do-app-spec.yaml`:
 **Shared with Main App:**
 - `SUPABASE_URL` - Supabase project URL
 - `SUPABASE_SERVICE_KEY` - Supabase service role key
-- `SUPABASE_SCHEMA` - Database schema name (routeiq)
+- `SUPABASE_SCHEMA` - Database schema name (fleetillo)
 
 **Dispatch Service Specific:**
 - `PORT` - Service port (3001)
@@ -129,7 +129,7 @@ For local development, you can run the dispatch service without real external se
 # Supabase (same as main app)
 SUPABASE_URL=your_supabase_url
 SUPABASE_SERVICE_KEY=your_service_key
-SUPABASE_SCHEMA=routeiq
+SUPABASE_SCHEMA=fleetillo
 
 # Service configuration
 PORT=3001

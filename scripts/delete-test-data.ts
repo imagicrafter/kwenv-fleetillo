@@ -2,7 +2,7 @@
 /**
  * Delete Test Data Script
  * 
- * Deletes records created on a specific date across all routeiq tables.
+ * Deletes records created on a specific date across all fleetillo tables.
  * This is used to clean up test data that was accidentally added.
  * 
  * Usage:
@@ -43,7 +43,7 @@ async function deleteTestData(): Promise<void> {
         process.exit(1);
     }
 
-    const schema = config.supabase.schema || 'routeiq';
+    const schema = config.supabase.schema || 'fleetillo';
 
     // Tables to check (in order to respect foreign key constraints)
     // Delete children first, then parents

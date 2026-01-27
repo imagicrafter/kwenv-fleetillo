@@ -2,7 +2,7 @@
  * Supabase Client Service
  *
  * Provides a properly configured Supabase client with authentication,
- * connection verification, and error handling for the RouteIQ application.
+ * connection verification, and error handling for the Fleetillo application.
  */
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
@@ -90,7 +90,7 @@ function createSupabaseClient(options: SupabaseClientOptions): GenericSupabaseCl
     },
     global: {
       headers: {
-        'x-application-name': 'routeiq',
+        'x-application-name': 'fleetillo',
       },
     },
   });
@@ -123,7 +123,7 @@ function createAdminSupabaseClient(options: SupabaseClientOptions): GenericSupab
     },
     global: {
       headers: {
-        'x-application-name': 'routeiq-admin',
+        'x-application-name': 'fleetillo-admin',
       },
     },
   });

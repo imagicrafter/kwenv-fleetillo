@@ -22,7 +22,7 @@ if (!SUPABASE_KEY) {
 }
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
-  db: { schema: 'routeiq' },
+  db: { schema: 'fleetillo' },
 });
 
 let totalTests = 0;
@@ -54,7 +54,7 @@ function logInfo(message: string) {
 
 async function testForeignKeyConstraints() {
   log('\n🔍 Testing Foreign Key Constraints\n');
-  log('=' .repeat(80));
+  log('='.repeat(80));
 
   let testClientId: string = '';
   let testServiceId: string = '';
@@ -431,10 +431,10 @@ async function testForeignKeyConstraints() {
 
 async function main() {
   console.log('\n🚀 RouteIQ Database Foreign Key Constraints Verification');
-  console.log('=' .repeat(80));
+  console.log('='.repeat(80));
   console.log(`Database: ${SUPABASE_URL}`);
-  console.log(`Schema: routeiq`);
-  console.log('=' .repeat(80));
+  console.log(`Schema: fleetillo`);
+  console.log('='.repeat(80));
 
   await testForeignKeyConstraints();
 

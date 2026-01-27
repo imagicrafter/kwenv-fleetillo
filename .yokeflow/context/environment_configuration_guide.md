@@ -1,6 +1,6 @@
-# OptiRoute Environment Configuration Guide
+# Fleetillo Environment Configuration Guide
 
-This guide explains how to configure environment variables for the OptiRoute application.
+This guide explains how to configure environment variables for the Fleetillo application.
 
 ## Environment Files
 
@@ -31,7 +31,7 @@ SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 # Database schema name
-SUPABASE_SCHEMA=optiroute
+SUPABASE_SCHEMA=fleetillo
 ```
 
 ### Google Maps Platform
@@ -85,7 +85,7 @@ VITE_GOOGLE_MAPS_API_KEY=AIzaSy...
 
 ```bash
 # ============================================================================
-# OptiRoute Environment Configuration
+# Fleetillo Environment Configuration
 # ============================================================================
 
 # Environment
@@ -102,7 +102,7 @@ DEBUG=false
 SUPABASE_URL=https://your-project-id.supabase.co
 SUPABASE_KEY=your-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-SUPABASE_SCHEMA=optiroute
+SUPABASE_SCHEMA=fleetillo
 
 # ============================================================================
 # Google Maps Platform
@@ -148,6 +148,7 @@ export interface SupabaseConfig {
 
 export interface GoogleMapsConfig {
   apiKey: string;
+  // ... other maps config
 }
 
 export interface AppConfig {
@@ -197,7 +198,7 @@ export const config: AppConfig = {
     url: getRequiredEnv('SUPABASE_URL'),
     anonKey: getRequiredEnv('SUPABASE_KEY'),
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-    schema: getOptionalEnv('SUPABASE_SCHEMA', 'optiroute'),
+    schema: getOptionalEnv('SUPABASE_SCHEMA', 'fleetillo'),
   },
   googleMaps: {
     apiKey: getRequiredEnv('GOOGLE_MAPS_API_KEY'),
@@ -260,7 +261,7 @@ In Supabase Dashboard:
 
 ### 3. Create Schema
 
-Run the SQL from `optiroute_schema.sql` in the SQL Editor.
+Run the SQL from `fleetillo_schema.sql` in the SQL Editor.
 
 ---
 
@@ -330,7 +331,7 @@ PORT=8080
 # .env.test
 NODE_ENV=test
 LOG_LEVEL=error
-SUPABASE_SCHEMA=optiroute_test
+SUPABASE_SCHEMA=fleetillo_test
 ```
 
 ---
@@ -398,7 +399,7 @@ Error: Google Maps API key not configured
 Error: relation "clients" does not exist
 ```
 
-**Solution:** Verify `SUPABASE_SCHEMA=optiroute` and schema exists in database.
+**Solution:** Verify `SUPABASE_SCHEMA=fleetillo` and schema exists in database.
 
 ---
 

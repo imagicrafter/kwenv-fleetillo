@@ -5,8 +5,8 @@ require('dotenv').config({ path: '../.env' });
 async function checkColumns() {
     const supabaseUrl = process.env.SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
-    // Default to optiroute schema as per config/index.js
-    const schema = process.env.SUPABASE_SCHEMA || 'optiroute';
+    // Default to fleetillo schema as per config/index.js
+    const schema = process.env.SUPABASE_SCHEMA || 'fleetillo';
 
     if (!supabaseUrl || !supabaseKey) {
         console.error('Error: SUPABASE_URL or SUPABASE_KEY not found in .env');

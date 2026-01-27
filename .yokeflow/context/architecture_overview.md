@@ -1,10 +1,10 @@
-# OptiRoute Architecture Overview
+# Fleetillo Architecture Overview
 
-This document provides a high-level overview of the OptiRoute application architecture, tech stack, and project structure.
+This document provides a high-level overview of the Fleetillo application architecture, tech stack, and project structure.
 
 ## Application Purpose
 
-OptiRoute is a route planning and management system for service-based businesses. It enables:
+Fleetillo is a route planning and management system for service-based businesses. It enables:
 
 - Customer/client management with addresses and service locations
 - Service type definitions with duration and pricing
@@ -43,7 +43,7 @@ OptiRoute is a route planning and management system for service-based businesses
 │  └──────────┘ └──────────┘ └──────────┘ └──────────┘       │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐       │
 │  │ Route    │ │ Location │ │ Route    │ │ Google   │       │
-│  │ Service  │ │ Service  │ │ Planning │ │ Maps Svc │       │
+│  │ Service  │ │ Location │ │ Planning │ │ Maps Svc │       │
 │  └──────────┘ └──────────┘ └──────────┘ └──────────┘       │
 └─────────────────────────────────────────────────────────────┘
                             │
@@ -52,7 +52,7 @@ OptiRoute is a route planning and management system for service-based businesses
 │                     Supabase Backend                         │
 │  ┌───────────────────┐  ┌───────────────────┐              │
 │  │   PostgreSQL DB   │  │    Auth & RLS     │              │
-│  │  (optiroute schema)│  │                   │              │
+│  │  (fleetillo schema)│  │                   │              │
 │  └───────────────────┘  └───────────────────┘              │
 └─────────────────────────────────────────────────────────────┘
                             │
@@ -219,7 +219,7 @@ Services encapsulate all business logic and database operations:
 
 ## Database Schema
 
-The application uses PostgreSQL via Supabase with a custom schema named `optiroute`.
+The application uses PostgreSQL via Supabase with a custom schema named `fleetillo`.
 
 **Tables:**
 - `clients` - Customer records
@@ -230,7 +230,7 @@ The application uses PostgreSQL via Supabase with a custom schema named `optirou
 - `bookings` - Service appointments
 - `routes` - Planned/executed routes
 
-See `optiroute_schema.sql` for complete DDL.
+See `fleetillo_schema.sql` for complete DDL.
 
 ## External Integrations
 
@@ -243,7 +243,7 @@ See `google_maps_integration_guide.md` for implementation details.
 
 ## Related Documentation
 
-- `optiroute_schema.sql` - Database DDL
+- `fleetillo_schema.sql` - Database DDL
 - `rest_api_specification.md` - API endpoints
 - `service_implementation_guide.md` - Service layer patterns
 - `type_definitions_guide.md` - TypeScript types

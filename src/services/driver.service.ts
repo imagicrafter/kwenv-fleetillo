@@ -25,7 +25,7 @@ import { rowToVehicle } from '../types/vehicle';
 const logger = createContextLogger('DriverService');
 
 /**
- * Table name for drivers in the optiroute schema
+ * Table name for drivers in the fleetillo schema
  */
 const DRIVERS_TABLE = 'drivers';
 

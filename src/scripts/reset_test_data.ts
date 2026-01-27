@@ -15,7 +15,7 @@ if (!supabaseUrl || !supabaseServiceKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey, {
-    db: { schema: 'routeiq' }
+    db: { schema: 'fleetillo' }
 });
 
 async function resetData() {
