@@ -23,10 +23,12 @@ import { Request, Response } from 'express';
 import {
   createDispatchHandler,
   createBatchDispatchHandler,
-  validateDispatchRequest,
-  validateBatchDispatchRequest,
 } from '../../src/api/handlers/dispatch.js';
 import { DispatchOrchestrator } from '../../src/core/orchestrator.js';
+import {
+  singleDispatchBodySchema,
+  batchDispatchBodySchema,
+} from '../../src/validation/schemas.js';
 
 // Import to get the Express Request type extension for correlationId
 import '../../src/middleware/correlation.js';
@@ -965,14 +967,14 @@ describe('Feature: dispatch-service, Property 5: Request Validation', () => {
   });
 
   // =============================================================================
-  // Property Tests - Validation Function Unit Tests
+  // Property Tests - Validation Schema Unit Tests (using Zod schemas)
   // =============================================================================
 
-  describe('validateDispatchRequest function properties', () => {
+  describe('singleDispatchBodySchema properties', () => {
     /**
-     * Property: For any valid request, validateDispatchRequest SHALL return empty array.
+     * Property: For any valid request, singleDispatchBodySchema SHALL parse successfully.
      */
-    it('should return empty errors for valid requests', () => {
+    it('should parse successfully for valid requests', () => {
       fc.assert(
         fc.property(
           arbitraryUuid(),
@@ -992,8 +994,8 @@ describe('Feature: dispatch-service, Property 5: Request Validation', () => {
               body.multi_channel = multiChannel;
             }
 
-            const errors = validateDispatchRequest(body);
-            expect(errors).toHaveLength(0);
+            const result = singleDispatchBodySchema.safeParse(body);
+            expect(result.success).toBe(true);
           }
         ),
         { numRuns: 100 }
@@ -1001,43 +1003,47 @@ describe('Feature: dispatch-service, Property 5: Request Validation', () => {
     });
 
     /**
-     * Property: For any request missing route_id, validateDispatchRequest SHALL return error.
+     * Property: For any request missing route_id, singleDispatchBodySchema SHALL fail.
      */
-    it('should return error when route_id is missing', () => {
+    it('should fail when route_id is missing', () => {
       fc.assert(
         fc.property(arbitraryUuid(), (driverId) => {
           const body = { driver_id: driverId };
-          const errors = validateDispatchRequest(body);
+          const result = singleDispatchBodySchema.safeParse(body);
 
-          expect(errors.length).toBeGreaterThan(0);
-          expect(errors.some((e) => e.field === 'route_id')).toBe(true);
+          expect(result.success).toBe(false);
+          if (!result.success) {
+            expect(result.error.issues.some((e) => e.path.includes('route_id'))).toBe(true);
+          }
         }),
         { numRuns: 100 }
       );
     });
 
     /**
-     * Property: For any request missing driver_id, validateDispatchRequest SHALL return error.
+     * Property: For any request missing driver_id, singleDispatchBodySchema SHALL fail.
      */
-    it('should return error when driver_id is missing', () => {
+    it('should fail when driver_id is missing', () => {
       fc.assert(
         fc.property(arbitraryUuid(), (routeId) => {
           const body = { route_id: routeId };
-          const errors = validateDispatchRequest(body);
+          const result = singleDispatchBodySchema.safeParse(body);
 
-          expect(errors.length).toBeGreaterThan(0);
-          expect(errors.some((e) => e.field === 'driver_id')).toBe(true);
+          expect(result.success).toBe(false);
+          if (!result.success) {
+            expect(result.error.issues.some((e) => e.path.includes('driver_id'))).toBe(true);
+          }
         }),
         { numRuns: 100 }
       );
     });
   });
 
-  describe('validateBatchDispatchRequest function properties', () => {
+  describe('batchDispatchBodySchema properties', () => {
     /**
-     * Property: For any valid batch request, validateBatchDispatchRequest SHALL return isValid: true.
+     * Property: For any valid batch request, batchDispatchBodySchema SHALL parse successfully.
      */
-    it('should return isValid true for valid batch requests', () => {
+    it('should parse successfully for valid batch requests', () => {
       fc.assert(
         fc.property(
           fc.array(
@@ -1049,10 +1055,9 @@ describe('Feature: dispatch-service, Property 5: Request Validation', () => {
           ),
           (dispatches) => {
             const body = { dispatches };
-            const result = validateBatchDispatchRequest(body);
+            const result = batchDispatchBodySchema.safeParse(body);
 
-            expect(result.isValid).toBe(true);
-            expect(result.errors).toHaveLength(0);
+            expect(result.success).toBe(true);
           }
         ),
         { numRuns: 100 }
@@ -1060,32 +1065,34 @@ describe('Feature: dispatch-service, Property 5: Request Validation', () => {
     });
 
     /**
-     * Property: For any empty dispatches array, validateBatchDispatchRequest SHALL return isValid: false.
+     * Property: For any empty dispatches array, batchDispatchBodySchema SHALL fail.
      */
-    it('should return isValid false for empty dispatches array', () => {
+    it('should fail for empty dispatches array', () => {
       fc.assert(
         fc.property(fc.constant({ dispatches: [] }), (body) => {
-          const result = validateBatchDispatchRequest(body);
+          const result = batchDispatchBodySchema.safeParse(body);
 
-          expect(result.isValid).toBe(false);
-          expect(result.errors.length).toBeGreaterThan(0);
-          expect(result.errors.some((e) => e.message.includes('empty'))).toBe(true);
+          expect(result.success).toBe(false);
+          if (!result.success) {
+            expect(result.error.issues.some((e) => e.message.includes('empty'))).toBe(true);
+          }
         }),
         { numRuns: 100 }
       );
     });
 
     /**
-     * Property: For any missing dispatches field, validateBatchDispatchRequest SHALL return isValid: false.
+     * Property: For any missing dispatches field, batchDispatchBodySchema SHALL fail.
      */
-    it('should return isValid false when dispatches field is missing', () => {
+    it('should fail when dispatches field is missing', () => {
       fc.assert(
         fc.property(fc.constant({}), (body) => {
-          const result = validateBatchDispatchRequest(body);
+          const result = batchDispatchBodySchema.safeParse(body);
 
-          expect(result.isValid).toBe(false);
-          expect(result.errors.length).toBeGreaterThan(0);
-          expect(result.errors.some((e) => e.field === 'dispatches')).toBe(true);
+          expect(result.success).toBe(false);
+          if (!result.success) {
+            expect(result.error.issues.some((e) => e.path.includes('dispatches'))).toBe(true);
+          }
         }),
         { numRuns: 100 }
       );

@@ -38,11 +38,12 @@ describe('Property 17: API Key Authentication', () => {
 
   /**
    * Arbitrary generator for valid API key strings.
-   * Generates non-empty strings without commas (since commas are delimiters).
+   * Generates strings of at least 32 chars without commas (since commas are delimiters).
+   * Note: API keys must be at least 32 characters to be accepted.
    */
   const arbitraryApiKey = (): fc.Arbitrary<string> =>
-    fc.string({ minLength: 1, maxLength: 64 })
-      .filter((s) => s.trim().length > 0 && !s.includes(','));
+    fc.string({ minLength: 32, maxLength: 64 })
+      .filter((s) => s.trim().length >= 32 && !s.includes(','));
 
   /**
    * Arbitrary generator for a set of valid API keys (1-5 keys).
@@ -423,14 +424,20 @@ describe('Property 17: API Key Authentication', () => {
 
           const configuredKeys = getConfiguredApiKeys();
 
-          // All configured keys should be in the returned set
+          // All configured keys should be in the returned array (that meet min length)
           for (const key of validKeys) {
-            expect(configuredKeys.has(key.trim())).toBe(true);
+            const trimmedKey = key.trim();
+            // Only keys meeting minimum length (32 chars) will be included
+            if (trimmedKey.length >= 32) {
+              expect(configuredKeys.includes(trimmedKey)).toBe(true);
+            }
           }
 
-          // The set size should match (accounting for duplicates)
-          const uniqueKeys = new Set(validKeys.map((k) => k.trim()));
-          expect(configuredKeys.size).toBe(uniqueKeys.size);
+          // The array length should match unique keys that meet min length
+          const uniqueKeys = new Set(
+            validKeys.map((k) => k.trim()).filter((k) => k.length >= 32)
+          );
+          expect(configuredKeys.length).toBe(uniqueKeys.size);
         }),
         { numRuns: 100 }
       );
@@ -451,7 +458,7 @@ describe('Property 17: API Key Authentication', () => {
             }
 
             const configuredKeys = getConfiguredApiKeys();
-            expect(configuredKeys.size).toBe(0);
+            expect(configuredKeys.length).toBe(0);
           }
         ),
         { numRuns: 10 }

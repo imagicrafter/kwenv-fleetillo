@@ -22,12 +22,14 @@ The dispatch service runs embedded within the web-launcher, sharing the same pro
 **Configuration in web-launcher/.env:**
 ```bash
 DISPATCH_MODE=embedded
-DISPATCH_API_KEYS=your-api-key
+DISPATCH_API_KEYS=your-32-character-minimum-api-key
 TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+TELEGRAM_WEBHOOK_SECRET=your-webhook-secret-token
 RESEND_API_KEY=your-resend-api-key
 EMAIL_PROVIDER=resend
 EMAIL_FROM_ADDRESS=dispatch@yourdomain.com
 EMAIL_FROM_NAME="Fleetillo Dispatch"
+CORS_ORIGIN=https://your-app-domain.com
 ```
 
 **Routes are mounted at:** `/dispatch/api/v1/...`
@@ -41,14 +43,17 @@ The dispatch service runs as a separate process. Used for development or when de
 PORT=3001
 NODE_ENV=development
 SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SCHEMA=fleetillo
 SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-DISPATCH_API_KEYS=your-api-key
+DISPATCH_API_KEYS=your-32-character-minimum-api-key
 TELEGRAM_BOT_TOKEN=your-telegram-bot-token
+TELEGRAM_WEBHOOK_SECRET=your-webhook-secret-token
 EMAIL_PROVIDER=resend
 RESEND_API_KEY=your-resend-api-key
 EMAIL_FROM_ADDRESS=dispatch@yourdomain.com
 EMAIL_FROM_NAME=Fleetillo Dispatch
+CORS_ORIGIN=https://your-app-domain.com
+APP_BASE_URL=https://your-main-app-domain.com
 ```
 
 ## Environment Variables
@@ -56,22 +61,68 @@ EMAIL_FROM_NAME=Fleetillo Dispatch
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `TELEGRAM_BOT_TOKEN` | Yes | Token from [@BotFather](https://t.me/botfather) |
+| `TELEGRAM_WEBHOOK_SECRET` | Production | Secret token for webhook authentication (see Security section) |
 | `EMAIL_PROVIDER` | Yes | `resend` or `sendgrid` |
 | `RESEND_API_KEY` | If using Resend | API key from [Resend](https://resend.com) |
 | `SENDGRID_API_KEY` | If using SendGrid | API key from [SendGrid](https://sendgrid.com) |
 | `EMAIL_FROM_ADDRESS` | Yes | Verified sender email address |
 | `EMAIL_FROM_NAME` | No | Display name for emails (default: "Fleetillo Dispatch") |
-| `DISPATCH_API_KEYS` | Yes | Comma-separated API keys for authentication |
+| `DISPATCH_API_KEYS` | Yes | Comma-separated API keys (**minimum 32 characters each**) |
 | `SUPABASE_URL` | Yes | Supabase project URL |
-| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Supabase service role key (required to bypass RLS) |
+| `CORS_ORIGIN` | Production | Comma-separated allowed origins (e.g., `https://app.example.com,https://admin.example.com`) |
+| `RATE_LIMIT_WINDOW_MS` | No | Rate limit window in ms (default: 60000) |
+| `RATE_LIMIT_MAX_REQUESTS` | No | Max requests per window (default: 100) |
 
 ## Telegram Webhook Configuration (CRITICAL)
 
 The Telegram bot requires a webhook to receive messages (like `/start` commands from driver registration). **This must be configured after deployment.**
 
-### Setting the Webhook
+### Automated Setup (Recommended)
 
-Replace `YOUR_BOT_TOKEN` and `YOUR_APP_URL` with your values:
+Use the included setup script to register the webhook with Telegram:
+
+**Step 1: Configure your `.env` file**
+```bash
+TELEGRAM_BOT_TOKEN=your-bot-token-from-botfather
+TELEGRAM_WEBHOOK_SECRET=your-64-character-hex-secret
+WEBHOOK_URL=https://your-domain.com/dispatch/api/v1/telegram/webhook
+```
+
+To generate a secret token:
+```bash
+openssl rand -hex 32
+```
+
+**Step 2: Run the setup script**
+```bash
+npm run setup:webhook
+```
+
+The script will:
+- Load configuration from your `.env` file
+- Register the webhook URL with Telegram
+- Configure the secret token for authentication
+- Verify the registration was successful
+
+**Alternative: Pass arguments directly**
+```bash
+./scripts/setup-telegram-webhook.sh <bot_token> <webhook_url> <webhook_secret>
+```
+
+### Manual Setup (Alternative)
+
+If you prefer to set up the webhook manually:
+
+```bash
+curl -X POST "https://api.telegram.org/botYOUR_BOT_TOKEN/setWebhook" \
+  -F "url=YOUR_APP_URL/dispatch/api/v1/telegram/webhook" \
+  -F "secret_token=YOUR_WEBHOOK_SECRET"
+```
+
+### Development Mode (No Secret)
+
+For local development, you can omit the secret token:
 
 ```bash
 curl "https://api.telegram.org/botYOUR_BOT_TOKEN/setWebhook?url=YOUR_APP_URL/dispatch/api/v1/telegram/webhook"
@@ -81,6 +132,8 @@ curl "https://api.telegram.org/botYOUR_BOT_TOKEN/setWebhook?url=YOUR_APP_URL/dis
 ```bash
 curl "https://api.telegram.org/bot123456:ABC-DEF/setWebhook?url=https://fleetillo-web-tulrl.ondigitalocean.app/dispatch/api/v1/telegram/webhook"
 ```
+
+**Note:** If `TELEGRAM_WEBHOOK_SECRET` is not set, the service will log a warning but allow requests through. This is acceptable for development but not recommended for production.
 
 ### Verifying the Webhook
 
@@ -105,7 +158,8 @@ curl "https://api.telegram.org/botYOUR_BOT_TOKEN/getWebhookInfo" | jq .
 
 | Issue | Solution |
 |-------|----------|
-| `url` is empty | Webhook not set. Run the setWebhook command. |
+| `url` is empty | Webhook not set. Run `npm run setup:webhook` |
+| `last_error_message: "401 Unauthorized"` | Secret mismatch. Ensure `TELEGRAM_WEBHOOK_SECRET` in your environment matches what was registered with Telegram. Re-run `npm run setup:webhook` |
 | `last_error_message: "404 Not Found"` | Wrong URL or dispatch service not running |
 | `last_error_message: "Failed to resolve host"` | Domain DNS not configured |
 | `pending_update_count` increasing | Webhook endpoint not responding correctly |
@@ -214,6 +268,37 @@ Check individual component status:
 - `telegram: unhealthy` - Check bot token is valid
 - `email: unhealthy` - Check email provider API key
 
+## Startup Validation
+
+In **standalone mode**, the service validates required environment variables at startup and fails fast with clear error messages if any are missing:
+
+```
+============================================================
+ENVIRONMENT VALIDATION FAILED
+============================================================
+
+The following required environment variables are missing or invalid:
+
+  ❌ Missing required environment variable: DISPATCH_API_KEYS
+  ❌ DISPATCH_API_KEYS contains 1 key(s) shorter than 32 characters.
+
+Please set these variables in your .env file or environment.
+See README.md for configuration details.
+============================================================
+```
+
+### Required Variables (all modes)
+- `SUPABASE_URL`
+- `DISPATCH_API_KEYS` (each key must be 32+ characters)
+- `TELEGRAM_BOT_TOKEN`
+
+### Required in Production
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+### Recommended in Production (warnings)
+- `TELEGRAM_WEBHOOK_SECRET` - Webhook requests will not be authenticated
+- `CORS_ORIGIN` - CORS will block all cross-origin requests
+
 ## Development
 
 ### Build
@@ -235,6 +320,107 @@ npm test
 ```bash
 npm run typecheck
 ```
+
+## Security Configuration
+
+The dispatch service includes multiple security layers. All are enabled by default in production.
+
+### Security by Deployment Mode
+
+| Security Feature | Standalone | Embedded |
+|------------------|------------|----------|
+| Rate limiting | ✅ | ✅ |
+| API key auth (32-char, timing-safe) | ✅ | ✅ |
+| Telegram webhook auth | ✅ | ✅ |
+| Zod request validation | ✅ | ✅ |
+| Helmet security headers | ✅ | ❌ * |
+| Hardened CORS | ✅ | ❌ * |
+
+\* In embedded mode, Helmet and CORS are the responsibility of the parent application (web-launcher).
+
+### API Key Authentication
+
+All protected endpoints require the `X-API-Key` header.
+
+**Requirements:**
+- API keys must be **at least 32 characters** long
+- Keys shorter than 32 characters are rejected
+- Multiple keys can be configured (comma-separated)
+- Uses timing-safe comparison to prevent timing attacks
+
+```bash
+# Example: Generate a secure API key
+openssl rand -base64 32
+```
+
+### Rate Limiting
+
+Three tiers of rate limiting are applied:
+
+| Endpoint Type | Limit | Window |
+|---------------|-------|--------|
+| General API | 100 requests | 1 minute |
+| Dispatch endpoints | 50 requests | 1 minute |
+| Telegram webhook | 10 requests | 1 second |
+
+**Configuration:**
+```bash
+RATE_LIMIT_WINDOW_MS=60000      # Window in milliseconds (default: 60000)
+RATE_LIMIT_MAX_REQUESTS=100     # Max requests per window (default: 100)
+```
+
+Rate limit responses return HTTP 429 with headers:
+- `RateLimit-Limit`: Maximum requests allowed
+- `RateLimit-Remaining`: Requests remaining in window
+- `RateLimit-Reset`: Time when the limit resets
+
+### Telegram Webhook Authentication
+
+Webhook requests from Telegram are authenticated using a secret token.
+
+**Setup:**
+1. Generate a secret: `openssl rand -hex 32`
+2. Register webhook with Telegram including the `secret_token` parameter
+3. Set `TELEGRAM_WEBHOOK_SECRET` in your environment
+
+Telegram sends this token in the `X-Telegram-Bot-Api-Secret-Token` header with each request.
+
+**Note:** If `TELEGRAM_WEBHOOK_SECRET` is not configured, webhook authentication is skipped (development only - logs a warning).
+
+### CORS Configuration
+
+Cross-Origin Resource Sharing is configured via the `CORS_ORIGIN` environment variable.
+
+```bash
+# Single origin
+CORS_ORIGIN=https://app.example.com
+
+# Multiple origins (comma-separated)
+CORS_ORIGIN=https://app.example.com,https://admin.example.com
+```
+
+If not set, CORS is disabled (no cross-origin requests allowed).
+
+### Security Headers (Helmet)
+
+The service uses [Helmet](https://helmetjs.github.io/) to set secure HTTP headers:
+
+- Content Security Policy (CSP)
+- X-Content-Type-Options: nosniff
+- X-Frame-Options: DENY
+- Strict-Transport-Security (HSTS)
+- X-XSS-Protection
+
+### Request Validation
+
+All request bodies are validated using [Zod](https://zod.dev/) schemas:
+
+- Type checking for all fields
+- UUID format validation for IDs
+- Enum validation for channel types
+- Array bounds checking for batch requests
+
+Invalid requests return HTTP 400 with detailed field-level error messages.
 
 ## Related Documentation
 

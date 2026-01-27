@@ -13,6 +13,22 @@
 
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.js';
+import { telegramAuthMiddleware } from '../middleware/telegram-auth.js';
+import { validateBody, validateParams, validateQuery } from '../middleware/validate.js';
+import {
+  singleDispatchBodySchema,
+  batchDispatchBodySchema,
+  dispatchIdParamSchema,
+  listDispatchesQuerySchema,
+  telegramUpdateSchema,
+  driverIdParamSchema,
+  sendRegistrationEmailBodySchema,
+} from '../validation/schemas.js';
+import {
+  generalRateLimiter,
+  dispatchRateLimiter,
+  webhookRateLimiter,
+} from '../middleware/rate-limit.js';
 import { createHealthHandler, HealthCheckDependencies } from './handlers/health.js';
 import {
   createDispatchHandler,
@@ -49,6 +65,11 @@ export function createApiRouter(dependencies: RouterDependencies): Router {
   const { orchestrator, healthDependencies } = dependencies;
 
   // =============================================================================
+  // Apply general rate limiting to all routes
+  // =============================================================================
+  router.use(generalRateLimiter);
+
+  // =============================================================================
   // Public Routes (no authentication required)
   // =============================================================================
 
@@ -78,7 +99,13 @@ export function createApiRouter(dependencies: RouterDependencies): Router {
    * @requirements 9.1, 9.2, 9.3 - API key authentication
    */
   const dispatchHandler = createDispatchHandler(orchestrator);
-  router.post('/dispatch', authMiddleware, dispatchHandler);
+  router.post(
+    '/dispatch',
+    authMiddleware,
+    dispatchRateLimiter,
+    validateBody(singleDispatchBodySchema),
+    dispatchHandler
+  );
 
   /**
    * POST /api/v1/dispatch/batch
@@ -88,8 +115,15 @@ export function createApiRouter(dependencies: RouterDependencies): Router {
    *
    * @requirements 2.1 - Process batch dispatch items and return results
    * @requirements 9.1, 9.2, 9.3 - API key authentication
-   */  const batchDispatchHandler = createBatchDispatchHandler(orchestrator);
-  router.post('/dispatch/batch', authMiddleware, batchDispatchHandler);
+   */
+  const batchDispatchHandler = createBatchDispatchHandler(orchestrator);
+  router.post(
+    '/dispatch/batch',
+    authMiddleware,
+    dispatchRateLimiter,
+    validateBody(batchDispatchBodySchema),
+    batchDispatchHandler
+  );
 
   /**
    * GET /api/v1/dispatch
@@ -98,7 +132,12 @@ export function createApiRouter(dependencies: RouterDependencies): Router {
    * Requires valid API key in X-API-Key header.
    */
   const listDispatchesHandler = createListDispatchesHandler(orchestrator);
-  router.get('/dispatch', authMiddleware, listDispatchesHandler);
+  router.get(
+    '/dispatch',
+    authMiddleware,
+    validateQuery(listDispatchesQuerySchema),
+    listDispatchesHandler
+  );
 
   /**
    * GET /api/v1/dispatch/stats
@@ -119,7 +158,12 @@ export function createApiRouter(dependencies: RouterDependencies): Router {
    * @requirements 9.1, 9.2, 9.3 - API key authentication
    */
   const getDispatchHandler = createGetDispatchHandler(orchestrator);
-  router.get('/dispatch/:id', authMiddleware, getDispatchHandler);
+  router.get(
+    '/dispatch/:id',
+    authMiddleware,
+    validateParams(dispatchIdParamSchema),
+    getDispatchHandler
+  );
 
   // =============================================================================
   // Telegram Integration Routes
@@ -130,10 +174,19 @@ export function createApiRouter(dependencies: RouterDependencies): Router {
    *
    * Telegram webhook endpoint to receive incoming messages.
    * Handles /start commands for driver registration.
-   * Public endpoint (no authentication required - Telegram sends updates here).
+   * Protected by:
+   * - Webhook rate limiter to prevent abuse
+   * - Telegram secret token authentication (when TELEGRAM_WEBHOOK_SECRET is configured)
+   * - Zod schema validation for webhook payload
    */
   const telegramWebhookHandler = createTelegramWebhookHandler();
-  router.post('/telegram/webhook', telegramWebhookHandler);
+  router.post(
+    '/telegram/webhook',
+    webhookRateLimiter,
+    telegramAuthMiddleware,
+    validateBody(telegramUpdateSchema),
+    telegramWebhookHandler
+  );
 
   /**
    * GET /api/v1/telegram/registration/:driverId
@@ -142,7 +195,12 @@ export function createApiRouter(dependencies: RouterDependencies): Router {
    * Requires valid API key in X-API-Key header.
    */
   const registrationLinkHandler = createRegistrationLinkHandler();
-  router.get('/telegram/registration/:driverId', authMiddleware, registrationLinkHandler);
+  router.get(
+    '/telegram/registration/:driverId',
+    authMiddleware,
+    validateParams(driverIdParamSchema),
+    registrationLinkHandler
+  );
 
   /**
    * POST /api/v1/telegram/send-registration
@@ -155,7 +213,12 @@ export function createApiRouter(dependencies: RouterDependencies): Router {
    * - customMessage: string (optional) - Custom message to include in the email
    */
   const sendRegistrationEmailHandler = createSendRegistrationEmailHandler();
-  router.post('/telegram/send-registration', authMiddleware, sendRegistrationEmailHandler);
+  router.post(
+    '/telegram/send-registration',
+    authMiddleware,
+    validateBody(sendRegistrationEmailBodySchema),
+    sendRegistrationEmailHandler
+  );
 
   return router;
 }
