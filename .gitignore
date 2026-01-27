@@ -53,3 +53,6 @@ temp/
 
 # Claude Code - archived plans (closed issues, duplicates)
 .claude/plans/archive/
+
+# Symlink to global agents
+.claude/agents
