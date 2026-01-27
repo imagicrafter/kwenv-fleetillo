@@ -16,7 +16,7 @@ import { rowToService as convertRowToService, serviceInputToRow as convertInputT
 const logger = createContextLogger('ServiceService');
 
 /**
- * Table name for services in the routeiq schema
+ * Table name for services in the fleetillo schema
  */
 const SERVICES_TABLE = 'services';
 

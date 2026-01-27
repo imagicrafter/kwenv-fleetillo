@@ -2,7 +2,7 @@
  * Entities Repository
  *
  * Provides data access functions for fetching routes, drivers, vehicles, and bookings
- * from the existing Fleetillo tables in the routeiq schema.
+ * from the existing Fleetillo tables in the fleetillo schema.
  *
  * @module db/entities.repository
  * @requirements 1.1 - Fetch route, driver, vehicle, bookings data for dispatch

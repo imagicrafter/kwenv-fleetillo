@@ -6,7 +6,7 @@ The Dispatch Service provides REST APIs for sending route assignments to drivers
 
 ## Base URL
 
-- **Production (Embedded):** `https://optiroute.imagicrafterai.com/dispatch`
+- **Production (Embedded):** `https://fleetillo.imagicrafterai.com/dispatch`
 - **Production (Standalone):** `https://your-dispatch-service-url`
 - **Local Development:** `http://localhost:3001`
 
@@ -68,9 +68,6 @@ Send a route assignment to a single driver.
 
 **Error Responses:**
 
-**400 Bad Request** - Invalid request body:
-```json
-{
   "error": {
     "code": "VALIDATION_ERROR",
     "message": "Validation failed",
@@ -544,7 +541,7 @@ Receives updates from Telegram when drivers interact with the bot.
 **Note:** This endpoint is called by Telegram, not by your application. After deployment, register the webhook URL with Telegram:
 
 ```bash
-curl "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=https://optiroute.imagicrafterai.com/dispatch/api/v1/telegram/webhook"
+curl "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=https://fleetillo.imagicrafterai.com/dispatch/api/v1/telegram/webhook"
 ```
 
 The webhook handles:

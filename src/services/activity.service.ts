@@ -23,7 +23,7 @@ import { rowToActivityLog, activityInputToRow } from '../types/activity';
 const logger = createContextLogger('ActivityService');
 
 /**
- * Table name for activity logs in the routeiq schema
+ * Table name for activity logs in the fleetillo schema
  */
 const ACTIVITY_LOGS_TABLE = 'activity_logs';
 

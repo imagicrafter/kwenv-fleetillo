@@ -84,7 +84,7 @@ services:
     type: SECRET
     scope: RUN_TIME
   - key: EMAIL_FROM_ADDRESS
-    value: dispatch@optiroute.imagicrafterai.com
+    value: dispatch@fleetillo.imagicrafterai.com
     scope: RUN_TIME
   - key: EMAIL_FROM_NAME
     value: Fleetillo Dispatch

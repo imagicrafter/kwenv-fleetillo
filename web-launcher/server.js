@@ -24,7 +24,7 @@ if (fs.existsSync(envPath)) {
     dotenv.config({ path: envPath });
 }
 // Also load agent env vars for the chat proxy (if exists)
-const agentEnvPath = path.join(__dirname, '../gradient-agents/optiroute-support-agent/.env');
+const agentEnvPath = path.join(__dirname, '../gradient-agents/fleetillo-support-agent/.env');
 if (fs.existsSync(agentEnvPath)) {
     dotenv.config({ path: agentEnvPath });
 }
