@@ -994,6 +994,16 @@
                         </div>
                     </details>
 
+                    <!-- Custom Fields Section (Accordion) - Dynamically populated -->
+                    <details class="form-section-accordion" id="custom-fields-accordion" style="display: none;">
+                        <summary>Custom Fields</summary>
+                        <div class="section-content">
+                            <div id="driver-custom-fields-container">
+                                <!-- Custom fields will be rendered here by JavaScript -->
+                            </div>
+                        </div>
+                    </details>
+
                     <!-- Form Actions -->
                     <div class="form-actions">
                         <button type="button" class="btn-secondary close-modal-btn">Cancel</button>
@@ -1064,6 +1074,8 @@
         let searchTerm = '';
         let statusFilter = '';
         let currentDriverTags = [];
+        let driverCustomFieldsConfig = []; // Custom field definitions from settings
+        let currentDriverCustomFields = {}; // Current values for the driver being edited
 
         // Toast notification function
         function showToast(message, type = 'success') {
@@ -1139,6 +1151,111 @@
         }
 
         // RPC helper function removed - replaced by api-client.js
+
+        // Load driver custom fields configuration from settings
+        async function loadDriverCustomFieldsConfig() {
+            try {
+                const allSettings = await window.apiClient.settings.getAll();
+                const settings = (allSettings && allSettings.success) ? allSettings.data : allSettings;
+                if (settings && settings['drivers.customFields']) {
+                    driverCustomFieldsConfig = settings['drivers.customFields'];
+                } else {
+                    driverCustomFieldsConfig = [];
+                }
+            } catch (error) {
+                console.error('Failed to load driver custom fields config:', error);
+                driverCustomFieldsConfig = [];
+            }
+        }
+
+        // Render custom fields in the driver modal
+        function renderDriverCustomFields(customFieldValues = {}) {
+            const container = document.getElementById('driver-custom-fields-container');
+            const accordion = document.getElementById('custom-fields-accordion');
+
+            if (!driverCustomFieldsConfig || driverCustomFieldsConfig.length === 0) {
+                accordion.style.display = 'none';
+                container.innerHTML = '';
+                return;
+            }
+
+            accordion.style.display = 'block';
+            currentDriverCustomFields = { ...customFieldValues };
+
+            container.innerHTML = driverCustomFieldsConfig.map(field => {
+                const value = customFieldValues[field.key] ?? field.defaultValue ?? '';
+                const requiredAttr = field.required ? 'required' : '';
+                const requiredStar = field.required ? ' *' : '';
+
+                switch (field.type) {
+                    case 'text':
+                        return `
+                            <div class="form-group">
+                                <label for="custom-${field.key}">${field.label}${requiredStar}</label>
+                                <input type="text" id="custom-${field.key}" data-custom-field="${field.key}"
+                                    value="${value}" ${requiredAttr} placeholder="Enter ${field.label.toLowerCase()}">
+                            </div>
+                        `;
+                    case 'number':
+                        const suffix = field.suffix ? `<span style="margin-left: 8px; color: var(--text-secondary);">${field.suffix}</span>` : '';
+                        return `
+                            <div class="form-group">
+                                <label for="custom-${field.key}">${field.label}${requiredStar}</label>
+                                <div style="display: flex; align-items: center;">
+                                    <input type="number" id="custom-${field.key}" data-custom-field="${field.key}"
+                                        value="${value}" ${requiredAttr} style="flex: 1;">
+                                    ${suffix}
+                                </div>
+                            </div>
+                        `;
+                    case 'boolean':
+                        const checked = value === true || value === 'true' ? 'checked' : '';
+                        return `
+                            <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+                                <input type="checkbox" id="custom-${field.key}" data-custom-field="${field.key}"
+                                    ${checked} style="width: auto;">
+                                <label for="custom-${field.key}" style="margin-bottom: 0; cursor: pointer;">${field.label}${requiredStar}</label>
+                            </div>
+                        `;
+                    case 'select':
+                        const options = (field.options || []).map(opt =>
+                            `<option value="${opt}" ${value === opt ? 'selected' : ''}>${opt}</option>`
+                        ).join('');
+                        return `
+                            <div class="form-group">
+                                <label for="custom-${field.key}">${field.label}${requiredStar}</label>
+                                <select id="custom-${field.key}" data-custom-field="${field.key}" ${requiredAttr}>
+                                    <option value="">-- Select --</option>
+                                    ${options}
+                                </select>
+                            </div>
+                        `;
+                    default:
+                        return '';
+                }
+            }).join('');
+        }
+
+        // Collect custom field values from the form
+        function collectDriverCustomFields() {
+            const customFields = {};
+            const inputs = document.querySelectorAll('[data-custom-field]');
+
+            inputs.forEach(input => {
+                const key = input.dataset.customField;
+                const fieldConfig = driverCustomFieldsConfig.find(f => f.key === key);
+
+                if (input.type === 'checkbox') {
+                    customFields[key] = input.checked;
+                } else if (fieldConfig && fieldConfig.type === 'number') {
+                    customFields[key] = input.value ? parseFloat(input.value) : null;
+                } else {
+                    customFields[key] = input.value || null;
+                }
+            });
+
+            return customFields;
+        }
 
         // Load drivers with pagination and filters
         async function loadDrivers() {
@@ -1346,6 +1463,9 @@
             currentDriverTags = [];
             renderDriverTagChips();
 
+            // Render custom fields with empty values
+            renderDriverCustomFields({});
+
             document.getElementById('driver-modal').style.display = 'block';
         }
 
@@ -1427,6 +1547,9 @@
             currentDriverTags = driver.tags || [];
             renderDriverTagChips();
 
+            // Render custom fields with driver's custom field values
+            renderDriverCustomFields(driver.customFields || {});
+
             document.getElementById('driver-modal').style.display = 'block';
         }
 
@@ -1459,7 +1582,8 @@
                 emergency_contact_name: document.getElementById('emergency-contact-name').value || null,
                 emergency_contact_phone: document.getElementById('emergency-contact-phone').value || null,
                 notes: document.getElementById('driver-notes').value || null,
-                tags: currentDriverTags
+                tags: currentDriverTags,
+                custom_fields: collectDriverCustomFields()
             };
 
             try {
@@ -1679,6 +1803,7 @@
             // Load data
             loadDrivers();
             loadVehicles();
+            loadDriverCustomFieldsConfig();
 
             // Setup avatar upload
             setupAvatarUpload();
