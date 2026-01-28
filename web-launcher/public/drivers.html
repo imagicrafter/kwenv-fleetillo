@@ -1181,7 +1181,9 @@
             accordion.style.display = 'block';
 
             container.innerHTML = driverCustomFieldsConfig.map(field => {
-                const value = existingMetadata[field.key] ?? field.defaultValue ?? '';
+                // Try snake_case key first, then camelCase version for backwards compatibility
+                const camelKey = field.key.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+                const value = existingMetadata[field.key] ?? existingMetadata[camelKey] ?? field.defaultValue ?? '';
                 const requiredAttr = field.required ? 'required' : '';
                 const requiredStar = field.required ? ' *' : '';
 
