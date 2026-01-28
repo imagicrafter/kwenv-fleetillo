@@ -1548,7 +1548,8 @@
             renderDriverTagChips();
 
             // Render custom fields with driver's custom field values
-            renderDriverCustomFields(driver.customFields || {});
+            // Handle both camelCase (from service) and snake_case (from raw DB) responses
+            renderDriverCustomFields(driver.customFields || driver.custom_fields || {});
 
             document.getElementById('driver-modal').style.display = 'block';
         }
