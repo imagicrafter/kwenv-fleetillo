@@ -44,6 +44,12 @@ const rpcRegistry: Record<string, Record<string, Function>> = {
     drivers: {
         getAll: driverService.getDrivers,
         count: driverService.countDrivers,
+        getById: async (id: string) => driverService.getDriverById(id),
+        create: async (input: any) => driverService.createDriver(input),
+        update: async (input: any) => driverService.updateDriver(input.id, input),
+        delete: async (input: any) => driverService.deleteDriver(input.id),
+        assignToVehicle: async (input: any) => driverService.assignDriverToVehicle(input.driverId, input.vehicleId),
+        unassignFromVehicle: async (input: any) => driverService.unassignDriverFromVehicle(input.vehicleId),
     },
     settings: {
         getRouteSettings: async () => ({ dashboard: { showChatbot: true } }),
