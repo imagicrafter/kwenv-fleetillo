@@ -1,9 +1,9 @@
--- Add custom_fields JSONB column to drivers table
+-- Add metadata JSONB column to drivers table
 ALTER TABLE fleetillo.drivers
-ADD COLUMN IF NOT EXISTS custom_fields JSONB DEFAULT '{}'::jsonb;
+ADD COLUMN IF NOT EXISTS metadata JSONB DEFAULT '{}'::jsonb;
 
 -- Add GIN index for efficient JSONB queries
-CREATE INDEX IF NOT EXISTS idx_drivers_custom_fields
-ON fleetillo.drivers USING GIN(custom_fields);
+CREATE INDEX IF NOT EXISTS idx_drivers_metadata
+ON fleetillo.drivers USING GIN(metadata);
 
-COMMENT ON COLUMN fleetillo.drivers.custom_fields IS 'JSONB storage for custom driver fields configured in Settings';
+COMMENT ON COLUMN fleetillo.drivers.metadata IS 'JSONB storage for custom driver fields configured in Settings';

@@ -1075,7 +1075,6 @@
         let statusFilter = '';
         let currentDriverTags = [];
         let driverCustomFieldsConfig = []; // Custom field definitions from settings
-        let currentDriverCustomFields = {}; // Current values for the driver being edited
 
         // Toast notification function
         function showToast(message, type = 'success') {
@@ -1169,7 +1168,7 @@
         }
 
         // Render custom fields in the driver modal
-        function renderDriverCustomFields(customFieldValues = {}) {
+        function renderDriverCustomFields(existingMetadata = {}) {
             const container = document.getElementById('driver-custom-fields-container');
             const accordion = document.getElementById('custom-fields-accordion');
 
@@ -1180,10 +1179,9 @@
             }
 
             accordion.style.display = 'block';
-            currentDriverCustomFields = { ...customFieldValues };
 
             container.innerHTML = driverCustomFieldsConfig.map(field => {
-                const value = customFieldValues[field.key] ?? field.defaultValue ?? '';
+                const value = existingMetadata[field.key] ?? field.defaultValue ?? '';
                 const requiredAttr = field.required ? 'required' : '';
                 const requiredStar = field.required ? ' *' : '';
 
@@ -1236,25 +1234,22 @@
             }).join('');
         }
 
-        // Collect custom field values from the form
-        function collectDriverCustomFields() {
-            const customFields = {};
-            const inputs = document.querySelectorAll('[data-custom-field]');
-
-            inputs.forEach(input => {
-                const key = input.dataset.customField;
-                const fieldConfig = driverCustomFieldsConfig.find(f => f.key === key);
-
-                if (input.type === 'checkbox') {
-                    customFields[key] = input.checked;
-                } else if (fieldConfig && fieldConfig.type === 'number') {
-                    customFields[key] = input.value ? parseFloat(input.value) : null;
-                } else {
-                    customFields[key] = input.value || null;
+        // Collect custom field values from the form into metadata object
+        function collectDriverMetadata() {
+            const metadata = {};
+            driverCustomFieldsConfig.forEach(field => {
+                const el = document.getElementById(`custom-${field.key}`);
+                if (el) {
+                    if (field.type === 'boolean') {
+                        metadata[field.key] = el.checked;
+                    } else if (field.type === 'number') {
+                        metadata[field.key] = el.value ? parseFloat(el.value) : null;
+                    } else {
+                        metadata[field.key] = el.value;
+                    }
                 }
             });
-
-            return customFields;
+            return metadata;
         }
 
         // Load drivers with pagination and filters
@@ -1547,9 +1542,8 @@
             currentDriverTags = driver.tags || [];
             renderDriverTagChips();
 
-            // Render custom fields with driver's custom field values
-            // Handle both camelCase (from service) and snake_case (from raw DB) responses
-            renderDriverCustomFields(driver.customFields || driver.custom_fields || {});
+            // Render custom fields with driver's metadata
+            renderDriverCustomFields(driver.metadata || {});
 
             document.getElementById('driver-modal').style.display = 'block';
         }
@@ -1584,7 +1578,7 @@
                 emergency_contact_phone: document.getElementById('emergency-contact-phone').value || null,
                 notes: document.getElementById('driver-notes').value || null,
                 tags: currentDriverTags,
-                custom_fields: collectDriverCustomFields()
+                metadata: collectDriverMetadata()
             };
 
             try {
