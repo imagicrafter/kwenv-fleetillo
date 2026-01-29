@@ -195,6 +195,62 @@ function hasValidCoordinates(booking: Booking): boolean {
 }
 
 /**
+ * Finds bookings whose route_id references a soft-deleted route (orphaned references).
+ * This can happen if a route is deleted without properly clearing booking references.
+ * Read-only — does not modify the database.
+ */
+async function findOrphanedRouteBookings(bookings: Booking[]): Promise<Booking[]> {
+  const bookingsWithRouteId = bookings.filter(b => b.routeId);
+  if (bookingsWithRouteId.length === 0) {
+    return [];
+  }
+
+  const routeIds = [...new Set(
+    bookingsWithRouteId.map(b => b.routeId).filter((id): id is string => !!id)
+  )];
+  const supabaseClient = getAdminSupabaseClient() || getSupabaseClient();
+  const { data: activeRoutes } = await supabaseClient
+    .from('routes')
+    .select('id')
+    .in('id', routeIds)
+    .is('deleted_at', null);
+
+  const activeRouteIds = new Set((activeRoutes ?? []).map(r => r.id));
+  const orphaned = bookingsWithRouteId.filter(b => !activeRouteIds.has(b.routeId!));
+
+  if (orphaned.length > 0) {
+    logger.warn('Found bookings with orphaned route references', {
+      count: orphaned.length,
+      bookingIds: orphaned.map(b => b.id),
+    });
+  }
+
+  return orphaned;
+}
+
+/**
+ * Clears orphaned route_id references from bookings.
+ * Called during route planning (not preview) to fix stale data.
+ */
+async function clearOrphanedRouteReferences(bookings: Booking[]): Promise<void> {
+  if (bookings.length === 0) return;
+
+  const orphanedIds = bookings.map(b => b.id);
+  const supabaseClient = getAdminSupabaseClient() || getSupabaseClient();
+  const { error } = await supabaseClient
+    .from('bookings')
+    .update({ route_id: null, status: 'confirmed' })
+    .in('id', orphanedIds)
+    .is('deleted_at', null);
+
+  if (error) {
+    logger.warn('Failed to clear orphaned route references', { error: error.message });
+  } else {
+    logger.info('Cleared orphaned route references', { bookingIds: orphanedIds });
+  }
+}
+
+/**
  * Calculates distance between two coordinates using Haversine formula
  */
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -1022,9 +1078,24 @@ export async function previewRoutePlan(input: PlanRoutesInput): Promise<Result<R
   const allBookings = bookingsResult.data!.data;
 
   // Filter to unscheduled bookings (no route assigned) with valid coordinates
+  // Also detect bookings referencing deleted routes (orphaned route_id)
   const validBookings = allBookings.filter(hasValidCoordinates);
   const invalidBookings = allBookings.filter(b => !hasValidCoordinates(b));
-  const unscheduledBookings = validBookings.filter(b => !b.routeId); // Use routeId instead of vehicleId
+
+  // Detect orphaned route references (bookings pointing to soft-deleted routes)
+  const orphanedRouteBookings = await findOrphanedRouteBookings(validBookings);
+
+  if (orphanedRouteBookings.length > 0) {
+    warnings.push(
+      `${orphanedRouteBookings.length} booking(s) have stale route references and will be included`
+    );
+  }
+
+  // Include both truly unscheduled bookings and orphaned ones
+  const unscheduledBookings = [
+    ...validBookings.filter(b => !b.routeId),
+    ...orphanedRouteBookings,
+  ];
 
   if (invalidBookings.length > 0) {
     warnings.push(`${invalidBookings.length} booking(s) missing coordinates`);
@@ -1245,8 +1316,16 @@ export async function planRoutes(input: PlanRoutesInput): Promise<Result<PlanRou
     logger.warn('Bookings missing coordinates', { count: invalidBookings.length });
   }
 
+  // Detect and clear orphaned route references (bookings pointing to deleted routes)
+  const orphanedRouteBookings = await findOrphanedRouteBookings(validBookings);
+  await clearOrphanedRouteReferences(orphanedRouteBookings);
+
   // Filter bookings that don't already have a route assigned (unscheduled)
-  const unscheduledBookings = validBookings.filter(b => !b.routeId); // Use routeId instead of vehicleId
+  // Include orphaned bookings since their references have been cleared
+  const unscheduledBookings = [
+    ...validBookings.filter(b => !b.routeId),
+    ...orphanedRouteBookings,
+  ];
 
   if (unscheduledBookings.length === 0) {
     return {
