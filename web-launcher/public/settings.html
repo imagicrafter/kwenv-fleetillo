@@ -800,7 +800,27 @@
                                 <!-- Fields will be rendered here -->
                             </div>
 
-                            <button class="btn-secondary" onclick="addCustomField()"
+                            <button class="btn-secondary" onclick="addCustomField('location')"
+                                style="margin-top: 16px; width: 100%;">
+                                + Add Custom Field
+                            </button>
+                        </div>
+
+                        <div class="settings-section">
+                            <h3>
+                                <span class="icon">👤</span>
+                                Driver Custom Fields
+                            </h3>
+                            <div class="setting-description" style="margin-bottom: 24px;">
+                                Define custom fields to collect specific data for drivers. These fields will
+                                automatically appear on the Driver form.
+                            </div>
+
+                            <div id="driver-custom-fields-list">
+                                <!-- Fields will be rendered here -->
+                            </div>
+
+                            <button class="btn-secondary" onclick="addCustomField('driver')"
                                 style="margin-top: 16px; width: 100%;">
                                 + Add Custom Field
                             </button>
@@ -847,7 +867,11 @@
         let currentUnitSystem = 'imperial';
         let originalSettings = {};
         let customFields = [];
+<<<<<<< HEAD
         let vehicleCustomFields = [];
+=======
+        let driverCustomFields = [];
+>>>>>>> origin/main
 
         // Initialize
         document.addEventListener('DOMContentLoaded', loadSettings);
@@ -905,12 +929,20 @@
                         const enableImport = allSettings['data.enableImportBookings'];
                         document.getElementById('enable-import-bookings').checked = enableImport !== false; // Default true
 
-                        // Custom Fields
+                        // Location Custom Fields
                         const savedCustomFields = allSettings['locations.customFields'];
                         if (savedCustomFields && Array.isArray(savedCustomFields)) {
-                            renderCustomFields(savedCustomFields);
+                            renderCustomFields(savedCustomFields, 'location');
                         } else {
-                            renderCustomFields([]);
+                            renderCustomFields([], 'location');
+                        }
+
+                        // Driver Custom Fields
+                        const savedDriverCustomFields = allSettings['drivers.customFields'];
+                        if (savedDriverCustomFields && Array.isArray(savedDriverCustomFields)) {
+                            renderCustomFields(savedDriverCustomFields, 'driver');
+                        } else {
+                            renderCustomFields([], 'driver');
                         }
 
                         // Vehicle Custom Fields
@@ -930,18 +962,26 @@
             }
         }
 
-        // Custom Fields Logic
-        function renderCustomFields(fields) {
-            customFields = fields || [];
-            const container = document.getElementById('custom-fields-list');
+        // Custom Fields Logic - Shared for both location and driver entities
+        function renderCustomFields(fields, entity = 'location') {
+            const isDriver = entity === 'driver';
+            if (isDriver) {
+                driverCustomFields = fields || [];
+            } else {
+                customFields = fields || [];
+            }
+
+            const containerId = isDriver ? 'driver-custom-fields-list' : 'custom-fields-list';
+            const container = document.getElementById(containerId);
+            const currentFields = isDriver ? driverCustomFields : customFields;
             container.innerHTML = '';
 
-            if (customFields.length === 0) {
+            if (currentFields.length === 0) {
                 container.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">No custom fields defined. Click "Add Custom Field" to create one.</div>';
                 return;
             }
 
-            customFields.forEach((field, index) => {
+            currentFields.forEach((field, index) => {
                 const row = document.createElement('div');
                 row.className = 'setting-row';
                 row.style.alignItems = 'flex-start';
@@ -949,11 +989,11 @@
                     <div style="flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: start;">
                         <div>
                             <div class="setting-label" style="font-size: 0.8rem;">Label</div>
-                            <input type="text" value="${field.label}" onchange="updateCustomField(${index}, 'label', this.value)" placeholder="e.g. Trap Count" style="width: 100%;">
+                            <input type="text" value="${field.label}" onchange="updateCustomField(${index}, 'label', this.value, '${entity}')" placeholder="e.g. Employee ID" style="width: 100%;">
                         </div>
                         <div>
                             <div class="setting-label" style="font-size: 0.8rem;">Type</div>
-                            <select onchange="updateCustomField(${index}, 'type', this.value)" style="width: 100%;">
+                            <select onchange="updateCustomField(${index}, 'type', this.value, '${entity}')" style="width: 100%;">
                                 <option value="text" ${field.type === 'text' ? 'selected' : ''}>Text</option>
                                 <option value="number" ${field.type === 'number' ? 'selected' : ''}>Number</option>
                                 <option value="boolean" ${field.type === 'boolean' ? 'selected' : ''}>Checkbox (Yes/No)</option>
@@ -965,20 +1005,20 @@
                             <input type="text" value="${field.key}" readonly style="width: 100%; background: var(--surface-bg); color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 4px; padding: 10px;">
                         </div>
                         <div style="padding-top: 24px;">
-                            <button class="btn-icon" onclick="removeCustomField(${index})" style="color: var(--error-color); background: none; border: none; cursor: pointer;" title="Remove Field">
+                            <button class="btn-icon" onclick="removeCustomField(${index}, '${entity}')" style="color: var(--error-color); background: none; border: none; cursor: pointer;" title="Remove Field">
                                 <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                             </button>
                         </div>
                         <div style="grid-column: span 4; display: flex; gap: 16px; align-items: center;">
                             <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                                <input type="checkbox" ${field.required ? 'checked' : ''} onchange="updateCustomField(${index}, 'required', this.checked)">
+                                <input type="checkbox" ${field.required ? 'checked' : ''} onchange="updateCustomField(${index}, 'required', this.checked, '${entity}')">
                                 <span style="font-size: 0.9rem;">Required</span>
                             </label>
                             ${field.type === 'number' ? `
-                                <input type="text" value="${field.suffix || ''}" onchange="updateCustomField(${index}, 'suffix', this.value)" placeholder="Suffix (e.g. gallons)" style="width: 150px;">
+                                <input type="text" value="${field.suffix || ''}" onchange="updateCustomField(${index}, 'suffix', this.value, '${entity}')" placeholder="Suffix (e.g. gallons)" style="width: 150px;">
                             ` : ''}
                              ${field.type === 'select' ? `
-                                <input type="text" value="${(field.options || []).join(', ')}" onchange="updateCustomField(${index}, 'options', this.value)" placeholder="Options (comma separated)" style="width: 100%;">
+                                <input type="text" value="${(field.options || []).join(', ')}" onchange="updateCustomField(${index}, 'options', this.value, '${entity}')" placeholder="Options (comma separated)" style="width: 100%;">
                             ` : ''}
                         </div>
                     </div>
@@ -987,37 +1027,43 @@
             });
         }
 
-        function addCustomField() {
-            customFields.push({
+        function addCustomField(entity = 'location') {
+            const isDriver = entity === 'driver';
+            const fields = isDriver ? driverCustomFields : customFields;
+            fields.push({
                 key: 'field_' + Date.now(),
                 label: '',
                 type: 'text',
                 required: false
             });
-            renderCustomFields(customFields);
+            renderCustomFields(fields, entity);
         }
 
-        function removeCustomField(index) {
+        function removeCustomField(index, entity = 'location') {
             if (confirm('Are you sure you want to remove this field? Existing data will be preserved in the database but hidden from the form.')) {
-                customFields.splice(index, 1);
-                renderCustomFields(customFields);
+                const isDriver = entity === 'driver';
+                const fields = isDriver ? driverCustomFields : customFields;
+                fields.splice(index, 1);
+                renderCustomFields(fields, entity);
             }
         }
 
-        function updateCustomField(index, prop, value) {
+        function updateCustomField(index, prop, value, entity = 'location') {
             if (prop === 'options') {
                 // Split comma-separated string into array
                 value = value.split(',').map(s => s.trim()).filter(s => s);
             }
 
-            customFields[index][prop] = value;
+            const isDriver = entity === 'driver';
+            const fields = isDriver ? driverCustomFields : customFields;
+            fields[index][prop] = value;
 
             if (prop === 'label') {
                 // Auto-generate key from label
                 const newKey = value.toLowerCase().replace(/[^a-z0-9]/g, '_');
-                if (newKey) customFields[index].key = newKey;
+                if (newKey) fields[index].key = newKey;
             }
-            renderCustomFields(customFields);
+            renderCustomFields(fields, entity);
         }
 
         // Vehicle Custom Fields Logic
@@ -1226,7 +1272,8 @@
 
                     // Custom Fields
                     'locations.customFields': customFields,
-                    'vehicles.customFields': vehicleCustomFields
+                    'vehicles.customFields': vehicleCustomFields,
+                    'drivers.customFields': driverCustomFields
                 };
 
                 // Add to original to preserve other fields if needed, but updateMultiple upserts

@@ -25,6 +25,8 @@ export const SettingKeys = {
     LOCATIONS_CUSTOM_FIELDS: 'locations.customFields',
     // Vehicle settings
     VEHICLES_CUSTOM_FIELDS: 'vehicles.customFields',
+    // Driver settings
+    DRIVERS_CUSTOM_FIELDS: 'drivers.customFields',
 } as const;
 
 export type SettingKey = (typeof SettingKeys)[keyof typeof SettingKeys];
