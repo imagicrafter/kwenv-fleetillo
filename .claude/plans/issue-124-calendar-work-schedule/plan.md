@@ -143,15 +143,31 @@ const { startHour, endHour } = workScheduleSettings;
 
 **Testing:** Verify day view displays correct time range after this change.
 
-### Phase 4: Optional Enhancements
+### Phase 4: Update Booking Modal Time Select
 
-#### Step 4.1: Visual indicator for work hours boundary
+**Location:** `calendar.html:1463-1476`
+
+The booking creation modal has a time select dropdown that is also hardcoded (6 AM to 8 PM). Update it to use work schedule settings so available times align with configured hours.
+
+#### Step 4.1: Replace hardcoded time select range
+```javascript
+// BEFORE:
+for (let hour = 6; hour <= 20; hour++) {
+
+// AFTER:
+// Use work schedule hours for time picker range
+const { startHour: tsStart, endHour: tsEnd } = workScheduleSettings;
+for (let hour = tsStart; hour <= tsEnd; hour++) {
+```
+
+Note: This requires settings to be loaded before populating the dropdown. Move time select population into a function called after settings load.
+
+### Phase 5: Optional Enhancements
+
+#### Step 5.1: Visual indicator for work hours boundary
 Add subtle styling to show work hours vs extended hours if calendar supports times outside work schedule.
 
-#### Step 4.2: Booking creation time validation
-Consider restricting booking creation to work hours only (optional - may be too restrictive).
-
-#### Step 4.3: Settings change reactivity
+#### Step 5.2: Settings change reactivity
 Add listener for settings changes to auto-refresh calendar (future enhancement).
 
 ## Testing Strategy
@@ -188,7 +204,7 @@ Add listener for settings changes to auto-refresh calendar (future enhancement).
 
 | File | Type | Changes |
 |------|------|---------|
-| `web-launcher/public/calendar.html` | Modify | Add settings loader, update week/day view hour ranges |
+| `web-launcher/public/calendar.html` | Modify | Add settings loader, update week/day view hour ranges, update booking modal time select |
 
 **No backend changes required** - all necessary APIs already exist.
 

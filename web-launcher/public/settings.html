@@ -595,7 +595,9 @@
                             <div class="setting-row">
                                 <div class="setting-info">
                                     <div class="setting-label">Default Service Radius</div>
-                                    <div class="setting-description">Maximum distance from a vehicle's depot that bookings can be assigned. Bookings outside this radius will be marked as out of service area.</div>
+                                    <div class="setting-description">Maximum distance from a vehicle's depot that
+                                        bookings can be assigned. Bookings outside this radius will be marked as out of
+                                        service area.</div>
                                 </div>
                                 <div class="setting-control">
                                     <input type="number" id="default-service-radius" min="5" max="500" value="50">
@@ -603,10 +605,13 @@
                                 </div>
                             </div>
 
-                            <div class="setting-info-box" style="margin-top: 16px; padding: 12px 16px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border-left: 3px solid var(--accent-blue);">
+                            <div class="setting-info-box"
+                                style="margin-top: 16px; padding: 12px 16px; background: rgba(59, 130, 246, 0.1); border-radius: 8px; border-left: 3px solid var(--accent-blue);">
                                 <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">
-                                    <strong>💡 Tip:</strong> When City-Based Clustering is enabled (in Routes tab), this radius determines how far from each depot bookings can be assigned.
-                                    Set a larger radius (100+ miles) for rural areas or a smaller radius (25 miles) for dense urban operations.
+                                    <strong>💡 Tip:</strong> When City-Based Clustering is enabled (in Routes tab), this
+                                    radius determines how far from each depot bookings can be assigned.
+                                    Set a larger radius (100+ miles) for rural areas or a smaller radius (25 miles) for
+                                    dense urban operations.
                                 </p>
                             </div>
                         </div>
@@ -673,7 +678,8 @@
                             <div class="setting-row">
                                 <div class="setting-info">
                                     <div class="setting-label">City-Based Clustering</div>
-                                    <div class="setting-description">Keep bookings grouped by city/depot area. Disable to allow vehicles to service multiple cities.</div>
+                                    <div class="setting-description">Keep bookings grouped by city/depot area. Disable
+                                        to allow vehicles to service multiple cities.</div>
                                 </div>
                                 <div class="setting-control">
                                     <label class="toggle-switch">
@@ -818,6 +824,27 @@
                                 style="margin-top: 16px; width: 100%;">
                                 + Add Custom Field
                             </button>
+                            </button>
+                        </div>
+
+                        <div class="settings-section" style="margin-top: 32px;">
+                            <h3>
+                                <span class="icon">🚘</span>
+                                Vehicle Custom Fields
+                            </h3>
+                            <div class="setting-description" style="margin-bottom: 24px;">
+                                Define custom fields to collect specific data for vehicles. These fields will
+                                automatically appear on the Vehicle form.
+                            </div>
+
+                            <div id="vehicle-custom-fields-list">
+                                <!-- Fields will be rendered here -->
+                            </div>
+
+                            <button class="btn-secondary" onclick="addVehicleCustomField()"
+                                style="margin-top: 16px; width: 100%;">
+                                + Add Vehicle Custom Field
+                            </button>
                         </div>
                     </div>
 
@@ -840,7 +867,11 @@
         let currentUnitSystem = 'imperial';
         let originalSettings = {};
         let customFields = [];
+<<<<<<< HEAD
+        let vehicleCustomFields = [];
+=======
         let driverCustomFields = [];
+>>>>>>> origin/main
 
         // Initialize
         document.addEventListener('DOMContentLoaded', loadSettings);
@@ -912,6 +943,14 @@
                             renderCustomFields(savedDriverCustomFields, 'driver');
                         } else {
                             renderCustomFields([], 'driver');
+                        }
+
+                        // Vehicle Custom Fields
+                        const savedVehicleCustomFields = allSettings['vehicles.customFields'];
+                        if (savedVehicleCustomFields && Array.isArray(savedVehicleCustomFields)) {
+                            renderVehicleCustomFields(savedVehicleCustomFields);
+                        } else {
+                            renderVehicleCustomFields([]);
                         }
                     }
 
@@ -1025,6 +1064,94 @@
                 if (newKey) fields[index].key = newKey;
             }
             renderCustomFields(fields, entity);
+        }
+
+        // Vehicle Custom Fields Logic
+        function renderVehicleCustomFields(fields) {
+            vehicleCustomFields = fields || [];
+            const container = document.getElementById('vehicle-custom-fields-list');
+            container.innerHTML = '';
+
+            if (vehicleCustomFields.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 20px;">No vehicle custom fields defined. Click "Add Vehicle Custom Field" to create one.</div>';
+                return;
+            }
+
+            vehicleCustomFields.forEach((field, index) => {
+                const row = document.createElement('div');
+                row.className = 'setting-row';
+                row.style.alignItems = 'flex-start';
+                row.innerHTML = `
+                    <div style="flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 12px; align-items: start;">
+                        <div>
+                            <div class="setting-label" style="font-size: 0.8rem;">Label</div>
+                            <input type="text" value="${field.label}" onchange="updateVehicleCustomField(${index}, 'label', this.value)" placeholder="e.g. License Plate" style="width: 100%;">
+                        </div>
+                        <div>
+                            <div class="setting-label" style="font-size: 0.8rem;">Type</div>
+                            <select onchange="updateVehicleCustomField(${index}, 'type', this.value)" style="width: 100%;">
+                                <option value="text" ${field.type === 'text' ? 'selected' : ''}>Text</option>
+                                <option value="number" ${field.type === 'number' ? 'selected' : ''}>Number</option>
+                                <option value="boolean" ${field.type === 'boolean' ? 'selected' : ''}>Checkbox (Yes/No)</option>
+                                <option value="select" ${field.type === 'select' ? 'selected' : ''}>Dropdown</option>
+                            </select>
+                        </div>
+                        <div>
+                            <div class="setting-label" style="font-size: 0.8rem;">Key (Auto-generated)</div>
+                            <input type="text" value="${field.key}" readonly style="width: 100%; background: var(--surface-bg); color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 4px; padding: 10px;">
+                        </div>
+                        <div style="padding-top: 24px;">
+                            <button class="btn-icon" onclick="removeVehicleCustomField(${index})" style="color: var(--error-color); background: none; border: none; cursor: pointer;" title="Remove Field">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            </button>
+                        </div>
+                        <div style="grid-column: span 4; display: flex; gap: 16px; align-items: center;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" ${field.required ? 'checked' : ''} onchange="updateVehicleCustomField(${index}, 'required', this.checked)">
+                                <span style="font-size: 0.9rem;">Required</span>
+                            </label>
+                            ${field.type === 'number' ? `
+                                <input type="text" value="${field.suffix || ''}" onchange="updateVehicleCustomField(${index}, 'suffix', this.value)" placeholder="Suffix (e.g. lbs)" style="width: 150px;">
+                            ` : ''}
+                             ${field.type === 'select' ? `
+                                <input type="text" value="${(field.options || []).join(', ')}" onchange="updateVehicleCustomField(${index}, 'options', this.value)" placeholder="Options (comma separated)" style="width: 100%;">
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        function addVehicleCustomField() {
+            vehicleCustomFields.push({
+                key: 'vfield_' + Date.now(),
+                label: '',
+                type: 'text',
+                required: false
+            });
+            renderVehicleCustomFields(vehicleCustomFields);
+        }
+
+        function removeVehicleCustomField(index) {
+            if (confirm('Are you sure you want to remove this vehicle custom field? Existing data will be preserved in the database but hidden from the form.')) {
+                vehicleCustomFields.splice(index, 1);
+                renderVehicleCustomFields(vehicleCustomFields);
+            }
+        }
+
+        function updateVehicleCustomField(index, prop, value) {
+            if (prop === 'options') {
+                value = value.split(',').map(s => s.trim()).filter(s => s);
+            }
+
+            vehicleCustomFields[index][prop] = value;
+
+            if (prop === 'label') {
+                const newKey = value.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                if (newKey) vehicleCustomFields[index].key = newKey;
+            }
+            renderVehicleCustomFields(vehicleCustomFields);
         }
 
         // Update computed values
@@ -1145,6 +1272,7 @@
 
                     // Custom Fields
                     'locations.customFields': customFields,
+                    'vehicles.customFields': vehicleCustomFields,
                     'drivers.customFields': driverCustomFields
                 };
 
