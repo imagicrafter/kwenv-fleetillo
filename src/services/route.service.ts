@@ -510,7 +510,25 @@ export async function deleteRoute(id: string): Promise<Result<void>> {
       };
     }
 
-    // Reset bookings - try by stop_sequence first, then fallback to vehicle_id + date
+    // Reset bookings — primary: by route_id (most reliable, catches all bookings referencing this route)
+    logger.debug('Resetting bookings by route_id', { routeId: id });
+
+    const { error: routeIdResetError, count: routeIdResetCount } = await supabase
+      .from('bookings')
+      .update({
+        route_id: null,
+        status: 'confirmed'
+      })
+      .eq('route_id', id)
+      .is('deleted_at', null);
+
+    if (routeIdResetError) {
+      logger.warn('Failed to reset bookings by route_id', { error: routeIdResetError.message });
+    } else if (routeIdResetCount && routeIdResetCount > 0) {
+      logger.info('Reset bookings by route_id', { routeId: id, count: routeIdResetCount });
+    }
+
+    // Secondary: by stop_sequence (catches bookings whose route_id was already cleared but still need vehicle reset)
     if (route?.stop_sequence && route.stop_sequence.length > 0) {
       logger.debug('Resetting bookings for deleted route by stop_sequence', {
         routeId: id,
@@ -520,11 +538,11 @@ export async function deleteRoute(id: string): Promise<Result<void>> {
       const { error: bookingError } = await supabase
         .from('bookings')
         .update({
-          vehicle_id: null,
           route_id: null,
           status: 'confirmed'
         })
-        .in('id', route.stop_sequence);
+        .in('id', route.stop_sequence)
+        .is('deleted_at', null);
 
       if (bookingError) {
         logger.warn('Failed to reset bookings for deleted route', { error: bookingError.message });
@@ -533,33 +551,6 @@ export async function deleteRoute(id: string): Promise<Result<void>> {
           routeId: id,
           bookingIds: route.stop_sequence
         });
-      }
-    }
-
-    // Fallback: Also reset any bookings with matching vehicle_id and scheduled_date
-    // This catches bookings that might have been missed if stop_sequence was incomplete
-    if (route?.vehicle_id && route?.route_date) {
-      logger.debug('Resetting bookings by vehicle_id and date as fallback', {
-        routeId: id,
-        vehicleId: route.vehicle_id,
-        routeDate: route.route_date
-      });
-
-      const { error: fallbackError, count } = await supabase
-        .from('bookings')
-        .update({
-          vehicle_id: null,
-          route_id: null,
-          status: 'confirmed'
-        })
-        .eq('vehicle_id', route.vehicle_id)
-        .eq('scheduled_date', route.route_date)
-        .is('deleted_at', null);
-
-      if (fallbackError) {
-        logger.warn('Failed fallback reset of bookings', { error: fallbackError.message });
-      } else if (count && count > 0) {
-        logger.info('Fallback reset additional bookings', { count });
       }
     }
 
