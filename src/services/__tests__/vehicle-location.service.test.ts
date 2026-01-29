@@ -1,212 +1,323 @@
-
 import {
-    setVehicleLocations,
-    addVehicleLocation,
-    setVehiclePrimaryLocation,
-    removeVehicleLocation,
-    getVehiclePrimaryLocation
+  setVehicleLocations,
+  addVehicleLocation,
+  setVehiclePrimaryLocation,
+  removeVehicleLocation,
 } from '../vehicle-location.service';
 import { getAdminSupabaseClient } from '../supabase';
 
-// Mock supabase client
-const mockUpdate = jest.fn();
-const mockEq = jest.fn();
-const mockFrom = jest.fn();
-const mockSelect = jest.fn();
-const mockInsert = jest.fn();
-const mockDelete = jest.fn();
-const mockOrder = jest.fn();
-const mockSingle = jest.fn();
-
-const mockSupabase = {
-    from: mockFrom
-};
-
-// Mock chainable logic
-mockFrom.mockReturnValue({
-    select: mockSelect,
-    insert: mockInsert,
-    delete: mockDelete,
-    update: mockUpdate
-});
-
-mockSelect.mockReturnValue({
-    eq: mockEq,
-    order: mockOrder,
-    single: mockSingle
-});
-
-mockInsert.mockReturnValue({
-    select: mockSelect
-});
-
-mockDelete.mockReturnValue({
-    eq: mockEq
-});
-
-mockUpdate.mockReturnValue({
-    eq: mockEq
-});
-
-mockEq.mockReturnValue({
-    eq: mockEq,
-    single: mockSingle,
-    select: mockSelect,
-    order: mockOrder
-});
-
-
 // We need to properly mock the implementation of getAdminSupabaseClient
 jest.mock('../supabase', () => ({
-    getAdminSupabaseClient: jest.fn(),
-    getSupabaseClient: jest.fn()
+  getAdminSupabaseClient: jest.fn(),
+  getSupabaseClient: jest.fn(),
 }));
 
+/**
+ * Creates a mock Supabase client with table-aware routing.
+ * Returns the mock client and spies for verifying calls.
+ */
+function createMockSupabase(tableHandlers: Record<string, Record<string, jest.Mock>>) {
+  const fromSpy = jest.fn().mockImplementation((table: string) => {
+    return tableHandlers[table] || {};
+  });
+  return { from: fromSpy, fromSpy };
+}
+
+/**
+ * Creates a chainable eq mock that supports arbitrary depth.
+ * Final call in the chain resolves with the given response.
+ */
+function createChainableEq(response: { data: unknown; error: unknown }): jest.Mock {
+  const eqSpy: jest.Mock = jest.fn();
+  const thenable = {
+    eq: eqSpy,
+    select: jest.fn().mockResolvedValue(response),
+    then: (resolve: (val: unknown) => void) => resolve(response),
+  };
+  eqSpy.mockReturnValue(thenable);
+  return eqSpy;
+}
 
 describe('VehicleLocationService Home Location Sync', () => {
-    const vehicleId = 'v1';
-    const locationId = 'l1';
-    const altLocationId = 'l2';
+  const vehicleId = 'v1';
+  const locationId = 'l1';
 
-    beforeEach(() => {
-        jest.clearAllMocks();
-        (getAdminSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-        // Default success responses
-        mockSelect.mockResolvedValue({ data: [], error: null });
-        mockSingle.mockResolvedValue({ data: null, error: null });
-        mockEq.mockReturnValue(mockSupabase); // Reset chain for update/delete
+  describe('setVehicleLocations', () => {
+    it('should sync home_location_id when setting a primary location', async () => {
+      const mockRow = {
+        id: 'vl1',
+        vehicle_id: vehicleId,
+        location_id: locationId,
+        is_primary: true,
+        created_at: '2024-01-01T00:00:00Z',
+      };
 
-        // Fix chain for complex queries (delete().eq().eq().select())
-        mockDelete.mockReturnValue({
-            eq: jest.fn().mockReturnValue({
-                eq: jest.fn().mockReturnValue({
-                    select: jest.fn().mockResolvedValue({ data: [], error: null })
-                })
-            })
-        });
+      const vehiclesUpdateSpy = jest.fn().mockReturnValue({
+        eq: createChainableEq({ data: null, error: null }),
+      });
+
+      const { from: mockFrom, fromSpy } = createMockSupabase({
+        vehicle_locations: {
+          delete: jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue({ data: [], error: null }),
+          }),
+          insert: jest.fn().mockReturnValue({
+            select: jest.fn().mockResolvedValue({ data: [mockRow], error: null }),
+          }),
+        },
+        vehicles: {
+          update: vehiclesUpdateSpy,
+        },
+      });
+
+      const mockSupabase = { from: fromSpy };
+      (getAdminSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
+
+      const result = await setVehicleLocations(vehicleId, [{ locationId, isPrimary: true }]);
+
+      expect(result.success).toBe(true);
+      expect(fromSpy).toHaveBeenCalledWith('vehicles');
+      expect(vehiclesUpdateSpy).toHaveBeenCalledWith({ home_location_id: locationId });
     });
 
-    // Since I can't easily mock the deeply chained supabase calls perfectly without a library,
-    // I will focus on spying on the 'vehicles' table update call which is the core of the requirement.
+    it('should clear home_location_id when setting empty locations', async () => {
+      const vehiclesUpdateSpy = jest.fn().mockReturnValue({
+        eq: createChainableEq({ data: null, error: null }),
+      });
 
-    // But wait, the service imports supabase internally.
-    // I need to intercept that. 
-    // The previous mock setup for '../supabase' works.
+      const { fromSpy } = createMockSupabase({
+        vehicle_locations: {
+          delete: jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue({ data: [], error: null }),
+          }),
+        },
+        vehicles: {
+          update: vehiclesUpdateSpy,
+        },
+      });
 
+      const mockSupabase = { from: fromSpy };
+      (getAdminSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
+
+      const result = await setVehicleLocations(vehicleId, []);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual([]);
+      expect(fromSpy).toHaveBeenCalledWith('vehicles');
+      expect(vehiclesUpdateSpy).toHaveBeenCalledWith({ home_location_id: null });
+    });
+
+    it('should handle sync error gracefully without failing the main operation', async () => {
+      const mockRow = {
+        id: 'vl1',
+        vehicle_id: vehicleId,
+        location_id: locationId,
+        is_primary: true,
+        created_at: '2024-01-01T00:00:00Z',
+      };
+
+      // Sync update returns a Supabase error
+      const vehiclesUpdateSpy = jest.fn().mockReturnValue({
+        eq: createChainableEq({
+          data: null,
+          error: { message: 'RLS policy blocked update', code: '42501' },
+        }),
+      });
+
+      const { fromSpy } = createMockSupabase({
+        vehicle_locations: {
+          delete: jest.fn().mockReturnValue({
+            eq: jest.fn().mockResolvedValue({ data: [], error: null }),
+          }),
+          insert: jest.fn().mockReturnValue({
+            select: jest.fn().mockResolvedValue({ data: [mockRow], error: null }),
+          }),
+        },
+        vehicles: {
+          update: vehiclesUpdateSpy,
+        },
+      });
+
+      const mockSupabase = { from: fromSpy };
+      (getAdminSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
+
+      // The main operation should still succeed even though sync failed
+      const result = await setVehicleLocations(vehicleId, [{ locationId, isPrimary: true }]);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveLength(1);
+    });
+  });
+
+  describe('addVehicleLocation', () => {
     it('should sync home_location_id when adding a primary location', async () => {
-        // Setup insert return
-        const mockLoc = { vehicle_id: vehicleId, location_id: locationId, is_primary: true };
-        mockSelect.mockResolvedValueOnce({ data: mockLoc, error: null }); // for insert().select().single()
+      const mockLoc = {
+        id: 'vl1',
+        vehicle_id: vehicleId,
+        location_id: locationId,
+        is_primary: true,
+        created_at: '2024-01-01T00:00:00Z',
+      };
 
-        // This is tricky because addVehicleLocation calls rowToVehicleLocation
-        // and chained calls. 
-        // Let's refine the mock structure to handle the specific chains in the service.
+      const vehiclesUpdateSpy = jest.fn().mockReturnValue({
+        eq: createChainableEq({ data: null, error: null }),
+      });
 
-        // Chain for addVehicleLocation:
-        // insert().select().single()
-        // update().eq() (if primary)
-        // AND fetch vehicles table update
+      const { fromSpy } = createMockSupabase({
+        vehicle_locations: {
+          insert: jest.fn().mockReturnValue({
+            select: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({ data: mockLoc, error: null }),
+            }),
+          }),
+          update: jest.fn().mockReturnValue({
+            eq: jest.fn(),
+          }),
+        },
+        vehicles: {
+          update: vehiclesUpdateSpy,
+        },
+      });
 
-        const updateSpy = jest.fn().mockImplementation(() => ({ eq: jest.fn() }));
-        const fromSpy = jest.fn().mockImplementation((table) => {
-            if (table === 'vehicles') return { update: updateSpy };
-            if (table === 'vehicle_locations') return {
-                insert: jest.fn().mockReturnValue({
-                    select: jest.fn().mockReturnValue({
-                        single: jest.fn().mockResolvedValue({ data: mockLoc, error: null })
-                    })
-                }),
-                update: jest.fn().mockReturnValue({ eq: jest.fn() }),
-                delete: jest.fn().mockReturnValue({ eq: jest.fn() })
-            };
-            return {};
-        });
+      const mockSupabase = { from: fromSpy };
+      (getAdminSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
 
-        mockSupabase.from = fromSpy;
+      await addVehicleLocation(vehicleId, locationId, true);
 
-        await addVehicleLocation(vehicleId, locationId, true);
-
-        // Verify vehicles table update
-        expect(fromSpy).toHaveBeenCalledWith('vehicles');
-        expect(updateSpy).toHaveBeenCalledWith({ home_location_id: locationId });
+      expect(fromSpy).toHaveBeenCalledWith('vehicles');
+      expect(vehiclesUpdateSpy).toHaveBeenCalledWith({ home_location_id: locationId });
     });
 
-    it('should sync home_location_id when removing primary location', async () => {
-        const mockDeletedRows = [{ vehicle_id: vehicleId, location_id: locationId, is_primary: true }];
+    it('should NOT sync home_location_id when adding a non-primary location', async () => {
+      const mockLoc = {
+        id: 'vl1',
+        vehicle_id: vehicleId,
+        location_id: locationId,
+        is_primary: false,
+        created_at: '2024-01-01T00:00:00Z',
+      };
 
-        const selectSpy = jest.fn().mockResolvedValue({ data: mockDeletedRows, error: null });
-        const eqSpy2 = jest.fn().mockReturnValue({ select: selectSpy });
-        const eqSpy1 = jest.fn().mockReturnValue({ eq: eqSpy2 });
-        const deleteSpy = jest.fn().mockReturnValue({ eq: eqSpy1 });
-        const updateSpy = jest.fn().mockReturnValue({ eq: jest.fn() });
+      const vehiclesUpdateSpy = jest.fn().mockReturnValue({
+        eq: createChainableEq({ data: null, error: null }),
+      });
 
-        const fromSpy = jest.fn().mockImplementation((table) => {
-            if (table === 'vehicles') return { update: updateSpy };
-            if (table === 'vehicle_locations') return {
-                delete: deleteSpy
-            };
-            return {};
-        });
-        mockSupabase.from = fromSpy;
+      const { fromSpy } = createMockSupabase({
+        vehicle_locations: {
+          insert: jest.fn().mockReturnValue({
+            select: jest.fn().mockReturnValue({
+              single: jest.fn().mockResolvedValue({ data: mockLoc, error: null }),
+            }),
+          }),
+        },
+        vehicles: {
+          update: vehiclesUpdateSpy,
+        },
+      });
 
-        await removeVehicleLocation(vehicleId, locationId);
+      const mockSupabase = { from: fromSpy };
+      (getAdminSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
 
-        expect(fromSpy).toHaveBeenCalledWith('vehicles');
-        expect(updateSpy).toHaveBeenCalledWith({ home_location_id: null });
+      await addVehicleLocation(vehicleId, locationId, false);
+
+      // vehicles table should NOT have been accessed
+      expect(fromSpy).not.toHaveBeenCalledWith('vehicles');
+    });
+  });
+
+  describe('removeVehicleLocation', () => {
+    it('should clear home_location_id when removing a primary location', async () => {
+      const mockDeletedRows = [
+        {
+          id: 'vl1',
+          vehicle_id: vehicleId,
+          location_id: locationId,
+          is_primary: true,
+          created_at: '2024-01-01T00:00:00Z',
+        },
+      ];
+
+      const selectSpy = jest.fn().mockResolvedValue({ data: mockDeletedRows, error: null });
+      const eqSpy2 = jest.fn().mockReturnValue({ select: selectSpy });
+      const eqSpy1 = jest.fn().mockReturnValue({ eq: eqSpy2 });
+      const deleteSpy = jest.fn().mockReturnValue({ eq: eqSpy1 });
+      const vehiclesUpdateSpy = jest.fn().mockReturnValue({
+        eq: createChainableEq({ data: null, error: null }),
+      });
+
+      const fromSpy = jest.fn().mockImplementation((table: string) => {
+        if (table === 'vehicles') return { update: vehiclesUpdateSpy };
+        if (table === 'vehicle_locations') return { delete: deleteSpy };
+        return {};
+      });
+
+      const mockSupabase = { from: fromSpy };
+      (getAdminSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
+
+      await removeVehicleLocation(vehicleId, locationId);
+
+      expect(fromSpy).toHaveBeenCalledWith('vehicles');
+      expect(vehiclesUpdateSpy).toHaveBeenCalledWith({ home_location_id: null });
     });
 
-    it('should NOT sync home_location_id when removing non-primary location', async () => {
-        const mockDeletedRows = [{ vehicle_id: vehicleId, location_id: locationId, is_primary: false }];
+    it('should NOT clear home_location_id when removing a non-primary location', async () => {
+      const mockDeletedRows = [
+        {
+          id: 'vl1',
+          vehicle_id: vehicleId,
+          location_id: locationId,
+          is_primary: false,
+          created_at: '2024-01-01T00:00:00Z',
+        },
+      ];
 
-        const selectSpy = jest.fn().mockResolvedValue({ data: mockDeletedRows, error: null });
-        const eqSpy2 = jest.fn().mockReturnValue({ select: selectSpy });
-        const eqSpy1 = jest.fn().mockReturnValue({ eq: eqSpy2 });
-        const deleteSpy = jest.fn().mockReturnValue({ eq: eqSpy1 });
-        const updateSpy = jest.fn().mockReturnValue({ eq: jest.fn() });
+      const selectSpy = jest.fn().mockResolvedValue({ data: mockDeletedRows, error: null });
+      const eqSpy2 = jest.fn().mockReturnValue({ select: selectSpy });
+      const eqSpy1 = jest.fn().mockReturnValue({ eq: eqSpy2 });
+      const deleteSpy = jest.fn().mockReturnValue({ eq: eqSpy1 });
+      const vehiclesUpdateSpy = jest.fn().mockReturnValue({
+        eq: createChainableEq({ data: null, error: null }),
+      });
 
-        const fromSpy = jest.fn().mockImplementation((table) => {
-            if (table === 'vehicles') return { update: updateSpy };
-            if (table === 'vehicle_locations') return {
-                delete: deleteSpy
-            };
-            return {};
-        });
-        mockSupabase.from = fromSpy;
+      const fromSpy = jest.fn().mockImplementation((table: string) => {
+        if (table === 'vehicles') return { update: vehiclesUpdateSpy };
+        if (table === 'vehicle_locations') return { delete: deleteSpy };
+        return {};
+      });
 
-        await removeVehicleLocation(vehicleId, locationId);
+      const mockSupabase = { from: fromSpy };
+      (getAdminSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
 
-        expect(fromSpy).not.toHaveBeenCalledWith('vehicles');
+      await removeVehicleLocation(vehicleId, locationId);
+
+      expect(fromSpy).not.toHaveBeenCalledWith('vehicles');
     });
+  });
 
-    it('should sync home_location_id when setting primary location via setVehiclePrimaryLocation', async () => {
-        // We need a mock that handles both 1-level and 2-level eq chains and returns a result
-        const mockResponse = { data: null, error: null };
-        const eqSpy = jest.fn();
+  describe('setVehiclePrimaryLocation', () => {
+    it('should sync home_location_id when changing primary location', async () => {
+      const mockResponse = { data: null, error: null };
+      const eqSpy = createChainableEq(mockResponse);
 
-        // Make eqSpy return itself so we can chain infinite .eq()
-        // And make it thenable to return the response
-        const thenableEq = {
-            eq: eqSpy,
-            then: (resolve: any) => resolve(mockResponse)
-        };
-        eqSpy.mockReturnValue(thenableEq);
+      const vehiclesUpdateSpy = jest.fn().mockReturnValue({ eq: eqSpy });
+      const vlUpdateSpy = jest.fn().mockReturnValue({ eq: eqSpy });
 
-        const updateSpy = jest.fn().mockReturnValue(thenableEq);
+      const fromSpy = jest.fn().mockImplementation((table: string) => {
+        if (table === 'vehicles') return { update: vehiclesUpdateSpy };
+        if (table === 'vehicle_locations') return { update: vlUpdateSpy };
+        return {};
+      });
 
-        const fromSpy = jest.fn().mockImplementation((table) => {
-            if (table === 'vehicles') return { update: updateSpy };
-            if (table === 'vehicle_locations') return {
-                update: updateSpy
-            };
-            return {};
-        });
-        mockSupabase.from = fromSpy;
+      const mockSupabase = { from: fromSpy };
+      (getAdminSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
 
-        await setVehiclePrimaryLocation(vehicleId, locationId);
+      await setVehiclePrimaryLocation(vehicleId, locationId);
 
-        // Check if vehicles table was updated
-        expect(fromSpy).toHaveBeenCalledWith('vehicles');
-        expect(updateSpy).toHaveBeenCalledWith({ home_location_id: locationId });
+      expect(fromSpy).toHaveBeenCalledWith('vehicles');
+      expect(vehiclesUpdateSpy).toHaveBeenCalledWith({ home_location_id: locationId });
     });
+  });
 });
