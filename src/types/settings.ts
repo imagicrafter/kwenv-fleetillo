@@ -23,6 +23,8 @@ export const SettingKeys = {
     DASHBOARD_SHOW_CHATBOT: 'dashboard.showChatbot',
     // Location settings
     LOCATIONS_CUSTOM_FIELDS: 'locations.customFields',
+    // Vehicle settings
+    VEHICLES_CUSTOM_FIELDS: 'vehicles.customFields',
 } as const;
 
 export type SettingKey = (typeof SettingKeys)[keyof typeof SettingKeys];

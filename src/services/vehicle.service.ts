@@ -338,6 +338,24 @@ export async function updateVehicle(input: UpdateVehicleInput): Promise<Result<V
   try {
     const supabase = getAdminSupabaseClient() || getSupabaseClient();
 
+    // If metadata is provided, fetch existing to merge (immutability pattern)
+    if (input.metadata) {
+      const { data: existingData, error: fetchError } = await supabase
+        .from(VEHICLES_TABLE)
+        .select('metadata')
+        .eq('id', input.id)
+        .single();
+
+      if (!fetchError && existingData) {
+        // Merge existing metadata with input metadata
+        // Input takes precedence for existing keys
+        input.metadata = {
+          ...(existingData.metadata as Record<string, unknown>),
+          ...input.metadata,
+        };
+      }
+    }
+
     // Build update object, excluding id
     const { id, ...updateData } = input;
     const rowData = convertInputToRow(updateData as CreateVehicleInput);

@@ -583,6 +583,9 @@
                         </div>
                     </div>
 
+                    <!-- Custom Fields Container -->
+                    <div id="custom-fields-container"></div>
+
                     <div class="form-group">
                         <label>Associated Locations (for route start/end)</label>
                         <!-- Selected locations displayed as tags -->
@@ -660,6 +663,7 @@
             let currentVehicles = [];
             let currentServices = [];
             let currentLocations = []; // For location checkboxes
+            let customFieldDefs = []; // Vehicle custom fields definitions
             let serviceMap = new Map(); // ID -> Name
             let currentPage = 1;
             let limit = 10;
@@ -675,7 +679,7 @@
 
             async function initialize() {
                 try {
-                    await Promise.all([loadServices(), loadLocations(), loadVehicles()]);
+                    await Promise.all([loadServices(), loadLocations(), loadCustomFields(), loadVehicles()]);
                 } catch (error) {
                     console.error('Initialization failed', error);
                 }
@@ -694,6 +698,65 @@
                 } catch (error) {
                     console.error('Failed to load locations:', error);
                 }
+            }
+
+            // Load Custom Fields
+            async function loadCustomFields() {
+                try {
+                    const result = await window.apiClient.settings.getAll();
+                    const allSettings = (result && result.success) ? result.data : result;
+                    customFieldDefs = allSettings['vehicles.customFields'] || [];
+                } catch (error) {
+                    console.error('Failed to load custom fields:', error);
+                    customFieldDefs = [];
+                }
+            }
+
+            // Render Custom Fields Inputs
+            function renderCustomFieldInputs(existingMetadata = {}) {
+                const container = document.getElementById('custom-fields-container');
+                if (!container) return;
+
+                if (!customFieldDefs || customFieldDefs.length === 0) {
+                    container.innerHTML = '';
+                    return;
+                }
+
+                let html = '<div class="form-group"><label>Additional Details</label><div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">';
+
+                customFieldDefs.forEach(field => {
+                    const val = existingMetadata[field.key];
+                    const value = (val !== undefined && val !== null) ? val : '';
+                    let inputHtml = '';
+
+                    if (field.type === 'select') {
+                        const options = field.options || [];
+                        inputHtml = `<select id="field_${field.key}" class="custom-field-input" data-key="${field.key}" ${field.required ? 'required' : ''}>
+                            <option value="">Select...</option>
+                            ${options.map(opt => `<option value="${opt}" ${value === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+                         </select>`;
+                    } else if (field.type === 'boolean') {
+                        inputHtml = `<select id="field_${field.key}" class="custom-field-input" data-key="${field.key}" ${field.required ? 'required' : ''}>
+                            <option value="false" ${value === false ? 'selected' : ''}>No</option>
+                            <option value="true" ${value === true ? 'selected' : ''}>Yes</option>
+                         </select>`;
+                    } else {
+                        // text or number
+                        const type = field.type === 'number' ? 'number' : 'text';
+                        inputHtml = `<input type="${type}" id="field_${field.key}" class="custom-field-input" data-key="${field.key}" value="${value}" ${field.required ? 'required' : ''} placeholder="${field.label}">`;
+                    }
+
+                    html += `
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="field_${field.key}">${field.label} ${field.required ? '*' : ''}</label>
+                            ${inputHtml}
+                            ${field.suffix ? `<small style="color: var(--text-secondary);">${field.suffix}</small>` : ''}
+                        </div>
+                    `;
+                });
+
+                html += '</div></div>';
+                container.innerHTML = html;
             }
 
             // Track current vehicle's associated locations (from junction table)
@@ -1144,6 +1207,10 @@
                 // Populate location checkboxes with current associations
                 initLocationPicker(vehicleLocations);
 
+                // Render custom fields
+                const metadata = (vehicle && vehicle.metadata) ? vehicle.metadata : {};
+                renderCustomFieldInputs(metadata);
+
                 if (modal) modal.style.display = 'block';
             }
 
@@ -1181,6 +1248,30 @@
                     status: document.getElementById('vehicle-status').value,
                     serviceTypes: checkedServices
                 };
+
+                // Collect Custom Fields
+                const metadata = {};
+                document.querySelectorAll('.custom-field-input').forEach(input => {
+                    const key = input.dataset.key;
+                    let value = input.value;
+                    const fieldDef = customFieldDefs.find(f => f.key === key);
+
+                    if (fieldDef) {
+                        if (fieldDef.type === 'number') {
+                            value = value ? parseFloat(value) : null;
+                        } else if (fieldDef.type === 'boolean') {
+                            value = value === 'true';
+                        }
+
+                        // Handle empty strings/nulls - explicitly send them to allow clearing values
+                        if (value === '' || value === null || value === undefined) {
+                            metadata[key] = null;
+                        } else {
+                            metadata[key] = value;
+                        }
+                    }
+                });
+                data.metadata = metadata;
 
                 try {
                     let vehicleId = id;

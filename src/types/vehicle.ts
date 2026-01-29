@@ -102,6 +102,7 @@ export interface Vehicle extends Timestamps {
   // Metadata
   notes?: string;
   tags?: string[];
+  metadata?: Record<string, unknown>;
 
   // Soft delete
   deletedAt?: Date;
@@ -139,6 +140,7 @@ export interface VehicleRow {
   home_location_id: string | null;
   notes: string | null;
   tags: string[] | null;
+  metadata: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -174,6 +176,7 @@ export interface CreateVehicleInput {
   homeLocationId?: ID;
   notes?: string;
   tags?: string[];
+  metadata?: Record<string, unknown>;
 }
 
 /**
@@ -231,6 +234,7 @@ export function rowToVehicle(row: VehicleRow): Vehicle {
     homeLocationId: row.home_location_id ?? undefined,
     notes: row.notes ?? undefined,
     tags: row.tags ?? undefined,
+    metadata: row.metadata ?? undefined,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
     deletedAt: row.deleted_at ? new Date(row.deleted_at) : undefined,
@@ -295,6 +299,7 @@ export function vehicleInputToRow(input: CreateVehicleInput): Partial<VehicleRow
   // Metadata
   if (input.notes !== undefined) row.notes = input.notes ?? null;
   if (input.tags !== undefined) row.tags = input.tags ?? null;
+  if (input.metadata !== undefined) row.metadata = input.metadata ?? null;
 
   return row;
 }
