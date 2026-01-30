@@ -1,6 +1,6 @@
 -- ============================================================================
 -- Tenant Schema: kwenv_fleetillo
--- Generated: 2026-01-27T21:47:27.847Z
+-- Generated: 2026-01-30T04:10:27.452Z
 --
 -- This file creates a tenant-specific schema that mirrors the fleetillo schema.
 -- Apply this migration to create the schema for a new tenant/demo environment.
@@ -440,8 +440,6 @@ CREATE TABLE kwenv_fleetillo.vehicles (
     -- Driver assignment
     assigned_driver_id UUID REFERENCES kwenv_fleetillo.drivers(id) ON DELETE SET NULL,
     default_driver_id UUID REFERENCES kwenv_fleetillo.drivers(id) ON DELETE SET NULL,
-    home_location_id UUID REFERENCES kwenv_fleetillo.locations(id),
-
     -- Metadata
     notes TEXT,
     tags TEXT[],
@@ -459,7 +457,6 @@ CREATE INDEX idx_vehicles_status ON kwenv_fleetillo.vehicles(status);
 CREATE INDEX idx_vehicles_service_types ON kwenv_fleetillo.vehicles USING GIN(service_types);
 CREATE INDEX idx_vehicles_fuel_type ON kwenv_fleetillo.vehicles(fuel_type);
 CREATE INDEX idx_vehicles_assigned_driver ON kwenv_fleetillo.vehicles(assigned_driver_id);
-CREATE INDEX idx_vehicles_home_location ON kwenv_fleetillo.vehicles(home_location_id);
 CREATE INDEX idx_vehicles_created_at ON kwenv_fleetillo.vehicles(created_at);
 CREATE INDEX idx_vehicles_deleted_at ON kwenv_fleetillo.vehicles(deleted_at);
 

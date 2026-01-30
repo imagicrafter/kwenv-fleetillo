@@ -665,7 +665,7 @@ async function clearDemoData(): Promise<void> {
     if (vehicleLocationErr) console.warn('Error clearing vehicle_locations:', vehicleLocationErr.message);
   }
 
-  // Clear vehicles with demo tag (must be before locations due to home_location_id FK)
+  // Clear vehicles with demo tag (must be before locations due to vehicle_locations FK)
   const { error: vehicleErr } = await supabase.from('vehicles').delete().contains('tags', [DEMO_TAG]);
   if (vehicleErr) console.warn('Error clearing vehicles:', vehicleErr.message);
 
@@ -1130,7 +1130,6 @@ async function generateVehicles(
       currentFuelLevel: randomInt(40, 95),
       fuelEfficiencyMpg: randomInt(8, 14),
       odometerReading: randomInt(15000, 85000),
-      homeLocationId, // Assign home location
       notes: `Demo vehicle - ${spec.make} ${spec.model}`,
       tags: [DEMO_TAG],
     };

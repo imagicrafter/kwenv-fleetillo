@@ -38,7 +38,7 @@ function createChainableEq(response: { data: unknown; error: unknown }): jest.Mo
   return eqSpy;
 }
 
-describe('VehicleLocationService Home Location Sync', () => {
+describe('VehicleLocationService', () => {
   const vehicleId = 'v1';
   const locationId = 'l1';
 
@@ -47,7 +47,7 @@ describe('VehicleLocationService Home Location Sync', () => {
   });
 
   describe('setVehicleLocations', () => {
-    it('should sync home_location_id when setting a primary location', async () => {
+    it('should insert locations into junction table when setting a primary location', async () => {
       const mockRow = {
         id: 'vl1',
         vehicle_id: vehicleId,
@@ -56,21 +56,16 @@ describe('VehicleLocationService Home Location Sync', () => {
         created_at: '2024-01-01T00:00:00Z',
       };
 
-      const vehiclesUpdateSpy = jest.fn().mockReturnValue({
-        eq: createChainableEq({ data: null, error: null }),
+      const insertSpy = jest.fn().mockReturnValue({
+        select: jest.fn().mockResolvedValue({ data: [mockRow], error: null }),
       });
 
-      const { from: mockFrom, fromSpy } = createMockSupabase({
+      const { fromSpy } = createMockSupabase({
         vehicle_locations: {
           delete: jest.fn().mockReturnValue({
             eq: jest.fn().mockResolvedValue({ data: [], error: null }),
           }),
-          insert: jest.fn().mockReturnValue({
-            select: jest.fn().mockResolvedValue({ data: [mockRow], error: null }),
-          }),
-        },
-        vehicles: {
-          update: vehiclesUpdateSpy,
+          insert: insertSpy,
         },
       });
 
@@ -80,23 +75,19 @@ describe('VehicleLocationService Home Location Sync', () => {
       const result = await setVehicleLocations(vehicleId, [{ locationId, isPrimary: true }]);
 
       expect(result.success).toBe(true);
-      expect(fromSpy).toHaveBeenCalledWith('vehicles');
-      expect(vehiclesUpdateSpy).toHaveBeenCalledWith({ home_location_id: locationId });
+      expect(result.data).toHaveLength(1);
+      const firstItem = result.data![0];
+      expect(firstItem?.isPrimary).toBe(true);
+      // Should NOT touch the vehicles table (no sync)
+      expect(fromSpy).not.toHaveBeenCalledWith('vehicles');
     });
 
-    it('should clear home_location_id when setting empty locations', async () => {
-      const vehiclesUpdateSpy = jest.fn().mockReturnValue({
-        eq: createChainableEq({ data: null, error: null }),
-      });
-
+    it('should return empty array when setting empty locations', async () => {
       const { fromSpy } = createMockSupabase({
         vehicle_locations: {
           delete: jest.fn().mockReturnValue({
             eq: jest.fn().mockResolvedValue({ data: [], error: null }),
           }),
-        },
-        vehicles: {
-          update: vehiclesUpdateSpy,
         },
       });
 
@@ -107,54 +98,13 @@ describe('VehicleLocationService Home Location Sync', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual([]);
-      expect(fromSpy).toHaveBeenCalledWith('vehicles');
-      expect(vehiclesUpdateSpy).toHaveBeenCalledWith({ home_location_id: null });
-    });
-
-    it('should handle sync error gracefully without failing the main operation', async () => {
-      const mockRow = {
-        id: 'vl1',
-        vehicle_id: vehicleId,
-        location_id: locationId,
-        is_primary: true,
-        created_at: '2024-01-01T00:00:00Z',
-      };
-
-      // Sync update returns a Supabase error
-      const vehiclesUpdateSpy = jest.fn().mockReturnValue({
-        eq: createChainableEq({
-          data: null,
-          error: { message: 'RLS policy blocked update', code: '42501' },
-        }),
-      });
-
-      const { fromSpy } = createMockSupabase({
-        vehicle_locations: {
-          delete: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({ data: [], error: null }),
-          }),
-          insert: jest.fn().mockReturnValue({
-            select: jest.fn().mockResolvedValue({ data: [mockRow], error: null }),
-          }),
-        },
-        vehicles: {
-          update: vehiclesUpdateSpy,
-        },
-      });
-
-      const mockSupabase = { from: fromSpy };
-      (getAdminSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
-
-      // The main operation should still succeed even though sync failed
-      const result = await setVehicleLocations(vehicleId, [{ locationId, isPrimary: true }]);
-
-      expect(result.success).toBe(true);
-      expect(result.data).toHaveLength(1);
+      // Should NOT touch the vehicles table (no sync)
+      expect(fromSpy).not.toHaveBeenCalledWith('vehicles');
     });
   });
 
   describe('addVehicleLocation', () => {
-    it('should sync home_location_id when adding a primary location', async () => {
+    it('should insert a primary location without syncing to vehicles table', async () => {
       const mockLoc = {
         id: 'vl1',
         vehicle_id: vehicleId,
@@ -162,10 +112,6 @@ describe('VehicleLocationService Home Location Sync', () => {
         is_primary: true,
         created_at: '2024-01-01T00:00:00Z',
       };
-
-      const vehiclesUpdateSpy = jest.fn().mockReturnValue({
-        eq: createChainableEq({ data: null, error: null }),
-      });
 
       const { fromSpy } = createMockSupabase({
         vehicle_locations: {
@@ -178,21 +124,20 @@ describe('VehicleLocationService Home Location Sync', () => {
             eq: jest.fn(),
           }),
         },
-        vehicles: {
-          update: vehiclesUpdateSpy,
-        },
       });
 
       const mockSupabase = { from: fromSpy };
       (getAdminSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
 
-      await addVehicleLocation(vehicleId, locationId, true);
+      const result = await addVehicleLocation(vehicleId, locationId, true);
 
-      expect(fromSpy).toHaveBeenCalledWith('vehicles');
-      expect(vehiclesUpdateSpy).toHaveBeenCalledWith({ home_location_id: locationId });
+      expect(result.success).toBe(true);
+      expect(result.data!.isPrimary).toBe(true);
+      // Should NOT touch the vehicles table (no sync)
+      expect(fromSpy).not.toHaveBeenCalledWith('vehicles');
     });
 
-    it('should NOT sync home_location_id when adding a non-primary location', async () => {
+    it('should insert a non-primary location', async () => {
       const mockLoc = {
         id: 'vl1',
         vehicle_id: vehicleId,
@@ -200,10 +145,6 @@ describe('VehicleLocationService Home Location Sync', () => {
         is_primary: false,
         created_at: '2024-01-01T00:00:00Z',
       };
-
-      const vehiclesUpdateSpy = jest.fn().mockReturnValue({
-        eq: createChainableEq({ data: null, error: null }),
-      });
 
       const { fromSpy } = createMockSupabase({
         vehicle_locations: {
@@ -213,43 +154,27 @@ describe('VehicleLocationService Home Location Sync', () => {
             }),
           }),
         },
-        vehicles: {
-          update: vehiclesUpdateSpy,
-        },
       });
 
       const mockSupabase = { from: fromSpy };
       (getAdminSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
 
-      await addVehicleLocation(vehicleId, locationId, false);
+      const result = await addVehicleLocation(vehicleId, locationId, false);
 
+      expect(result.success).toBe(true);
+      expect(result.data!.isPrimary).toBe(false);
       // vehicles table should NOT have been accessed
       expect(fromSpy).not.toHaveBeenCalledWith('vehicles');
     });
   });
 
   describe('removeVehicleLocation', () => {
-    it('should clear home_location_id when removing a primary location', async () => {
-      const mockDeletedRows = [
-        {
-          id: 'vl1',
-          vehicle_id: vehicleId,
-          location_id: locationId,
-          is_primary: true,
-          created_at: '2024-01-01T00:00:00Z',
-        },
-      ];
-
-      const selectSpy = jest.fn().mockResolvedValue({ data: mockDeletedRows, error: null });
-      const eqSpy2 = jest.fn().mockReturnValue({ select: selectSpy });
+    it('should delete a location from the junction table', async () => {
+      const eqSpy2 = jest.fn().mockResolvedValue({ data: null, error: null });
       const eqSpy1 = jest.fn().mockReturnValue({ eq: eqSpy2 });
       const deleteSpy = jest.fn().mockReturnValue({ eq: eqSpy1 });
-      const vehiclesUpdateSpy = jest.fn().mockReturnValue({
-        eq: createChainableEq({ data: null, error: null }),
-      });
 
       const fromSpy = jest.fn().mockImplementation((table: string) => {
-        if (table === 'vehicles') return { update: vehiclesUpdateSpy };
         if (table === 'vehicle_locations') return { delete: deleteSpy };
         return {};
       });
@@ -257,56 +182,22 @@ describe('VehicleLocationService Home Location Sync', () => {
       const mockSupabase = { from: fromSpy };
       (getAdminSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
 
-      await removeVehicleLocation(vehicleId, locationId);
+      const result = await removeVehicleLocation(vehicleId, locationId);
 
-      expect(fromSpy).toHaveBeenCalledWith('vehicles');
-      expect(vehiclesUpdateSpy).toHaveBeenCalledWith({ home_location_id: null });
-    });
-
-    it('should NOT clear home_location_id when removing a non-primary location', async () => {
-      const mockDeletedRows = [
-        {
-          id: 'vl1',
-          vehicle_id: vehicleId,
-          location_id: locationId,
-          is_primary: false,
-          created_at: '2024-01-01T00:00:00Z',
-        },
-      ];
-
-      const selectSpy = jest.fn().mockResolvedValue({ data: mockDeletedRows, error: null });
-      const eqSpy2 = jest.fn().mockReturnValue({ select: selectSpy });
-      const eqSpy1 = jest.fn().mockReturnValue({ eq: eqSpy2 });
-      const deleteSpy = jest.fn().mockReturnValue({ eq: eqSpy1 });
-      const vehiclesUpdateSpy = jest.fn().mockReturnValue({
-        eq: createChainableEq({ data: null, error: null }),
-      });
-
-      const fromSpy = jest.fn().mockImplementation((table: string) => {
-        if (table === 'vehicles') return { update: vehiclesUpdateSpy };
-        if (table === 'vehicle_locations') return { delete: deleteSpy };
-        return {};
-      });
-
-      const mockSupabase = { from: fromSpy };
-      (getAdminSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
-
-      await removeVehicleLocation(vehicleId, locationId);
-
+      expect(result.success).toBe(true);
+      // Should NOT touch the vehicles table (no sync)
       expect(fromSpy).not.toHaveBeenCalledWith('vehicles');
     });
   });
 
   describe('setVehiclePrimaryLocation', () => {
-    it('should sync home_location_id when changing primary location', async () => {
+    it('should update primary flag in junction table without syncing to vehicles', async () => {
       const mockResponse = { data: null, error: null };
       const eqSpy = createChainableEq(mockResponse);
 
-      const vehiclesUpdateSpy = jest.fn().mockReturnValue({ eq: eqSpy });
       const vlUpdateSpy = jest.fn().mockReturnValue({ eq: eqSpy });
 
       const fromSpy = jest.fn().mockImplementation((table: string) => {
-        if (table === 'vehicles') return { update: vehiclesUpdateSpy };
         if (table === 'vehicle_locations') return { update: vlUpdateSpy };
         return {};
       });
@@ -314,10 +205,11 @@ describe('VehicleLocationService Home Location Sync', () => {
       const mockSupabase = { from: fromSpy };
       (getAdminSupabaseClient as jest.Mock).mockReturnValue(mockSupabase);
 
-      await setVehiclePrimaryLocation(vehicleId, locationId);
+      const result = await setVehiclePrimaryLocation(vehicleId, locationId);
 
-      expect(fromSpy).toHaveBeenCalledWith('vehicles');
-      expect(vehiclesUpdateSpy).toHaveBeenCalledWith({ home_location_id: locationId });
+      expect(result.success).toBe(true);
+      // Should NOT touch the vehicles table (no sync)
+      expect(fromSpy).not.toHaveBeenCalledWith('vehicles');
     });
   });
 });
