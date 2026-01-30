@@ -3,7 +3,7 @@
  * Manages the many-to-many relationship between vehicles and locations
  */
 
-import { getAdminSupabaseClient, getSupabaseClient, type GenericSupabaseClient } from './supabase';
+import { getAdminSupabaseClient, getSupabaseClient } from './supabase';
 import { createContextLogger } from '../utils/logger';
 import type { Result } from '../types/index';
 import type {
@@ -140,9 +140,8 @@ export async function setVehicleLocations(
       return { success: false, error: deleteError };
     }
 
-    // If no locations to add, clear home_location_id and return empty
+    // If no locations to add, return empty
     if (locations.length === 0) {
-      await syncVehicleHomeLocation(supabase, vehicleId, null);
       return { success: true, data: [] };
     }
 
@@ -162,12 +161,6 @@ export async function setVehicleLocations(
     }
 
     const vehicleLocations = (data as VehicleLocationRow[]).map(rowToVehicleLocation);
-
-    // Sync home_location_id if a primary location was set
-    const primaryLoc = vehicleLocations.find(l => l.isPrimary);
-    if (primaryLoc) {
-      await syncVehicleHomeLocation(supabase, vehicleId, primaryLoc.locationId);
-    }
 
     return { success: true, data: vehicleLocations };
   } catch (error) {
@@ -212,11 +205,6 @@ export async function addVehicleLocation(
 
     const vehicleLocation = rowToVehicleLocation(data as VehicleLocationRow);
 
-    // Sync home_location_id if this is primary
-    if (isPrimary) {
-      await syncVehicleHomeLocation(supabase, vehicleId, locationId);
-    }
-
     return { success: true, data: vehicleLocation };
   } catch (error) {
     logger.error('Unexpected error adding vehicle location', { error });
@@ -234,25 +222,15 @@ export async function removeVehicleLocation(
   const supabase = getAdminSupabaseClient() || getSupabaseClient();
 
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('vehicle_locations')
       .delete()
       .eq('vehicle_id', vehicleId)
-      .eq('location_id', locationId)
-      .select();
+      .eq('location_id', locationId);
 
     if (error) {
       logger.error('Failed to remove vehicle location', { error, vehicleId, locationId });
       return { success: false, error };
-    }
-
-    // If we removed the primary location, we need to clear home_location_id
-    // (data is array of deleted rows)
-    const deletedRows = data as VehicleLocationRow[];
-    const wasPrimary = deletedRows.some(row => row.is_primary);
-
-    if (wasPrimary) {
-      await syncVehicleHomeLocation(supabase, vehicleId, null);
     }
 
     return { success: true, data: undefined };
@@ -290,9 +268,6 @@ export async function setVehiclePrimaryLocation(
       return { success: false, error };
     }
 
-    // Sync home_location_id in vehicles table
-    await syncVehicleHomeLocation(supabase, vehicleId, locationId);
-
     return { success: true, data: undefined };
   } catch (error) {
     logger.error('Unexpected error setting primary location', { error });
@@ -300,40 +275,3 @@ export async function setVehiclePrimaryLocation(
   }
 }
 
-/**
- * Helper to sync vehicle's home_location_id with its primary location.
- * Returns true if sync succeeded, false otherwise.
- * Sync errors are non-fatal — they are logged but do not fail the calling operation.
- */
-async function syncVehicleHomeLocation(
-  supabase: GenericSupabaseClient,
-  vehicleId: string,
-  primaryLocationId: string | null
-): Promise<boolean> {
-  try {
-    const { error } = await supabase
-      .from('vehicles')
-      .update({ home_location_id: primaryLocationId })
-      .eq('id', vehicleId);
-
-    if (error) {
-      logger.error('Failed to sync vehicle home_location_id', {
-        vehicleId,
-        primaryLocationId,
-        supabaseError: error.message,
-        code: error.code,
-      });
-      return false;
-    }
-
-    logger.debug('Synced vehicle home_location_id', { vehicleId, primaryLocationId });
-    return true;
-  } catch (error) {
-    logger.error('Unexpected error syncing vehicle home_location_id', {
-      error,
-      vehicleId,
-      primaryLocationId,
-    });
-    return false;
-  }
-}

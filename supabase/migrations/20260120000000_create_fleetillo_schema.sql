@@ -421,8 +421,6 @@ CREATE TABLE fleetillo.vehicles (
     -- Driver assignment
     assigned_driver_id UUID REFERENCES fleetillo.drivers(id) ON DELETE SET NULL,
     default_driver_id UUID REFERENCES fleetillo.drivers(id) ON DELETE SET NULL,
-    home_location_id UUID REFERENCES fleetillo.locations(id),
-
     -- Metadata
     notes TEXT,
     tags TEXT[],
@@ -440,7 +438,6 @@ CREATE INDEX idx_vehicles_status ON fleetillo.vehicles(status);
 CREATE INDEX idx_vehicles_service_types ON fleetillo.vehicles USING GIN(service_types);
 CREATE INDEX idx_vehicles_fuel_type ON fleetillo.vehicles(fuel_type);
 CREATE INDEX idx_vehicles_assigned_driver ON fleetillo.vehicles(assigned_driver_id);
-CREATE INDEX idx_vehicles_home_location ON fleetillo.vehicles(home_location_id);
 CREATE INDEX idx_vehicles_created_at ON fleetillo.vehicles(created_at);
 CREATE INDEX idx_vehicles_deleted_at ON fleetillo.vehicles(deleted_at);
 

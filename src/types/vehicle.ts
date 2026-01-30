@@ -137,7 +137,6 @@ export interface VehicleRow {
   next_maintenance_date: string | null;
   odometer_reading: number | null;
   assigned_driver_id: string | null;
-  home_location_id: string | null;
   notes: string | null;
   tags: string[] | null;
   metadata: Record<string, unknown> | null;
@@ -173,7 +172,6 @@ export interface CreateVehicleInput {
   nextMaintenanceDate?: Date;
   odometerReading?: number;
   assignedDriverId?: ID;
-  homeLocationId?: ID;
   notes?: string;
   tags?: string[];
   metadata?: Record<string, unknown>;
@@ -231,7 +229,6 @@ export function rowToVehicle(row: VehicleRow): Vehicle {
     nextMaintenanceDate: row.next_maintenance_date ? new Date(row.next_maintenance_date) : undefined,
     odometerReading: row.odometer_reading ?? undefined,
     assignedDriverId: row.assigned_driver_id ?? undefined,
-    homeLocationId: row.home_location_id ?? undefined,
     notes: row.notes ?? undefined,
     tags: row.tags ?? undefined,
     metadata: row.metadata ?? undefined,
@@ -294,7 +291,6 @@ export function vehicleInputToRow(input: CreateVehicleInput): Partial<VehicleRow
 
   // Assignments
   if (input.assignedDriverId !== undefined) row.assigned_driver_id = input.assignedDriverId ?? null;
-  if (input.homeLocationId !== undefined) row.home_location_id = input.homeLocationId ?? null;
 
   // Metadata
   if (input.notes !== undefined) row.notes = input.notes ?? null;
