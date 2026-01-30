@@ -75,6 +75,48 @@ export async function getVehiclePrimaryLocation(
 }
 
 /**
+ * Get primary location IDs for multiple vehicles in a single query.
+ * Returns a Map of vehicleId -> locationId for vehicles that have a primary location set.
+ */
+export async function getVehiclePrimaryLocationIds(
+  vehicleIds: string[]
+): Promise<Result<Map<string, string>>> {
+  const supabase = getAdminSupabaseClient() || getSupabaseClient();
+
+  if (vehicleIds.length === 0) {
+    return { success: true, data: new Map() };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('vehicle_locations')
+      .select('vehicle_id, location_id')
+      .in('vehicle_id', vehicleIds)
+      .eq('is_primary', true);
+
+    if (error) {
+      logger.error('Failed to fetch primary location IDs', { error, vehicleCount: vehicleIds.length });
+      return { success: false, error };
+    }
+
+    const locationMap = new Map<string, string>();
+    for (const row of data as Array<{ vehicle_id: string; location_id: string }>) {
+      locationMap.set(row.vehicle_id, row.location_id);
+    }
+
+    logger.debug('Fetched primary location IDs', {
+      requested: vehicleIds.length,
+      found: locationMap.size,
+    });
+
+    return { success: true, data: locationMap };
+  } catch (error) {
+    logger.error('Unexpected error fetching primary location IDs', { error });
+    return { success: false, error: error as Error };
+  }
+}
+
+/**
  * Set locations for a vehicle (replaces all existing associations)
  */
 export async function setVehicleLocations(
