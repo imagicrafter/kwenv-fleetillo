@@ -21,7 +21,7 @@ import type { Vehicle } from '../types/vehicle';
 import { getRouteSettings } from './settings.service';
 import { createRoute } from './route.service';
 import { getLocationById } from './location.service';
-import { getVehiclePrimaryLocation } from './vehicle-location.service';
+import { getVehiclePrimaryLocation, getVehiclePrimaryLocationIds } from './vehicle-location.service';
 import { getAdminSupabaseClient, getSupabaseClient } from './supabase';
 import { getRoutePlanningParams } from './settings.service';
 import { computeRoutes } from './google-routes.service';
@@ -1105,11 +1105,22 @@ export async function previewRoutePlan(input: PlanRoutesInput): Promise<Result<R
   const {
     compatibleBookings,
     incompatibleBookings,
-    vehicles,
+    vehicles: loadedVehicles,
     warnings: compatWarnings,
   } = await findCompatibleVehicleBookings(unscheduledBookings, input.serviceId);
 
   warnings.push(...compatWarnings);
+
+  // Enrich vehicles with primary location IDs from vehicle_locations junction table
+  const primaryLocationResult = await getVehiclePrimaryLocationIds(loadedVehicles.map(v => v.id));
+  let vehicles = loadedVehicles;
+  if (primaryLocationResult.success && primaryLocationResult.data) {
+    const primaryMap = primaryLocationResult.data;
+    vehicles = loadedVehicles.map(v => ({
+      ...v,
+      homeLocationId: primaryMap.get(v.id) ?? v.homeLocationId,
+    }));
+  }
 
   // Fetch all depot/home type locations as available base locations
   // Import getAllLocations from location service if needed - using admin supabase directly
@@ -1354,11 +1365,22 @@ export async function planRoutes(input: PlanRoutesInput): Promise<Result<PlanRou
   const {
     compatibleBookings,
     incompatibleBookings,
-    vehicles,
+    vehicles: loadedVehicles,
     warnings: compatWarnings,
   } = await findCompatibleVehicleBookings(unscheduledBookings, input.serviceId);
 
   const warnings: string[] = [...compatWarnings];
+
+  // Enrich vehicles with primary location IDs from vehicle_locations junction table
+  const primaryLocationResult = await getVehiclePrimaryLocationIds(loadedVehicles.map(v => v.id));
+  let vehicles = loadedVehicles;
+  if (primaryLocationResult.success && primaryLocationResult.data) {
+    const primaryMap = primaryLocationResult.data;
+    vehicles = loadedVehicles.map(v => ({
+      ...v,
+      homeLocationId: primaryMap.get(v.id) ?? v.homeLocationId,
+    }));
+  }
   const unassignedBookings: Booking[] = [...invalidBookings, ...incompatibleBookings];
 
   if (compatibleBookings.length === 0) {

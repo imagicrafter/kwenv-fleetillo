@@ -148,3 +148,14 @@ export {
   type BookingBatch,
   type OptimizedRouteBatch,
 } from './route-generation.service';
+
+// Vehicle Location service
+export {
+  getVehicleLocations,
+  getVehiclePrimaryLocation,
+  getVehiclePrimaryLocationIds,
+  setVehicleLocations,
+  addVehicleLocation,
+  removeVehicleLocation,
+  setVehiclePrimaryLocation,
+} from './vehicle-location.service';
